@@ -1,0 +1,21 @@
+.DS_Store
+
+# Local environment files and secrets
+.env
+.env.local
+*.env
+!*.env.example
+compose/**/.env
+env-templates/*.env
+
+# Credentials and certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Generated backups and runtime artifacts
+backups/
+tmp/
+*.log

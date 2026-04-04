@@ -1,0 +1,77 @@
+services:
+  broker:
+    image: redis:7
+    container_name: paperless-redis
+    restart: unless-stopped
+    volumes:
+      - paperless_redis:/data
+    networks:
+      - backend
+
+  db:
+    image: postgres:16
+    container_name: paperless-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - paperless_db:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  webserver:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: paperless
+    restart: unless-stopped
+    depends_on:
+      - db
+      - broker
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: db
+      PAPERLESS_DBNAME: ${POSTGRES_DB}
+      PAPERLESS_DBUSER: ${POSTGRES_USER}
+      PAPERLESS_DBPASS: ${POSTGRES_PASSWORD}
+      PAPERLESS_URL: ${PAPERLESS_URL}
+      PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: ${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL}
+      PAPERLESS_COOKIE_PREFIX: ${PAPERLESS_COOKIE_PREFIX}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY}
+      PAPERLESS_TIME_ZONE: ${PAPERLESS_TIME_ZONE}
+      PAPERLESS_OCR_LANGUAGE: ${PAPERLESS_OCR_LANGUAGE}
+      PAPERLESS_TIKA_ENABLED: ${PAPERLESS_TIKA_ENABLED}
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: ${PAPERLESS_TIKA_GOTENBERG_ENDPOINT}
+      PAPERLESS_TIKA_ENDPOINT: ${PAPERLESS_TIKA_ENDPOINT}
+      USERMAP_UID: ${USERMAP_UID}
+      USERMAP_GID: ${USERMAP_GID}
+    volumes:
+      - paperless_data:/usr/src/paperless/data
+      - paperless_media:/usr/src/paperless/media
+      - paperless_export:/usr/src/paperless/export
+      - paperless_consume:/usr/src/paperless/consume
+    networks:
+      - backend
+      - paperless
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.paperless.rule=Host(`${PAPERLESS_HOST}`)
+      - traefik.http.routers.paperless.entrypoints=${TRAEFIK_ENTRYPOINT}
+      - traefik.http.services.paperless.loadbalancer.server.port=8000
+
+volumes:
+  paperless_redis:
+  paperless_db:
+  paperless_data:
+  paperless_media:
+  paperless_export:
+  paperless_consume:
+
+networks:
+  backend:
+  paperless:
+    external: true
+  proxy:
+    external: true

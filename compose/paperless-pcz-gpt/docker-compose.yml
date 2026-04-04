@@ -1,0 +1,33 @@
+services:
+  paperless-gpt:
+    image: icereed/paperless-gpt:latest
+    container_name: paperless-pcz-gpt
+    restart: unless-stopped
+    environment:
+      PAPERLESS_BASE_URL: ${PAPERLESS_BASE_URL}
+      PAPERLESS_API_TOKEN: ${PAPERLESS_API_TOKEN}
+      LLM_PROVIDER: ${LLM_PROVIDER}
+      LLM_MODEL: ${LLM_MODEL}
+      OLLAMA_HOST: ${OLLAMA_HOST}
+      OLLAMA_CONTEXT_LENGTH: ${OLLAMA_CONTEXT_LENGTH}
+      TOKEN_LIMIT: ${TOKEN_LIMIT}
+      LLM_LANGUAGE: ${LLM_LANGUAGE}
+      OCR_PROVIDER: ${OCR_PROVIDER}
+      AUTO_TAG: ${AUTO_TAG}
+      MANUAL_TAG: ${MANUAL_TAG}
+      LOG_LEVEL: ${LOG_LEVEL}
+    networks:
+      - paperless
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.paperless-pcz-gpt.rule=Host(`${PAPERLESS_GPT_HOST}`)
+      - traefik.http.routers.paperless-pcz-gpt.entrypoints=${TRAEFIK_ENTRYPOINT}
+      - traefik.http.services.paperless-pcz-gpt.loadbalancer.server.port=8080
+
+networks:
+  paperless:
+    external: true
+  proxy:
+    external: true

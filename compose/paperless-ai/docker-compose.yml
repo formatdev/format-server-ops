@@ -1,0 +1,16 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: paperless-ollama
+    restart: unless-stopped
+    volumes:
+      - paperless_ollama:/root/.ollama
+    networks:
+      - paperless
+
+volumes:
+  paperless_ollama:
+
+networks:
+  paperless:
+    external: true

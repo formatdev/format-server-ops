@@ -1,0 +1,22 @@
+services:
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: paperless-core-gotenberg
+    restart: unless-stopped
+    command:
+      - gotenberg
+      - --chromium-disable-javascript=true
+      - --chromium-allow-list=file:///tmp/.*
+    networks:
+      - paperless
+
+  tika:
+    image: apache/tika:latest
+    container_name: paperless-core-tika
+    restart: unless-stopped
+    networks:
+      - paperless
+
+networks:
+  paperless:
+    external: true
