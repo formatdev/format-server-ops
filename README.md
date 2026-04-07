@@ -1,6 +1,8 @@
-# On-Prem Paperless-ngx Stack on ESXi
+# Format Server Ops
 
-This repository now documents the audited live state of the `lportainer` VM as observed over SSH on `2026-04-04`, and includes sanitized exports of the live compose-managed stacks.
+This repository started as documentation for the `lportainer` VM, but it now serves as a broader operations and maintenance workspace for internal and external Windows and Unix servers.
+
+It currently includes the audited live state of the `lportainer` VM as observed over SSH on `2026-04-04`, sanitized exports of the live compose-managed stacks, SSH runbooks, and server maintenance notes such as the `EASYJOB3` inventory and health check.
 
 The host is currently running a Portainer-managed Docker environment with multiple Paperless-related stacks, Docker named volumes, and a Traefik proxy on a shared `proxy` network. The compose files in this repo now mirror those live stack definitions in sanitized form.
 
