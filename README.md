@@ -11,6 +11,9 @@ Start with [current-setup.md](/Users/czibulapeter/Documents/GitHub/lportainer/do
 - [backup-restore.md](/Users/czibulapeter/Documents/GitHub/lportainer/docs/backup-restore.md)
 - [operations.md](/Users/czibulapeter/Documents/GitHub/lportainer/docs/operations.md)
 - [update-upgrade.md](/Users/czibulapeter/Documents/GitHub/lportainer/docs/update-upgrade.md)
+- [ssh-config.md](/Users/czibulapeter/Documents/GitHub/lportainer/docs/ssh-config.md)
+- [ssh-bitwarden.md](/Users/czibulapeter/Documents/GitHub/lportainer/docs/ssh-bitwarden.md)
+- [windows-ssh.md](/Users/czibulapeter/Documents/GitHub/lportainer/docs/windows-ssh.md)
 - [security-notes.md](/Users/czibulapeter/Documents/GitHub/lportainer/docs/security-notes.md)
 - [repo-vs-live.md](/Users/czibulapeter/Documents/GitHub/lportainer/docs/repo-vs-live.md)
 
