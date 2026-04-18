@@ -18,6 +18,7 @@ Last verified: 2026-04-18.
 - Cloudflare Tunnel: `tunnel-format-cloud-1`
 - Backup destination: Synology SFTP, user `FormatBU`
 - Synology destination path: `/FORMATBF/duplicati/format-cloud-1`
+- WatchGuard SFTP forwarding: [watchguard-sftp.md](./watchguard-sftp.md)
 
 Sensitive values are intentionally not stored in this repository. Keep them in Bitwarden.
 
@@ -155,7 +156,7 @@ The matching private key is on `format-cloud-1`:
 /root/.ssh/duplicati_synology_backup_ed25519
 ```
 
-The WatchGuard SFTP rule should be restricted so inbound SFTP is allowed only from the Hetzner host IP. Do not expose Synology SFTP broadly to the internet.
+The WatchGuard SFTP rule should be restricted so inbound SFTP is allowed only from the Hetzner host IP. Do not expose Synology SFTP broadly to the internet. See [watchguard-sftp.md](./watchguard-sftp.md) for the firewall runbook.
 
 ## Cloudflare Access And Tunnel
 
