@@ -1,0 +1,44 @@
+networks:
+  proxy:
+    external: true
+
+volumes:
+  duplicati_fc1_data:
+
+services:
+  duplicati_fc1:
+    # Keep pinned to a tested stable version after the initial backup cycle.
+    # The live service was initially deployed from duplicati/duplicati:latest.
+    image: duplicati/duplicati:latest
+    volumes:
+      - duplicati_fc1_data:/data
+      - /data:/source-data
+      - /etc:/source-etc:ro
+      - /root:/source-root:ro
+      - /root/.ssh/duplicati_synology_backup_ed25519:/sshkeys/synology_backup_ed25519:ro
+    networks:
+      - proxy
+    command: >
+      duplicati-server
+      --webservice-interface=any
+      --webservice-port=8200
+      --webservice-allowed-hostnames=*
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1048M
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.duplicati-fc1.rule=Host(`duplicati-fc1.format.lu`)"
+        - "traefik.http.services.duplicati-fc1.loadbalancer.server.port=8200"
+        - "traefik.http.routers.duplicati-fc1.entrypoints=websecure"
+        - "traefik.http.routers.duplicati-fc1.tls=true"
+        - "traefik.http.routers.duplicati-fc1.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.duplicati-fc1.middlewares=secure-chain,gzip"
