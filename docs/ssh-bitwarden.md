@@ -11,9 +11,9 @@ By default, the helper assumes the SSH key files are named like this:
 ~/.ssh/<alias>_ed25519.pub
 ```
 
-If the key does not exist yet, create it first with the setup helper in [`ssh-config.md`](/Users/czibulapeter/Documents/GitHub/lportainer/docs/ssh-config.md).
+If the key does not exist yet, create it first with the setup helper in [`ssh-config.md`](/Users/czibulapeter/Documents/GitHub/format-server-ops/docs/ssh-config.md).
 
-If you use the setup helper from [`ssh-config.md`](/Users/czibulapeter/Documents/GitHub/lportainer/docs/ssh-config.md), it can already print the same Bitwarden-ready note immediately after finishing the SSH setup.
+If you use the setup helper from [`ssh-config.md`](/Users/czibulapeter/Documents/GitHub/format-server-ops/docs/ssh-config.md), it can already print the same Bitwarden-ready note immediately after finishing the SSH setup.
 
 ## One-Off Example For `hetzner-cloud-1`
 
@@ -96,4 +96,4 @@ bw_ssh_note "hetzner-cloud-1" "188.245.43.92" "root" | pbcopy
 - remove `| pbcopy` if you want to inspect the output in the terminal first
 - the default key convention is `~/.ssh/<alias>_ed25519`
 - do not commit private keys or pasted note contents into this repo
-- for the matching SSH alias workflow, see [`ssh-config.md`](/Users/czibulapeter/Documents/GitHub/lportainer/docs/ssh-config.md)
+- for the matching SSH alias workflow, see [`ssh-config.md`](/Users/czibulapeter/Documents/GitHub/format-server-ops/docs/ssh-config.md)

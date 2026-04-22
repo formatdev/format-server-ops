@@ -1,0 +1,27 @@
+networks:
+  proxy:
+    external: true
+
+services:
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    networks:
+      - proxy
+    environment:
+      - HIDE_PHP_VERSION=true
+      - PMA_HOSTS=database-1_db
+      - PMA_VERBOSES=database-server-1
+      - UPLOAD_LIMIT=300M
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.phpmyadmin.rule=Host(`pma.format.lu`)
+        - traefik.http.routers.phpmyadmin.entrypoints=websecure
+        - traefik.http.routers.phpmyadmin.tls=true
+        - traefik.http.routers.phpmyadmin.tls.certresolver=letsencrypt
+        - traefik.http.routers.phpmyadmin.middlewares=secure-chain
+        - traefik.http.services.phpmyadmin.loadbalancer.server.port=80

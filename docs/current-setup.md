@@ -42,14 +42,14 @@ Observed running services:
 - project name appears as `paperless`
 - services: Paperless webserver, PostgreSQL, Redis
 - routed hostname observed in labels: `paperless.format.lu`
-- represented in the repo as [`compose/paperless-work`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/paperless-work)
+- represented in the repo as [`compose/paperless-work`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/paperless-work)
 
 ### Paperless instance 2
 
 - project name appears as `paperless-pcz`
 - services: Paperless webserver, PostgreSQL, Redis
 - routed hostname observed in labels: `paperless-pcz.format.lu`
-- represented in the repo as [`compose/paperless-pcz`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/paperless-pcz)
+- represented in the repo as [`compose/paperless-pcz`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/paperless-pcz)
 
 ### Shared helper services
 
@@ -57,7 +57,7 @@ Observed running services:
 - optional helpers currently running:
   - Gotenberg
   - Tika
-- represented in the repo as [`compose/paperless-core`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/paperless-core)
+- represented in the repo as [`compose/paperless-core`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/paperless-core)
 
 ### AI-related services
 
@@ -66,7 +66,7 @@ Observed running services:
 - project name appears as `paperless-pcz-gpt`
 - active service: Paperless GPT sidecar/web service
 - routed hostname observed in labels: `paperless-pcz-gpt.format.lu`
-- represented in the repo as [`compose/paperless-ai`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/paperless-ai) and [`compose/paperless-pcz-gpt`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/paperless-pcz-gpt)
+- represented in the repo as [`compose/paperless-ai`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/paperless-ai) and [`compose/paperless-pcz-gpt`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/paperless-pcz-gpt)
 
 ## Networks
 
@@ -115,4 +115,4 @@ This suggests the live routing configuration is still in a transitional or parti
 
 ## Important Caveat
 
-Most live compose stacks are now represented in sanitized form under [`compose/`](/Users/czibulapeter/Documents/GitHub/lportainer/compose), but the host may still be running Portainer-internal copies rather than these repository files.
+Most live compose stacks are now represented in sanitized form under [`compose/`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose), but the host may still be running Portainer-internal copies rather than these repository files.

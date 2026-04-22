@@ -1,0 +1,39 @@
+networks:
+  proxy:
+    external: true
+
+services:
+  agent:
+    image: portainer/agent:2.39.1
+    volumes:
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1
+
+  portainer:
+    image: portainer/portainer-ce:2.39.1
+    command:
+      - -H
+      - tcp://tasks.agent:9001
+      - --tlsskipverify
+    networks:
+      - proxy
+    volumes:
+      - /data/portainer/data:/data
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.portainer.rule=Host(`portainer.format.lu`)
+        - traefik.http.routers.portainer.entrypoints=websecure
+        - traefik.http.routers.portainer.tls=true
+        - traefik.http.routers.portainer.tls.certresolver=letsencrypt
+        - traefik.http.routers.portainer.middlewares=secure-chain,gzip
+        - traefik.http.services.portainer.loadbalancer.server.port=9000

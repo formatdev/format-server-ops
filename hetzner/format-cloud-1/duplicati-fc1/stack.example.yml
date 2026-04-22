@@ -1,0 +1,34 @@
+networks:
+  proxy:
+    external: true
+
+services:
+  duplicati_fc1:
+    image: duplicati/duplicati:latest
+    networks:
+      - proxy
+    environment:
+      - DUPLICATI__DISABLE_DB_ENCRYPTION=false
+      - SETTINGS_ENCRYPTION_KEY=REPLACE_WITH_SECRET
+    volumes:
+      - duplicati_fc1_data:/data
+      - /data:/source-data
+      - /etc:/source-etc:ro
+      - /root:/source-root:ro
+      - /root/.ssh/duplicati_synology_backup_ed25519:/sshkeys/synology_backup_ed25519:ro
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.duplicati-fc1.rule=Host(`duplicati-fc1.format.lu`)
+        - traefik.http.routers.duplicati-fc1.entrypoints=websecure
+        - traefik.http.routers.duplicati-fc1.tls=true
+        - traefik.http.routers.duplicati-fc1.tls.certresolver=letsencrypt
+        - traefik.http.routers.duplicati-fc1.middlewares=secure-chain,gzip
+        - traefik.http.services.duplicati-fc1.loadbalancer.server.port=8200
+
+volumes:
+  duplicati_fc1_data:

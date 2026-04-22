@@ -1,0 +1,36 @@
+networks:
+  proxy:
+    external: true
+
+services:
+  app:
+    image: esst/floc:latest
+    networks:
+      - proxy
+    volumes:
+      - /data/files/floc-next/uploads:/app/public/uploads
+      - /data/files/floc-next/storage:/app/storage
+      - /data/files/floc-next/database/backups:/home/noroot/database
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.floc-next.rule=Host(`floc.lu`)
+        - traefik.http.routers.floc-next.entrypoints=websecure
+        - traefik.http.routers.floc-next.tls=true
+        - traefik.http.routers.floc-next.tls.certresolver=letsencrypt
+        - traefik.http.routers.floc-next.middlewares=secure-chain,gzip
+        - traefik.http.services.floc-next.loadbalancer.server.port=8080
+
+  db:
+    image: mysql:8-oracle
+    volumes:
+      - /data/files/floc-next/mysql:/var/lib/mysql
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1

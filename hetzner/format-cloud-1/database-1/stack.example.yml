@@ -1,0 +1,12 @@
+services:
+  db:
+    image: mariadb:11.8.6
+    environment:
+      - MARIADB_AUTO_UPGRADE=1
+    volumes:
+      - /data/databases/db_1:/var/lib/mysql
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1

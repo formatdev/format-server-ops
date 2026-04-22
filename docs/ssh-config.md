@@ -9,7 +9,7 @@ The helper does three things in one go:
 - writes or updates the matching `Host` block in `~/.ssh/config`
 - prints a complete Bitwarden-ready note for copy and paste
 
-The workflow is intentionally similar to [`ssh-bitwarden.md`](/Users/czibulapeter/Documents/GitHub/lportainer/docs/ssh-bitwarden.md): paste once, run once, and avoid changing into the repository directory.
+The workflow is intentionally similar to [`ssh-bitwarden.md`](/Users/czibulapeter/Documents/GitHub/format-server-ops/docs/ssh-bitwarden.md): paste once, run once, and avoid changing into the repository directory.
 
 ## Information Needed
 

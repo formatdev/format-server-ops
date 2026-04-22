@@ -1,0 +1,43 @@
+networks:
+  proxy:
+    external: true
+
+services:
+  wordpress:
+    image: wordpress:6.9.4-php8.3-apache
+    networks:
+      - proxy
+    environment:
+      - WORDPRESS_DB_HOST=database-1_db
+      - WORDPRESS_DB_NAME=nolimits_website
+      - WORDPRESS_DB_USER=nolimits-website
+      - WORDPRESS_DB_PASSWORD=REPLACE_WITH_SECRET
+      - WORDPRESS_TABLE_PREFIX=wp_
+      - WORDPRESS_CONFIG_EXTRA=define( 'WPMS_ON', true ); define( 'WPMS_SMTP_PASS', 'REPLACE_WITH_SECRET' ); define( 'WP_AUTO_UPDATE_CORE', true ); define( 'DISALLOW_FILE_EDIT', true ); define( 'FORCE_SSL_ADMIN', true );
+    volumes:
+      - nolimits-website_wordpress:/var/www/html
+      - /data/files/nolimits/website/wp-content:/var/www/html/wp-content
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.nolimits-website.rule=Host(`nolimits.lu`) || Host(`www.nolimits.lu`)
+        - traefik.http.routers.nolimits-website.entrypoints=websecure
+        - traefik.http.routers.nolimits-website.tls=true
+        - traefik.http.routers.nolimits-website.tls.certresolver=letsencrypt
+        - traefik.http.routers.nolimits-website.middlewares=secure-chain,gzip
+        - traefik.http.services.nolimits-website.loadbalancer.server.port=80
+        - traefik.http.routers.nolimits-xmlrpc.rule=(Host(`nolimits.lu`) || Host(`www.nolimits.lu`)) && Path(`/xmlrpc.php`)
+        - traefik.http.routers.nolimits-xmlrpc.entrypoints=websecure
+        - traefik.http.routers.nolimits-xmlrpc.tls=true
+        - traefik.http.routers.nolimits-xmlrpc.tls.certresolver=letsencrypt
+        - traefik.http.routers.nolimits-xmlrpc.priority=1000
+        - traefik.http.routers.nolimits-xmlrpc.middlewares=nolimits-block-xmlrpc
+        - traefik.http.routers.nolimits-xmlrpc.service=nolimits-website
+        - traefik.http.middlewares.nolimits-block-xmlrpc.ipallowlist.sourcerange=127.0.0.1/32
+
+volumes:
+  nolimits-website_wordpress:

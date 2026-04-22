@@ -1,0 +1,40 @@
+networks:
+  proxy:
+    external: true
+
+services:
+  pm:
+    image: esst/format:dsk-pm
+    networks:
+      - proxy
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.format-dsk-pm.rule=Host(`dsk-pm.format.lu`)
+        - traefik.http.routers.format-dsk-pm.entrypoints=websecure
+        - traefik.http.routers.format-dsk-pm.tls=true
+        - traefik.http.routers.format-dsk-pm.tls.certresolver=letsencrypt
+        - traefik.http.routers.format-dsk-pm.middlewares=secure-chain,gzip
+        - traefik.http.services.format-dsk-pm.loadbalancer.server.port=80
+
+  tim:
+    image: esst/format-dsk:tim
+    networks:
+      - proxy
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.format-dsk-tim.rule=Host(`dsk-tim.format.lu`)
+        - traefik.http.routers.format-dsk-tim.entrypoints=websecure
+        - traefik.http.routers.format-dsk-tim.tls=true
+        - traefik.http.routers.format-dsk-tim.tls.certresolver=letsencrypt
+        - traefik.http.routers.format-dsk-tim.middlewares=secure-chain,gzip
+        - traefik.http.services.format-dsk-tim.loadbalancer.server.port=80

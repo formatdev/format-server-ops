@@ -4,17 +4,17 @@ These directories now reflect sanitized versions of the live compose-managed sta
 
 ## Imported Stacks
 
-- [`compose/traefik`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/traefik)
-- [`compose/paperless-work`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/paperless-work)
-- [`compose/paperless-pcz`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/paperless-pcz)
-- [`compose/paperless-core`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/paperless-core)
-- [`compose/paperless-ai`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/paperless-ai)
-- [`compose/paperless-pcz-gpt`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/paperless-pcz-gpt)
-- [`compose/portainer/docker-compose.yml`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/portainer/docker-compose.yml)
+- [`compose/traefik`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/traefik)
+- [`compose/paperless-work`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/paperless-work)
+- [`compose/paperless-pcz`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/paperless-pcz)
+- [`compose/paperless-core`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/paperless-core)
+- [`compose/paperless-ai`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/paperless-ai)
+- [`compose/paperless-pcz-gpt`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/paperless-pcz-gpt)
+- [`compose/portainer/docker-compose.yml`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/portainer/docker-compose.yml)
 
 ## Secret Handling
 
-Live compose files contained secrets inline. In this repository they have been replaced with environment variables and example files under [`env-templates/`](/Users/czibulapeter/Documents/GitHub/lportainer/env-templates).
+Live compose files contained secrets inline. In this repository they have been replaced with environment variables and example files under [`env-templates/`](/Users/czibulapeter/Documents/GitHub/format-server-ops/env-templates).
 
 Sanitized items include:
 
@@ -29,4 +29,4 @@ These repo files are now structurally aligned with the live compose stacks, but 
 
 ## Portainer
 
-Portainer was reconstructed from live container inspection rather than recovered from a Portainer-managed compose export. See [`compose/portainer/docker-compose.yml`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/portainer/docker-compose.yml) and [`compose/portainer/README.md`](/Users/czibulapeter/Documents/GitHub/lportainer/compose/portainer/README.md).
+Portainer was reconstructed from live container inspection rather than recovered from a Portainer-managed compose export. See [`compose/portainer/docker-compose.yml`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/portainer/docker-compose.yml) and [`compose/portainer/README.md`](/Users/czibulapeter/Documents/GitHub/format-server-ops/compose/portainer/README.md).

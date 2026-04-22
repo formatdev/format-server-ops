@@ -1,0 +1,24 @@
+networks:
+  proxy:
+    external: true
+
+services:
+  app:
+    image: esst/format-timesheet-2026:latest
+    networks:
+      - proxy
+    volumes:
+      - /data/files/format/website/wp-content/timesheet.apk:/usr/local/apache2/htdocs/timesheet.apk
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == format-cloud-1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.format-timesheet-2026.rule=Host(`ts.format.lu`)
+        - traefik.http.routers.format-timesheet-2026.entrypoints=websecure
+        - traefik.http.routers.format-timesheet-2026.tls=true
+        - traefik.http.routers.format-timesheet-2026.tls.certresolver=letsencrypt
+        - traefik.http.routers.format-timesheet-2026.middlewares=secure-chain,gzip
+        - traefik.http.services.format-timesheet-2026.loadbalancer.server.port=80
