@@ -6,6 +6,45 @@ Docker maintenance, and reboot decisions for `esst-cloud-1`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-04-25 - GlitchTip Hardened And Upgraded To 5.2.1
+
+Date: 2026-04-25
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- `esst-glitchtip_web`, `esst-glitchtip_worker`, and `esst-glitchtip_migrate`
+  were running `glitchtip/glitchtip:v5.0.5`.
+- Worker was attached to the `proxy` network even though it is not
+  user-facing.
+- Public host restrictions were not explicitly set in tracked config.
+- User registration policy was commented out in the provided stack snippet.
+
+Host after:
+
+- GlitchTip app services updated to `glitchtip/glitchtip:v5.2.1`.
+- Worker kept on the internal network only.
+- Tracked stack baseline added under `glitchtip/` with secret placeholders.
+- Public host hardening included in tracked config:
+  `ALLOWED_HOSTS=glitchtip.esst.lu`,
+  `CSRF_TRUSTED_ORIGINS=https://glitchtip.esst.lu`,
+  `ENABLE_USER_REGISTRATION=false`.
+- Manual `pgpartition --yes` run completed after the upgrade to create missing
+  current-day partitions for event tables.
+
+Checks:
+
+- App version checked: OK.
+- Logs checked: OK. Event ingestion continued after the upgrade and worker
+  partition errors cleared after `pgpartition`.
+- Config tracked in repo: OK.
+- Notes: Redis remains on `6.2`; that is fine for GlitchTip 5.x but would need
+  a planned upgrade before moving to GlitchTip 6.x.
+- Follow-up: Use the tracked stack example as the baseline for the next planned
+  maintenance window and prepare a dedicated Redis + worker-command migration
+  for GlitchTip 6.x.
+
 ## 2026-04-19 - Provider SSH Key Restored And Baseline Checked
 
 Date: 2026-04-19

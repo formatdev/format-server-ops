@@ -56,3 +56,8 @@ docker system df
 ## Logs
 
 - [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/servers.com/esst-cloud-x/esst-cloud-1/maintenance-log.md)
+
+## Services
+
+- [duplicati](</Users/czibulapeter/Documents/GitHub/format-server-ops/servers.com/esst-cloud-1/duplicati>)
+- [glitchtip](</Users/czibulapeter/Documents/GitHub/format-server-ops/servers.com/esst-cloud-1/glitchtip>)
