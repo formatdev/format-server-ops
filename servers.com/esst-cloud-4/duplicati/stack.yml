@@ -1,0 +1,43 @@
+networks:
+  proxy:
+    external: true
+
+volumes:
+  duplicati_ec4_data:
+
+services:
+  duplicati_ec4:
+    image: duplicati/duplicati:latest
+    volumes:
+      - duplicati_ec4_data:/data
+      - /opt/esst:/source-opt-esst:ro
+      - /etc:/source-etc:ro
+      - /root/.ssh/duplicati_synology_backup_ed25519:/sshkeys/synology_backup_ed25519:ro
+    networks:
+      - proxy
+    environment:
+      - SETTINGS_ENCRYPTION_KEY=${DUPLICATI_EC4_SETTINGS_ENCRYPTION_KEY:?set DUPLICATI_EC4_SETTINGS_ENCRYPTION_KEY before deploy}
+    command: >
+      duplicati-server
+      --webservice-interface=any
+      --webservice-port=8200
+      --webservice-allowed-hostnames=*
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1048M
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == esst-cloud-4
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.duplicati-ec4.rule=Host(`duplicati-ec4.esst.lu`)"
+        - "traefik.http.services.duplicati-ec4.loadbalancer.server.port=8200"
+        - "traefik.http.routers.duplicati-ec4.entrypoints=websecure"
+        - "traefik.http.routers.duplicati-ec4.tls=true"
+        - "traefik.http.routers.duplicati-ec4.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.duplicati-ec4.middlewares=secure-chain,gzip"

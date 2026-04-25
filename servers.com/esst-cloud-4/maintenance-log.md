@@ -6,6 +6,38 @@ Docker maintenance, and reboot decisions for `esst-cloud-4`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-04-25 - Duplicati EC4 Preparation
+
+Date: 2026-04-25
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- `esst-cloud-4` runs the Swarm manager role, Portainer server, and Traefik.
+- No node-local Duplicati stack was present for EC4.
+
+Host after:
+
+- Prepared `duplicati-ec4` stack definition, pinned to `esst-cloud-4`.
+- Backup scope selected as `/opt/esst` and `/etc`.
+- `/data` intentionally excluded because EC4 currently holds stale application
+  and database copies; active production data is backed up on EC1, EC2, and EC3.
+
+Checks:
+
+- Portainer data found under `/opt/esst/deployment/portainer/data`.
+- Traefik certificates and configuration found under `/opt/esst/deployment/traefik`.
+- Traefik access logs are large and should be excluded from Duplicati.
+- Added `/opt/esst/maintenance/backup-portainer-data-files.sh` to snapshot
+  Portainer DB/key files into `/opt/esst/deployment/portainer/backups/current-data-files/`.
+- Added root cron to run the Portainer snapshot at `21:45 UTC`, before the
+  EC4 Duplicati schedule.
+- Configured and ran the initial `duplicati-ec4` backup job.
+- Initial backup checked: completed successfully after excluding live locked
+  Portainer DB files and backing up the snapshot copies instead.
+- Follow-up: Monitor the next scheduled Portainer snapshot and EC4 Duplicati run.
+
 ## 2026-04-22 - Portainer Agent Version Aligned
 
 Date: 2026-04-22

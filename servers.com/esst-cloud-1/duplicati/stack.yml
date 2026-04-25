@@ -1,0 +1,46 @@
+networks:
+  proxy:
+    external: true
+
+volumes:
+  duplicati_ec1_data:
+
+services:
+  duplicati_ec1:
+    image: duplicati/duplicati:latest
+    volumes:
+      - duplicati_ec1_data:/data
+      - /data:/source-data:ro
+      - /opt/esst:/source-opt-esst:ro
+      - /etc:/source-etc:ro
+      - /var/lib/docker/volumes/n8n_data/_data:/source-volumes/n8n_data:ro
+      - /var/lib/docker/volumes/esst-website_wordpress/_data:/source-volumes/esst-website_wordpress:ro
+      - /root/.ssh/duplicati_synology_backup_ed25519:/sshkeys/synology_backup_ed25519:ro
+    networks:
+      - proxy
+    environment:
+      - SETTINGS_ENCRYPTION_KEY=${DUPLICATI_EC1_SETTINGS_ENCRYPTION_KEY:?set DUPLICATI_EC1_SETTINGS_ENCRYPTION_KEY before deploy}
+    command: >
+      duplicati-server
+      --webservice-interface=any
+      --webservice-port=8200
+      --webservice-allowed-hostnames=*
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1048M
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == esst-cloud-1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.duplicati-ec1.rule=Host(`duplicati-ec1.esst.lu`)"
+        - "traefik.http.services.duplicati-ec1.loadbalancer.server.port=8200"
+        - "traefik.http.routers.duplicati-ec1.entrypoints=websecure"
+        - "traefik.http.routers.duplicati-ec1.tls=true"
+        - "traefik.http.routers.duplicati-ec1.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.duplicati-ec1.middlewares=secure-chain,gzip"

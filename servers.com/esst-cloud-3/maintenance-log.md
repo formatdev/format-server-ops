@@ -6,6 +6,39 @@ Docker maintenance, and reboot decisions for `esst-cloud-3`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-04-25 - Duplicati EC3 Preparation
+
+Date: 2026-04-25
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- `esst-cloud-3` holds the production monitoring MariaDB service.
+- No Portainer-managed Duplicati stack was present for this node.
+
+Host after:
+
+- Prepared `duplicati-ec3` stack definition for a node-local Duplicati service.
+- Prepared logical MariaDB all-database dump script with 14 day local retention.
+- Adjusted normal database dump to exclude `monitoring.audit_trail_entry`,
+  `monitoring.activity_log`, and `monitoring.failed_jobs`.
+- Prepared optional latest-only heavy table dump script for those tables.
+- Disabled EC3 database dump scheduling after deciding that EC2 app-generated
+  monitoring dumps are the backup source for the `monitoring` database.
+- Removed EC3 local monitoring dump staging files.
+- Backup design excludes the live MariaDB datadir and backs up dump files instead.
+
+Checks:
+
+- SFTP key copied to the node and verified against NAS4 `/ESSTBF/duplicati/esst-cloud-3`.
+- MariaDB root credential file prepared as root-readable only on the node.
+- MariaDB connection verified from the running container.
+- Notes: The production monitoring database is backed up through the EC2
+  app-generated dump folder. EC3 should not back up the live MariaDB datadir or
+  scheduled `monitoring` database dumps.
+- Follow-up: Deploy `duplicati-ec3` through Portainer, configure the Duplicati job, and run the first backup after EC2 finishes.
+
 ## 2026-04-19 - Local SSH Alias And Key Prepared
 
 Date: 2026-04-19

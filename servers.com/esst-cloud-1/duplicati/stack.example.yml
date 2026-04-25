@@ -25,7 +25,7 @@ services:
           - node.hostname == esst-cloud-1
       labels:
         - traefik.enable=true
-        - traefik.http.routers.duplicati-ec1.rule=Host(`duplicati-ec1.REPLACE_WITH_DOMAIN`)
+        - traefik.http.routers.duplicati-ec1.rule=Host(`duplicati-ec1.esst.lu`)
         - traefik.http.routers.duplicati-ec1.entrypoints=websecure
         - traefik.http.routers.duplicati-ec1.tls=true
         - traefik.http.routers.duplicati-ec1.tls.certresolver=letsencrypt
