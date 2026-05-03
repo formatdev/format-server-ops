@@ -244,6 +244,117 @@ Follow-up:
   Ubuntu phased updates include this host.
 - Keep the `format-wazuh` SSH alias in local SSH config as the primary alias.
 
+## 2026-05-03 - Bi-Monthly Maintenance
+
+Date: 2026-05-03
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- Maintenance started via `ssh format-wazuh`.
+- Remote host verified as `format-wazuh` at `116.203.114.188`.
+- Pre-maintenance system state: Ubuntu 24.04.4 LTS, kernel
+  `6.8.0-110-generic`, uptime 14 days 12 hours.
+- `systemctl --failed` reported 0 failed units before maintenance.
+- `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`, and `filebeat` were
+  active before maintenance.
+- Firewall and fail2ban were active before maintenance.
+- Docker remained absent; this is still a package/systemd Wazuh deployment.
+- Available upgrades before maintenance:
+  `iproute2`, `linux-image-virtual`, `linux-libc-dev`, `snapd`,
+  `ubuntu-pro-client`, `ubuntu-pro-client-l10n`, `wazuh-manager`,
+  `wazuh-indexer`, and `wazuh-dashboard`.
+- No reboot was required before maintenance.
+
+Maintenance performed:
+
+- Ran `apt-get update`.
+- Ran non-interactive `apt-get upgrade` with existing dpkg config preserved.
+- First upgrade pass upgraded:
+  `iproute2`, `linux-libc-dev`, `snapd`, `ubuntu-pro-client`,
+  `ubuntu-pro-client-l10n`, `wazuh-manager`, `wazuh-indexer`, and
+  `wazuh-dashboard`.
+- `apt-get upgrade` kept back `linux-image-virtual`, so an `apt-get -s
+  full-upgrade` simulation was run to confirm it would only advance the kernel
+  meta-package and install the matching new kernel/modules.
+- Ran non-interactive `apt-get full-upgrade` with existing dpkg config
+  preserved.
+- Full-upgrade installed `linux-modules-6.8.0-111-generic`,
+  `linux-image-6.8.0-111-generic`, and upgraded `linux-image-virtual` to
+  `6.8.0-111.111`.
+- Rebooted the host with `systemctl reboot`.
+
+Host after:
+
+- Host returned over SSH as `format-wazuh`.
+- Running kernel after reboot: `6.8.0-111-generic`.
+- Uptime at post-reboot verification: approximately 1 minute.
+- Root filesystem after reboot: `/dev/sda1`, 75G total, 44G used, 28G free,
+  62% used.
+- Hetzner volume after reboot: `/dev/sdb`, 79G total, 28G used, 47G free,
+  38% used.
+- Memory after reboot: 7.6Gi total, 4.4Gi used, 116Mi free, 3.4Gi buff/cache,
+  3.2Gi available; swap 4.0Gi total, almost unused.
+
+Checks:
+
+- SSH checked: Yes. `format-wazuh` alias worked before and after reboot.
+- Firewall checked: Yes. `ufw` active with the same allowed inbound ports:
+  `443/tcp`, `1514/tcp`, `1515/tcp`, and rate-limited `22/tcp`, for IPv4 and
+  IPv6.
+- Fail2ban checked: Yes. `fail2ban` active; `sshd` jail active before and
+  after reboot.
+- System health checked: Yes. `systemctl --failed` reported 0 failed units
+  before maintenance, after package upgrades, and after reboot.
+- Disk checked: Yes. Root and Wazuh indexer volume have available space.
+- Memory checked: Yes. Memory and swap state acceptable before and after
+  maintenance.
+- Wazuh deployment model checked: Yes. Still package/systemd-managed; Docker
+  remains absent.
+- Wazuh health checked: Yes. `wazuh-manager`, `wazuh-indexer`,
+  `wazuh-dashboard`, and `filebeat` remained active after the package upgrades
+  and again after reboot. `wazuh-control status` showed core manager services
+  running. `agent_control -lc` listed the local manager and active enrolled
+  agents. Wazuh API returned expected unauthenticated JSON. Indexer returned
+  expected `Unauthorized`. Dashboard initially returned temporary HTTP 503
+  during reboot warm-up, then returned normal HTTP 302 to `/app/login?`.
+- Docker checked: Yes. `docker` command not found; no Docker Compose or Swarm
+  present.
+- Portainer checked: Yes by current deployment evidence. No Docker/Portainer
+  deployment found.
+- Public port exposure checked: Yes. Listening ports after reboot: SSH `22`,
+  Wazuh enrollment `1515`, Wazuh agent events `1514`, dashboard `443`, Wazuh
+  API local `127.0.0.1:55000`, and indexer local `127.0.0.1:9200`/`9300`.
+- Apt upgrade applied: Yes.
+- Remaining apt upgrades checked: Yes. None remained after full-upgrade and
+  reboot.
+- Reboot requirement checked: Yes. Reboot required after kernel install; no
+  reboot required after the reboot completed.
+
+Notes:
+
+- Updated package versions verified after maintenance:
+  `wazuh-manager 4.14.5-1`, `wazuh-indexer 4.14.5-1`,
+  `wazuh-dashboard 4.14.5-1`, `filebeat 7.10.2-2`,
+  `linux-image-virtual 6.8.0-111.111`, `linux-image-6.8.0-111-generic
+  6.8.0-111.111`, `snapd 2.74.1+ubuntu24.04.4`, `iproute2 6.1.0-1ubuntu6.3`,
+  and `ubuntu-pro-client 37.2ubuntu~24.04`.
+- Dashboard logs again showed expected startup-time OpenSearch connection
+  errors while the indexer was still coming up after reboot. The dashboard
+  recovered and returned the normal login redirect after warm-up.
+- The only `journalctl -b -p err..alert` entry after reboot was an SSH
+  brute-force attempt that exhausted auth tries for an invalid user.
+- No Docker cleanup, Wazuh data cleanup, or backup manipulation was performed.
+
+Follow-up:
+
+- Next routine maintenance should start from Wazuh `4.14.5` and kernel
+  `6.8.0-111-generic` as the current baseline.
+- Continue watching public dashboard exposure on `443/tcp`; the service is
+  protected by authentication and UFW but still receives regular internet scan
+  traffic.
+
 ## Maintenance Template
 
 Date:
