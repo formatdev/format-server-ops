@@ -147,6 +147,44 @@ Checks:
 - Notes: The app-generated dumps are still pruned locally with the 14 day cron.
 - Follow-up: Verify the initial EC2 backup finishes successfully.
 
+## 2026-05-03 - Bi-Monthly Host Upgrade And Reboot
+
+Date: 2026-05-03
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-110-generic`
+- Docker Engine: `29.4.1`
+- Docker Swarm state: active worker
+- Root filesystem: `/dev/vda1` 77% used
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-111-generic`
+- Docker Engine: `29.4.2`
+- Docker Swarm state: active worker, rejoined as `Ready`
+- Root filesystem: unchanged at about 77% used during this run
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked before and after reboot.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: OK. No failed systemd units before or after.
+- Disk checked: OK. Root filesystem stayed at about 77% used with about 40G free.
+- Memory checked: OK before maintenance. About 12 GiB available.
+- Docker checked: OK. Docker upgraded to `29.4.2` and the node-local Duplicati service plus Swarm agent converged after reboot.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: Yes. Upgraded Docker CE/CLI, `iproute2`, `linux-firmware`, `ubuntu-pro-client`, and the `6.8.0-111` virtual kernel package set.
+- Remaining apt upgrades checked: Upgrade completed without leftover packages being called out.
+- Reboot requirement checked: Reboot required after package install; controlled reboot completed during this maintenance run.
+- Notes: The manager reported `esst-cloud-2` down briefly during reboot, then back to `Ready`. Watched services remained healthy at `1/1`.
+- Follow-up: No immediate host-level follow-up required for `esst-cloud-2`.
+
 ## Maintenance Template
 
 Date:

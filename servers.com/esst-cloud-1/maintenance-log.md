@@ -90,6 +90,74 @@ Checks:
 - Follow-up: Prioritize disk cleanup planning before package upgrades. Identify
   the Swarm manager node before making stack changes.
 
+## 2026-05-03 - Bi-Monthly Host Upgrade And Reboot
+
+Date: 2026-05-03
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-110-generic`
+- Docker Engine: `29.4.1`
+- Docker Swarm state: active worker
+- Root filesystem: `/dev/vda1` 51% used
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-111-generic`
+- Docker Engine: `29.4.2`
+- Docker Swarm state: active worker, rejoined as `Ready`
+- Root filesystem: `/dev/vda1` 49% used
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked before and after the reboot.
+- Firewall checked: Not rechecked during this run. Prior notes still say `ufw` is inactive.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: OK. No failed systemd units before or after.
+- Disk checked: OK. Root filesystem remained healthy and slightly improved after maintenance.
+- Memory checked: OK. About 6.4 GiB available after reboot.
+- Docker checked: OK after reboot. Docker upgraded cleanly and local worker tasks recovered.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: Yes. Upgraded Docker CE/CLI, `iproute2`, `linux-firmware`, `ubuntu-pro-client`, and the `6.8.0-111` virtual kernel package set.
+- Remaining apt upgrades checked: OK. No remaining upgradable packages were checked after the run, but the upgrade itself completed without held-back packages.
+- Reboot requirement checked: Reboot required after package install; controlled reboot completed during this maintenance run.
+- Notes: Immediately after the Docker package upgrade, several services pinned to `esst-cloud-1` failed with `network sandbox join failed ... error creating vxlan interface: file exists`, and the worker temporarily lost the `proxy` overlay network. Rebooting the host restored the overlay network and the affected services converged successfully.
+- Follow-up: No immediate host-level follow-up required for `esst-cloud-1`, but note that Vaultwarden still logs a plain-text `ADMIN_TOKEN` warning sourced from `data/config.json`.
+
+## 2026-05-03 - Vaultwarden Upgrade And GlitchTip Upgrade Attempt
+
+Date: 2026-05-03 09:46 CEST
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Upgraded `esst-vaultwarden_bitwarden` from `vaultwarden/server:1.35.7` to
+  `vaultwarden/server:1.35.8`.
+- Verified the replacement task started successfully and reached a healthy
+  container health state on `esst-cloud-1`.
+- Attempted to upgrade `esst-glitchtip_*` services from
+  `glitchtip/glitchtip:v5.2.1` to `glitchtip/glitchtip:v6.1.6`.
+
+Result:
+
+- Vaultwarden update completed successfully at the Swarm service level.
+- The GlitchTip upgrade was blocked before migration execution because the
+  worker could not pull `glitchtip/glitchtip:v6.1.6`; Docker returned
+  `manifest unknown: manifest unknown`.
+- Reverted the GlitchTip migration service back to the known-good
+  `glitchtip/glitchtip:v5.2.1` image and confirmed the one-shot task completed.
+
+Follow-up:
+
+- Keep GlitchTip on `v5.2.1` until a pullable `6.x` image/tag is confirmed.
+- Vaultwarden still warns that `ADMIN_TOKEN` is stored as plain text in
+  `data/config.json`.
+
 ## Maintenance Template
 
 Date:

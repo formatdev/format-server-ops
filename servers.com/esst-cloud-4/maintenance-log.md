@@ -114,6 +114,144 @@ Checks:
 - Follow-up: Use servers.com console or Swarm manager access to confirm SSH
   service and firewall state.
 
+## 2026-05-03 - Bi-Monthly Host Upgrade And Reboot
+
+Date: 2026-05-03
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-110-generic`
+- Docker Engine: `29.4.1`
+- Docker Swarm state: active manager and leader
+- Root filesystem: `/dev/vda1` 34% used
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-111-generic`
+- Docker Engine: `29.4.2`
+- Docker Swarm state: active manager and leader
+- Root filesystem: remained healthy at about 34% used during this run
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login worked before and after reboot.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: OK. No failed systemd units before or after.
+- Disk checked: OK. Root filesystem stayed at about 34% used with about 60G free.
+- Memory checked: OK before maintenance. About 4.5 GiB available.
+- Docker checked: OK. Docker upgraded to `29.4.2`.
+- Public port exposure checked: Not rechecked directly during this run, but Traefik and Portainer services converged after reboot.
+- Apt upgrade applied: Yes. Upgraded Docker CE/CLI, `iproute2`, `linux-firmware`, `ubuntu-pro-client`, and the `6.8.0-111` virtual kernel package set.
+- Remaining apt upgrades checked: Upgrade completed without held-back packages.
+- Reboot requirement checked: Reboot required after package install; controlled reboot completed during this maintenance run.
+- Notes: Swarm leadership and the Portainer/Traefik control plane were briefly unavailable during the reboot window, then recovered. After reboot the manager returned as `Leader`, all four nodes showed `Ready`, and watched services converged at `1/1`.
+- Follow-up: No immediate host-level follow-up required for `esst-cloud-4`.
+
+## 2026-05-03 - Portainer Environment Recovery After Host Updates
+
+Date: 2026-05-03 09:22 CEST
+
+Maintainer: Codex with Peter
+
+Context:
+
+- Monitoring and Portainer login were available after the host update pass.
+- The Portainer environment UI showed `Failed loading environment` and
+  `Unable to connect to the Docker environment`.
+
+Findings:
+
+- `portainer_portainer` logs showed repeated snapshot failures against
+  `tcp://tasks.portainer_agent:9001` with `The agent was unable to contact any
+  other agent located on a manager node`.
+- `portainer_agent` logs showed stale agent-cluster membership after the Swarm
+  node reboot sequence.
+- Docker overlay connectivity on `portainer_agent_network` was healthy when
+  tested from a throwaway BusyBox container; DNS and TCP/9001 connectivity to
+  all current agent task IPs worked.
+
+Actions:
+
+- Ran `docker service update --force portainer_agent` to rebuild the global
+  Portainer agent mesh.
+- Ran `docker service update --force portainer_portainer` to refresh the
+  Portainer server after the agent mesh converged.
+
+Result:
+
+- `portainer_agent` converged at `4/4`.
+- `portainer_portainer` converged at `1/1`.
+- Fresh `portainer_portainer` logs no longer showed current environment
+  connection errors.
+- Fresh `portainer_agent` logs no longer showed current `no manager node found`
+  errors.
+
+Follow-up:
+
+- Browser/UI refresh recommended to confirm the Portainer environment loads
+  normally again.
+
+## 2026-05-03 - Portainer Upgrade To 2.41.0
+
+Date: 2026-05-03 10:00 CEST
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Verified `portainer/agent:2.41.0` and `portainer/portainer-ee:2.41.0` were
+  pullable before rollout.
+- Updated the global `portainer_agent` service from `2.39.1` to `2.41.0`.
+- Waited for the agent rollout to converge across all four nodes.
+- Updated the `portainer_portainer` service from `2.39.1` to `2.41.0`.
+- Waited for the Portainer server task to converge on the manager.
+
+Result:
+
+- `portainer_agent` converged at `4/4` on `portainer/agent:2.41.0`.
+- `portainer_portainer` converged at `1/1` on
+  `portainer/portainer-ee:2.41.0`.
+- Fresh Portainer logs showed normal startup with no current environment
+  connection errors.
+- Fresh agent logs showed expected rolling-update membership churn only; no
+  fresh `no manager node found` or redirect errors remained.
+
+Follow-up:
+
+- Open Portainer and do a quick environment/stacks smoke check after the UI
+  refreshes.
+
+## 2026-05-03 - Traefik Upgrade To 3.6.15
+
+Date: 2026-05-03 10:03 CEST
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Verified `traefik:3.6.15` was pullable on `esst-cloud-4` before rollout.
+- Updated the `traefik_traefik` service from `traefik:3.6.6` to
+  `traefik:3.6.15`.
+- Confirmed the manager-pinned single replica converged after replacement.
+
+Result:
+
+- `traefik_traefik` converged at `1/1` on `traefik:3.6.15`.
+- Fresh Traefik logs showed no startup errors in the immediate post-upgrade
+  window.
+- Published `:443` bindings remained attached to the new task on
+  `esst-cloud-4`.
+
+Follow-up:
+
+- Do a quick browser smoke test across the main public endpoints routed through
+  Traefik.
+
 ## Maintenance Template
 
 Date:

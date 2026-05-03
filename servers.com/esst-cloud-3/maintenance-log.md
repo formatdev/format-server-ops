@@ -66,6 +66,44 @@ Checks:
 - Follow-up: Use servers.com console or Swarm manager access to confirm SSH
   service and firewall state.
 
+## 2026-05-03 - Bi-Monthly Host Upgrade And Reboot
+
+Date: 2026-05-03
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-110-generic`
+- Docker Engine: `29.4.1`
+- Docker Swarm state: active worker
+- Root filesystem: `/dev/vda1` 43% used
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-111-generic`
+- Docker Engine: `29.4.2`
+- Docker Swarm state: active worker, rejoined as `Ready`
+- Root filesystem: unchanged at about 43% used during this run
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked before and after reboot.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: OK. No failed systemd units before or after.
+- Disk checked: OK. Root filesystem stayed at about 43% used with about 42G free.
+- Memory checked: OK before maintenance. About 2.4 GiB available.
+- Docker checked: OK. Docker upgraded to `29.4.2` and the watched local Duplicati plus production MariaDB service converged after reboot.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: Yes. Upgraded Docker CE/CLI, `linux-firmware`, `ubuntu-pro-client`, and the `6.8.0-111` virtual kernel package set.
+- Remaining apt upgrades checked: One package remains deferred by Ubuntu phasing: `iproute2`.
+- Reboot requirement checked: Reboot required after package install; controlled reboot completed during this maintenance run.
+- Notes: Manager reported `esst-cloud-3` down briefly during reboot, then back to `Ready`. Watched services remained healthy at `1/1`.
+- Follow-up: Revisit `iproute2` on a later maintenance pass once Ubuntu phasing permits it.
+
 ## Maintenance Template
 
 Date:
