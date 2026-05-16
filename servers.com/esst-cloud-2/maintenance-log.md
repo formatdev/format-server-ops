@@ -185,6 +185,44 @@ Checks:
 - Notes: The manager reported `esst-cloud-2` down briefly during reboot, then back to `Ready`. Watched services remained healthy at `1/1`.
 - Follow-up: No immediate host-level follow-up required for `esst-cloud-2`.
 
+## 2026-05-16 - Monthly Host Upgrade And Reboot
+
+Date: 2026-05-16
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-111-generic`
+- Docker Engine: `29.4.2`
+- Docker Swarm state: active worker
+- Root filesystem: `/dev/vda1` 78% used
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-117-generic`
+- Docker Engine: `29.5.0`
+- Docker Swarm state: active worker, rejoined as `Ready`
+- Root filesystem: `/dev/vda1` remained about 78% used
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked after maintenance.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: Upgrade and reboot completed cleanly.
+- Disk checked: OK. Root filesystem remained at about 78% used with about 37G free.
+- Memory checked: OK. About 13 GiB available after reboot.
+- Docker checked: OK. Docker upgraded to `29.5.0`.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: Yes. Upgraded Docker CE/CLI, `docker-buildx-plugin`, `open-vm-tools`, `distro-info-data`, and the `6.8.0-117` virtual kernel package set.
+- Remaining apt upgrades checked: OK. No reboot required after the host returned.
+- Reboot requirement checked: Reboot required after package install; host returned on the new kernel.
+- Notes: `esst-cloud-2` took a little longer to return on SSH than the other workers, but rejoined the Swarm normally and came back on `29.5.0`.
+- Follow-up: No immediate host-level follow-up required for `esst-cloud-2`.
+
 ## Maintenance Template
 
 Date:
