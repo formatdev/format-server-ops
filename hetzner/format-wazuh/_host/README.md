@@ -3,11 +3,11 @@
 Runbook for maintaining the Hetzner VPS that hosts Wazuh for the Format
 environment.
 
-Last updated: 2026-05-03
+Last updated: 2026-05-16
 
 ## Current Verified State
 
-Last verified: 2026-05-03. See
+Last verified: 2026-05-16. See
 [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/maintenance-log.md)
 for the inspection details.
 
@@ -17,16 +17,17 @@ for the inspection details.
 - Public IPv4: `116.203.114.188`
 - Public IPv6: `2a01:4f8:1c1c:9a62::1/64`
 - OS: Ubuntu 24.04.4 LTS
-- Running kernel: `6.8.0-111-generic`
+- Running kernel: `6.8.0-117-generic`
 - Primary workload: Wazuh 4.14.5, package/systemd deployment
 - Active services: `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`,
   `filebeat`
+- Recommended agent endpoint: `wazuh-agent.format.lu`
 - Docker/Compose/Swarm: not installed/detected
 - Portainer: not present by current deployment evidence
 - Wazuh indexer data: `/var/lib/wazuh-indexer`, bind-mounted from
   `/mnt/HC_Volume_104575658/wazuh-indexer`
-- Reboot state: no reboot required after 2026-05-03 maintenance
-- Remaining apt upgrades: none as of 2026-05-03
+- Reboot state: no reboot required after 2026-05-16 maintenance
+- Remaining apt upgrades: none as of 2026-05-16
 
 ## Host Files
 
