@@ -39,6 +39,51 @@ Checks:
 - Notes: `pnpm outdated` and `npm outdated` reported packages as missing because dependencies are not installed in `apps/next`; they still identified available newer package versions from the lock/manifests.
 - Follow-up: Peter to decide whether to run dependency updates and rebuild/push `esst/floc:latest`; verify database backup freshness before closing this service as fully clean.
 
+## 2026-05-03 - Twice-Monthly Check
+
+Date: 2026-05-03 08:31 CEST
+
+Maintainer: Codex with Peter
+
+Repo/ref checked: `/Users/czibulapeter/Documents/GitHub/floc`, branch `main`, commit `9297725c0f3a6a02b2593c9f2167326ac790c763`
+
+Source commit recorded: Yes
+
+Dependency freshness checked: Yes. Ran `composer outdated --direct`,
+`composer audit`, `pnpm outdated`, `npm outdated`, and `npm audit` in
+`apps/next`.
+
+Dependency updates available: Yes. Composer and frontend package updates are
+available; `composer audit` is clean, while the frontend audit still reports one
+moderate `postcss` advisory.
+
+Stack version before: `esst/floc:latest@sha256:c985a04eaa2d9b6421f51e14f927b33b47345b526dcd4ba52c37a39879eca5df`
+
+Stack version after: `esst/floc:latest@sha256:c985a04eaa2d9b6421f51e14f927b33b47345b526dcd4ba52c37a39879eca5df`
+
+Checks:
+
+- App service health checked: OK. `next-floc_app` is `1/1`.
+- Database service health checked: OK. `next-floc_db` is `1/1`.
+- Running image tag/digest checked: OK. Live app image is the digest above.
+- Latest approved repo/CI build checked: Partial. GitHub shows a successful
+  `Next App Release Image` run for the same SHA, but the `Next App CI` workflow
+  for that same commit failed.
+- Public route checked: OK. `https://floc.lu/` returned `200`.
+- App logs reviewed: OK overall. Recent traffic shows routine public requests
+  and a few opportunistic `404` probes, but no PHP exception or migration error.
+- Database logs reviewed: OK overall. Startup is clean; the remaining warnings
+  are the usual self-signed CA note and permissive pid-path warning.
+- Backup coverage checked: OK. Uploads, storage, database backups, and MySQL
+  data paths all exist on the host.
+- Update applied: No.
+- Rollback image recorded: `esst/floc:latest@sha256:c985a04eaa2d9b6421f51e14f927b33b47345b526dcd4ba52c37a39879eca5df`
+- Notes: Because the deployment still uses the mutable `latest` tag, direct
+  registry-digest comparison was not completed from this workstation.
+- Follow-up: Review why `Next App CI` is failing for the current production SHA
+  before the next deploy, then decide whether the available dependency updates
+  should trigger a rebuild.
+
 ## Maintenance Template
 
 Date:

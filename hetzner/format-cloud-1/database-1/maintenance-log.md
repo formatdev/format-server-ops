@@ -104,6 +104,40 @@ Checks:
 - Rollback notes: Because `mariadb-upgrade` ran, rollback should be treated as restore-from-dump or restore-from-snapshot work, not a simple image tag downgrade.
 - Follow-up: Confirm off-host backup status in Duplicati during the next backup maintenance check.
 
+## 2026-05-03 - Twice-Monthly Check
+
+Date: 2026-05-03 08:31 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `mariadb:11.8.6@sha256:78a5047d3ba33975f183f183c2464cc7f1eab13ec8667e57cc9a5821d6da7577`
+
+Stack version after: `mariadb:11.8.6@sha256:78a5047d3ba33975f183f183c2464cc7f1eab13ec8667e57cc9a5821d6da7577`
+
+Checks:
+
+- Container health checked: OK. `database-1_db` is `1/1`.
+- Public exposure checked: OK. The service remains internal-only with no public
+  route.
+- Running image checked: OK. Live service digest matches
+  `mariadb:11.8.6@sha256:78a5047d3ba33975f183f183c2464cc7f1eab13ec8667e57cc9a5821d6da7577`.
+- Running version checked: OK. Container reports `11.8.6-MariaDB`.
+- Registry digest checked: OK. The current `mariadb:11.8.6` registry digest
+  matches the live service digest.
+- Data mount checked: OK. `/data/databases/db_1` exists and is about `486M`.
+- Backup freshness checked: OK. Daily SQL dumps are present through
+  `2026-05-02 20:00`.
+- Table check completed: OK. Filtering `mariadb-check --check --all-databases`
+  for non-OK lines returned no output.
+- Logs reviewed: OK in this run. No new corruption signal was observed while
+  checking current state.
+- Update applied: No.
+- Notes: The April major-version upgrade remains stable after the reboot and
+  later host changes.
+- Follow-up: Keep treating MariaDB upgrades as planned maintenance-window work,
+  and continue checking Duplicati off-host backup coverage alongside the local
+  SQL dump cadence.
+
 ## Maintenance Template
 
 Date:

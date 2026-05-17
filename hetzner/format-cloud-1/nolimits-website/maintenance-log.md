@@ -94,6 +94,46 @@ Checks:
 - Post-patch logs checked: OK. No fresh `thumb.php`, `getimagesize()`, or PHP fatal lines were observed after the patch.
 - Notes: This is another compatibility patch for the legacy `PictureThis` theme. It confirms the theme replacement/modernization follow-up is still important.
 
+## 2026-05-03 - Twice-Monthly Check
+
+Date: 2026-05-03 08:31 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `wordpress:6.9.4-php8.3-apache@sha256:1a758de2f424f735a9f8ad181783a9ed29e028594869a3323903d92532b35102`
+
+Stack version after: `wordpress:6.9.4-php8.3-apache@sha256:1a758de2f424f735a9f8ad181783a9ed29e028594869a3323903d92532b35102`
+
+Checks:
+
+- Container health checked: OK. `nolimits-website_wordpress` is `1/1`.
+- Running image checked: OK. Live image remains `wordpress:6.9.4-php8.3-apache`.
+- Latest WordPress image checked: OK. The current WordPress security release is
+  still `6.9.4`, and Docker Hub still lists the `6.9.4-php8.3-apache` tags.
+- Release notes reviewed: OK. `6.9.4` is the March 11, 2026 security release.
+- Cloudflare Access checked: OK. `wp-admin` and `wp-login.php` redirect to
+  Cloudflare Access.
+- XML-RPC block checked: OK. `/xmlrpc.php` returns `403` on both hostnames.
+- REST user listing checked: OK. `wp-json/wp/v2/users` returns `401`.
+- Logs reviewed: Follow-up noted. No fresh fatal error was seen in this run, but
+  the legacy `PictureThis` theme still emits an `Undefined variable $lbtitle`
+  warning and receives normal background bot traffic.
+- Theme/plugin review checked: Partial. Current plugin directories include
+  `better-search-replace`, `disable-json-api`, `updraftplus`, and
+  `wp-mail-smtp`; the theme directory still contains `PictureThis`,
+  `PictureThis-backup-20260418-150659.tgz`, and `twentytwentyfive`.
+- Backup coverage checked: Partial. `wp-content` exists on the host and MariaDB
+  dumps are current, but no restore test was performed in this run.
+- Latest backup checked: Partial. The Duplicati metadata check shows a latest
+  backup date of `2026-05-02 18:30 UTC`.
+- Update applied: No.
+- Notes: REST hardening and admin-route protection are working as intended, but
+  the site is still carrying legacy theme noise and a backup tarball inside the
+  active themes directory.
+- Follow-up: Continue the theme-replacement/modernization track, decide whether
+  the theme backup archive should remain in `wp-content/themes`, and keep backup
+  restore testing on the broader maintenance list.
+
 ## Maintenance Template
 
 Date:
