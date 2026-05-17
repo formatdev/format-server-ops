@@ -254,3 +254,292 @@ Residual risk / follow-up:
 
 - Veeam-native job/session/repository health still needs an approved Veeam credential path; do not infer backup job success from Windows service health alone.
 - Run a Veeam console or Veeam PowerShell health check before the next invasive maintenance window.
+
+## 2026-05-03 - Bi-Monthly Read-Only Maintenance
+
+Performed a read-only maintenance sweep over key-only SSH from the maintainer Mac. No reboots, Windows updates, Veeam configuration changes, repository changes, firewall changes, VM power actions, or credential changes were made.
+
+Access and identity:
+
+- `ssh -o BatchMode=yes win-veeam hostname` continued to work; host responded as `veeam`.
+- Current identity remained `veeam\administrator`.
+- Host remained standalone: `PartOfDomain=False`, `Domain=WORKGROUP`.
+- Mac-side reachability checks succeeded for:
+  - `192.168.90.10:22`
+  - `192.168.90.10:5985`
+  - `192.168.90.10:10001`
+
+Current host state:
+
+- Check time: `2026-05-03 08:28:09`.
+- OS remained Microsoft Windows Server 2022 Standard, version `10.0.20348`.
+- Last boot observed: `2026-04-23 10:34:05`.
+- Reboot flags:
+  - CBS reboot pending: `False`
+  - Windows Update reboot required: `False`
+  - Pending file rename operations: `True`
+- Pending file rename entries were dominated by `C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.25\...` paths and should be treated as residual .NET servicing state unless later maintenance proves otherwise.
+
+Remote-admin baseline:
+
+- `sshd`: `Running`, `Automatic`.
+- `WinRM`: `Running`, `Automatic`.
+- Firewall posture matched the April baseline:
+  - default `OpenSSH SSH Server (sshd)` rule present but disabled
+  - custom `Allow remote Admin - SSH 22` rule enabled and scoped to `192.168.1.73,192.168.113.2`
+- `sshd_config` still showed:
+  - `PubkeyAuthentication yes`
+  - `PasswordAuthentication no`
+  - `PermitEmptyPasswords no`
+  - administrator match block using `__PROGRAMDATA__/ssh/administrators_authorized_keys`
+
+Storage and service state:
+
+- `C:` about `51.28 GB` free.
+- `E:` about `2104.13 GB` free.
+- SQL/Veeam services checked remained healthy:
+  - `MSSQL$VEEAMSQL2016`: running/automatic
+  - `SQLAgent$VEEAMSQL2016`: stopped/disabled
+  - `SQLTELEMETRY$VEEAMSQL2016`: running/automatic
+  - Veeam service set observed running/automatic, including Backup, REST API, Broker, Catalog, Cloud Connect, Data Mover, Distribution, Guest Interaction, Mount, NFS, Threat Hunter, and Web Service
+
+Update state:
+
+- Windows Update scan returned no remaining uninstalled, unhidden updates.
+- SQL build remained `13.0.7080.1`, `SP3`, `CU1`.
+- Recent update history still reflected the successful April 18, 2026 servicing window.
+
+Warnings and log signals:
+
+- Application log noise over the last 14 days was mostly recurring `Perflib` warnings:
+  - `Perflib 1008` for `BITS` (`bitsperf.dll` open procedure failed)
+  - `Perflib 2003` for `MSSQL$VEEAMSQL2016` trusted performance library mismatch referencing `perf-MSSQL$VEEAMSQL2016-sqlctr13.3.6300.2.dll`
+- System log still showed repeated `DistributedCOM 10028` errors. Current messages were requested by `C:\Program Files\Veeam\Backup and Replication\Backup\Veeam.Backup.Manager.exe` while activating CLSID `{8BC3F05E-D86B-11D0-A075-00C04FB68820}` against `192.168.90.10`.
+- Recent Veeam log activity under `C:\ProgramData\Veeam\Backup` confirmed active service logging.
+- `Svc.VeeamBackup.log` showed recent stopped jobs with `Result: [Warning]`:
+  - `Backup Copy Job to NAS4\Backup Job to ESXE`
+  - `Backup Job to ESXE`
+  - `Replication`
+- For the newest sampled status block at `2026-05-03 07:47:01`, those jobs showed the following latest run times:
+  - `Backup Copy Job to NAS4\Backup Job to ESXE`: latest run `2026-05-01 22:26:03`
+  - `Backup Job to ESXE`: latest run `2026-05-01 22:00:14`
+  - `Replication`: latest run `2026-05-01 16:00:17`
+- The read-only log sampling captured the warning result states but did not safely establish the underlying cause from Veeam-native session data.
+
+Assessment:
+
+- No patching or reboot action was required during this maintenance pass because update scan was empty and core services were healthy.
+- The main unresolved operational item is Veeam-native backup health: current logs suggest recent jobs ended in `Warning`, but the exact cause still needs Veeam console review or an approved `Connect-VBRServer` credential path.
+
+Recommended next step:
+
+- Review the three warning-result jobs in the Veeam console or via approved Veeam credentials before the next invasive maintenance window.
+
+## 2026-05-03 - Operator Clarified Warning Cause
+
+Operator confirmed the recent Veeam job warnings were already understood and were not treated as unexplained backup failures.
+
+Clarified cause:
+
+- Backup destination free space had dropped below the `10%` warning threshold.
+- SMTP/email alerting also contributed to the observed warning state.
+- Operator confirmed backups were otherwise fine.
+
+Operational note:
+
+- Operator plans to run Windows `Disk Cleanup` with `Clean up system files`, with about `1.85 GB` reclaimable at the time of discussion.
+- Operator also plans to shut down the relevant client later before a future Veeam host reboot.
+
+Interpretation update:
+
+- The 2026-05-03 read-only maintenance findings should treat the observed Veeam warning-result jobs as explained by repository-capacity/email-warning conditions unless later evidence shows a different cause.
+
+## 2026-05-16 - Twice-Monthly Read-Only Maintenance
+
+Performed a read-only maintenance sweep over key-only SSH from the maintainer Mac. No reboots, Windows updates, Veeam configuration changes, repository changes, firewall changes, VM power actions, or credential changes were made during this pass.
+
+Repo/worktree note:
+
+- The local git worktree was already dirty in many unrelated paths outside ESX-E. Those changes were left untouched.
+
+Access and identity:
+
+- `ssh -o BatchMode=yes win-veeam hostname` continued to work; host responded as `veeam`.
+- Current identity remained `veeam\administrator`.
+- Host remained standalone: `PartOfDomain=False`, `Domain=WORKGROUP`.
+- Mac-side reachability checks succeeded for:
+  - `192.168.90.10:22`
+  - `192.168.90.10:5985`
+  - `192.168.90.10:10001`
+
+Current host state:
+
+- Check time: `2026-05-16 08:50:38`.
+- OS remained Microsoft Windows Server 2022 Standard, version `10.0.20348`.
+- Last boot observed: `2026-05-03 18:17:56`.
+- Reboot flags:
+  - CBS reboot pending: `False`
+  - Windows Update reboot required: `False`
+  - Pending file rename operations: `True`
+- Compared with 2026-05-03, the host had been rebooted, but pending file rename operations still had not cleared.
+
+Remote-admin baseline:
+
+- `sshd`: `Running`, `Automatic`.
+- `WinRM`: `Running`, `Automatic`.
+- Firewall posture matched the previous baseline:
+  - default `OpenSSH SSH Server (sshd)` rule present but disabled
+  - custom `Allow remote Admin - SSH 22` rule enabled and scoped to `192.168.1.73,192.168.113.2`
+- `sshd_config` still showed:
+  - `PubkeyAuthentication yes`
+  - `PasswordAuthentication no`
+  - `PermitEmptyPasswords no`
+  - administrator match block using `__PROGRAMDATA__/ssh/administrators_authorized_keys`
+
+Storage and service state:
+
+- `C:` about `50.23 GB` free.
+- `E:` about `2027.09 GB` free.
+- SQL/Veeam services checked remained healthy:
+  - `MSSQL$VEEAMSQL2016`: running/automatic
+  - `SQLAgent$VEEAMSQL2016`: stopped/disabled
+  - `SQLTELEMETRY$VEEAMSQL2016`: running/automatic
+  - Veeam service set observed running/automatic, including Backup, REST API, Broker, Catalog, Cloud Connect, Data Mover, Distribution, Guest Interaction, Mount, NFS, Threat Hunter, and Web Service
+
+Update state:
+
+- Windows Update scan no longer showed an empty queue. Four updates were available and already downloaded:
+  - `Security Update for SQL Server 2016 Service Pack 3 CU (KB5089270)`
+  - `Windows Malicious Software Removal Tool x64 - v5.141 (KB890830)`
+  - `2026-05 Cumulative Update for .NET Framework 3.5, 4.8 and 4.8.1 for Microsoft server operating system version 21H2 for x64 (KB5088862)`
+  - `2026-05 Cumulative Update for Microsoft server operating system version 21H2 for x64-based Systems (KB5087545)`
+- None of those updates reported reboot required before install at scan time.
+- SQL build remained `13.0.7080.1`, `SP3`, `CU1`.
+
+Warnings and log signals:
+
+- Application log noise over the last 14 days continued to show recurring `Perflib` warnings:
+  - `Perflib 1008` for `BITS` (`bitsperf.dll` open procedure failed)
+  - `Perflib 2003` for `MSSQL$VEEAMSQL2016` trusted performance library mismatch referencing `perf-MSSQL$VEEAMSQL2016-sqlctr13.3.6300.2.dll`
+- System log still showed repeated `DistributedCOM 10028` errors requested by `C:\Program Files\Veeam\Backup and Replication\Backup\Veeam.Backup.Manager.exe` while activating CLSID `{8BC3F05E-D86B-11D0-A075-00C04FB68820}` against `192.168.90.10`.
+- System log also showed `Microsoft-Windows-TPM-WMI 1796` (`The Secure Boot update failed to update SBAT ...`) on a VMware guest without TPM/Secure Boot expectations; this was recorded but not acted on during the read-only pass.
+- Recent Veeam log activity under `C:\ProgramData\Veeam\Backup` confirmed active service logging.
+- `Svc.VeeamBackup.log` continued to show recent stopped jobs with `Result: [Warning]` on `2026-05-16`:
+  - `Backup Copy Job to NAS4\Backup Job to ESXE`
+  - `Backup Job to ESXE`
+  - `Replication`
+- These warnings remain consistent with the operator-confirmed explanation from 2026-05-03: backup-destination free space below the `10%` threshold and SMTP/email warning behavior.
+
+Assessment:
+
+- No changes were made during this pass because current state and blast radius were still being documented.
+- The next safest maintenance target is the May 2026 Windows servicing set, because the updates are already downloaded, the host is reachable and healthy, and the queue is now clearly identified.
+- Before installing those updates, confirm reboot handling and preserve the existing understanding that backup warning states are already explained by repository-capacity/email-warning conditions rather than unknown Veeam job failure.
+
+## 2026-05-16 - May 2026 Updates Installed
+
+With operator approval, installed the downloaded May 2026 Windows update set on the standalone Veeam server over key-only SSH using a SYSTEM scheduled task. No Veeam configuration, repositories, backup data, retention settings, firewall policy, GPOs, VM snapshots, or migrations were changed.
+
+Pre-install state:
+
+- Host: `veeam`
+- Identity: `veeam\administrator`
+- Last boot before install: `2026-05-03 18:17:56`
+- Reboot flags before install:
+  - CBS reboot pending: `False`
+  - Windows Update reboot required: `False`
+  - Pending file rename operations: `True`
+- All core SQL/Veeam services were running except baseline `SQLAgent$VEEAMSQL2016` stopped/disabled.
+
+Installed updates:
+
+- `Security Update for SQL Server 2016 Service Pack 3 CU (KB5089270)`; install result success, `HResult=0`
+- `Windows Malicious Software Removal Tool x64 - v5.141 (KB890830)`; install result success, `HResult=0`
+- `2026-05 Cumulative Update for .NET Framework 3.5, 4.8 and 4.8.1 for Microsoft server operating system version 21H2 for x64 (KB5088862)`; install result success, `HResult=0`
+- `2026-05 Cumulative Update for Microsoft server operating system version 21H2 for x64-based Systems (KB5087545)`; install result success, `HResult=0`
+
+Execution notes:
+
+- Reused `C:\ProgramData\format-server-ops\install-downloaded-windows-updates.ps1` through scheduled task `FormatServerOps-WindowsUpdate-May2026`.
+- Windows Update event log confirmed progressive success for the SQL CU, MSRT, and .NET CU before the OS cumulative update completed.
+- The scheduled-task transcript remained sparse during install and did not record a clean end-of-run block before reboot handling, but Windows Update history and post-reboot state confirmed successful completion.
+- A first shutdown request overlapped with ongoing servicing; the actual reboot completed a little later once Windows entered shutdown.
+
+Post-reboot verification:
+
+- Last boot observed after updates: `2026-05-16 09:27:51`.
+- Host remained standalone: `PartOfDomain=False`, `Domain=WORKGROUP`.
+- Reboot flags cleared:
+  - CBS reboot pending: `False`
+  - Windows Update reboot required: `False`
+  - Pending file rename operations: `False`
+- Windows Update scan returned no remaining uninstalled, unhidden updates.
+- SQL build reported by `sqlcmd` on `.\VEEAMSQL2016`: `13.0.7085.1`, `SP3`, `CU1`.
+- Disk state after updates:
+  - `C:` about `47.33 GB` free
+  - `E:` about `2027.09 GB` free
+- `SQLAgent$VEEAMSQL2016` remained stopped/disabled, matching baseline.
+- The full observed automatic Veeam service set recovered after the normal post-boot delay.
+- Temporary scheduled task `FormatServerOps-WindowsUpdate-May2026` was removed after completion.
+
+Interpretation update:
+
+- The old persistent pending-file-rename condition seen on 2026-05-03 and pre-install on 2026-05-16 is now cleared after the May 2026 update/reboot cycle.
+
+## 2026-05-17 - Data Retrieval Warning Checked
+
+Operator asked about the Veeam status string:
+
+- `VEEAM  192.168.90.10  Online - Data retrieval failures occurred  17/05/2026 08:17:48  ... (Activated)?`
+
+Read-only investigation findings:
+
+- No evidence of a backup-data, repository, or host-offline failure was found around `2026-05-17 08:17:48`.
+- System events around that time were mostly normal interactive/user-session service events, including `Clipboard User Service_2df7195` entering `running`.
+- The closest relevant Veeam-side activity was local satellite / REST API startup shortly after, including `LicenseContainer` initialization in `Satellite_RestApi.log`.
+- The more severe Veeam log warnings found in the investigation window belonged to the prior `2026-05-16` Windows update cycle, when SQL connectivity briefly degraded during servicing; those do not line up with the `2026-05-17 08:17:48` status.
+
+Interpretation:
+
+- Treat the `Online - Data retrieval failures occurred` state as a likely transient guest-information retrieval/UI inventory issue rather than a backup job failure.
+- The trailing `Activated?` presentation likely reflects incomplete confirmation of a retrieved activation/licensing field rather than evidence that Windows activation is broken.
+
+Operational stance:
+
+- Safe to refresh/rescan the object later and ignore the message if it does not persist and backup operations remain healthy.
+
+## 2026-05-17 - Disk Cleanup Launched
+
+At operator request, launched Windows `Disk Cleanup` / `Clean up system files` on the Veeam server under `SYSTEM`.
+
+Execution details:
+
+- Used `cleanmgr.exe` with a generated `sagerun` profile through scheduled task `FormatServerOps-CleanMgr-May2026`.
+- Enabled all discovered `VolumeCaches` cleanup categories except `DownloadsFolder`.
+- `DownloadsFolder` was intentionally excluded as user data rather than system cleanup content.
+
+Observed categories available on this host included:
+
+- `Update Cleanup`
+- `Windows Error Reporting Files`
+- `System error memory dump files`
+- `System error minidump files`
+- `Temporary Files`
+- `Temporary Setup Files`
+- `Delivery Optimization Files`
+- `Device Driver Packages`
+- `Previous Installations`
+- `Windows Upgrade Log Files`
+- `Recycle Bin`
+- and other standard Disk Cleanup categories present under `HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches`
+
+Observed runtime state:
+
+- Initial `C:` free space before launch: about `47.42 GB`.
+- While cleanup was running, `C:` free space increased to about `49.64 GB`.
+- Observed reclaimed space at that point: about `2.22 GB`.
+- The `SYSTEM` `cleanmgr.exe` process was still running at last check; Windows cleanup can continue for a long time, especially when servicing-related cleanup is included.
+
+Operational note:
+
+- This log entry records the launch and observed reclaim during runtime. Confirm final completion and final reclaimed space in a later check if exact final totals are needed.

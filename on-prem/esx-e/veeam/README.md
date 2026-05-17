@@ -2,7 +2,7 @@
 
 Runbook for the standalone Windows Veeam server VM on ESX-E.
 
-Last updated: 2026-04-18
+Last updated: 2026-05-16
 
 ## Known State
 
@@ -15,7 +15,7 @@ Last updated: 2026-04-18
 - Role: Veeam backup server
 - OS: Microsoft Windows Server 2022 Standard, build `20348`
 - VM platform: VMware virtual machine
-- Last boot observed after Windows updates: `2026-04-18 22:31:35`
+- Last boot observed after May 2026 updates: `2026-05-16 09:27:51`
 
 ## Critical Role Notes
 
@@ -70,16 +70,21 @@ Current remote-admin findings:
 
 Current storage findings:
 
-- `C:` NTFS, healthy, about 45.9 GB free of 128.5 GB after April 2026 updates
-- `E:` `VeeamHDD`, ReFS, healthy, about 2.19 TB free of 30.8 TB after April 2026 updates
+- `C:` NTFS, healthy, about 47.3 GB free of 128.5 GB after May 2026 updates
+- `E:` `VeeamHDD`, ReFS, healthy, about 2.03 TB free of 30.8 TB during 2026-05-16 maintenance
 
 Current Windows Update findings:
 
 - April 2026 Windows/.NET/SQL updates installed on `2026-04-18`.
-- Windows Update scan returned no remaining uninstalled, unhidden updates after the final reboot.
-- Reboot pending flags were clear after the final reboot.
-- SQL Server instance `.\VEEAMSQL2016` reported `13.0.7080.1`, `SP3`, `CU1`.
+- May 2026 update cycle completed on `2026-05-16`: `KB5089270`, `KB890830` v5.141, `KB5088862`, and `KB5087545`.
+- CBS, Windows Update reboot flags, and pending file rename operations were all clear after the May 2026 reboot.
+- SQL Server instance `.\VEEAMSQL2016` reported `13.0.7085.1`, `SP3`, `CU1`.
 - Veeam services returned to `Running` after the normal post-boot delay; `SQLAgent$VEEAMSQL2016` remained stopped/disabled as before.
+
+Current Veeam warning interpretation:
+
+- Recent Veeam warning-result jobs observed on 2026-05-03 were later confirmed by the operator to stem from backup-destination free space dropping below the `10%` warning threshold and SMTP/email warning behavior.
+- Treat those warnings as explained unless later maintenance finds a different underlying cause.
 
 On the server:
 
