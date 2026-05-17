@@ -18,6 +18,7 @@ Start with [current-setup.md](/Users/czibulapeter/Documents/GitHub/format-server
 - [windows-ssh.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/docs/windows-ssh.md)
 - [security-notes.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/docs/security-notes.md)
 - [repo-vs-live.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/docs/repo-vs-live.md)
+- [VMware platform runbook](/Users/czibulapeter/Documents/GitHub/format-server-ops/on-prem/vmware-platform/README.md)
 - [format-cloud-1 host runbook](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-cloud-1/_host/README.md)
 - [format-wazuh host runbook](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/README.md)
 - [Vaultwarden format-cloud-1 stack runbook](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-cloud-1/vaultwarden/README.md)
@@ -69,6 +70,11 @@ Start with [current-setup.md](/Users/czibulapeter/Documents/GitHub/format-server
 │   │   └── vaultwarden/
 │   └── format-wazuh/
 │       └── _host/
+├── on-prem/
+│   ├── esx-c/
+│   ├── esx-d/
+│   ├── esx-e/
+│   └── vmware-platform/
 └── README.md
 ```
 
