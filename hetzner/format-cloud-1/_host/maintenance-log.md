@@ -51,9 +51,13 @@ Checks:
   reported healthy; no containers remained down after convergence.
 - Portainer checked: OK. `portainer_portainer` and `portainer_agent` returned
   to `1/1` on `2.41.0`.
-- HTTPS routing checked: Partial. Direct local `https://127.0.0.1` returned
+- HTTPS routing checked: OK. Direct local `https://127.0.0.1` returned
   HTTP `404`, which is consistent with Traefik host-header routing on the raw
-  host endpoint.
+  host endpoint. Public smoke checks then returned `200` for
+  `bitwarden.format.lu`, `200` for `floc.lu`, `302` for
+  `portainer.format.lu` through Cloudflare Access, `302` for
+  `chargy.format.lu` to `/auth/login`, and `302` for `ts.format.lu`
+  through Cloudflare Access.
 - Public port exposure checked: Not re-run externally during this pass.
 - Apt upgrade applied: Yes. Ran `apt-get update`, `apt-get upgrade`, and
   `apt-get full-upgrade`.
@@ -70,6 +74,8 @@ Notes:
   interruption on this single-node Swarm host.
 - `vaultwarden_server` and `database-1_db` were the last services to settle
   after reboot; both reached healthy `1/1` status.
+- Public app smoke checks were run after the push to GitHub and matched the
+  expected production behavior.
 
 Follow-up:
 
