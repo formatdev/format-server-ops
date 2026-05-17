@@ -4,7 +4,7 @@ networks:
 
 services:
   duplicati_fc1:
-    image: duplicati/duplicati:latest
+    image: duplicati/duplicati@sha256:d63ea5b2524b7e73889f3c7b9bee48690cc6dc4ae7f46f48d9c70d265e2f99ce
     networks:
       - proxy
     environment:

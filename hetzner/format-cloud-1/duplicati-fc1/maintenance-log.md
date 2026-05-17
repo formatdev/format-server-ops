@@ -31,6 +31,100 @@ Checks:
 - Notes: Duplicati `2.3.0.0_stable_2026-04-14` includes a server database schema update to version 11, so rollback needs extra care.
 - Follow-up: Check the Duplicati UI for last successful backup, verification status, destination health, and last restore test. Consider making `/data:/source-data` read-only if backup jobs do not need write access to that mount. Move secret values toward Docker secrets or another controlled process later.
 
+## 2026-05-03 - Twice-Monthly Check
+
+Date: 2026-05-03 08:31 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `duplicati/duplicati:latest@sha256:d63ea5b2524b7e73889f3c7b9bee48690cc6dc4ae7f46f48d9c70d265e2f99ce`
+
+Stack version after: `duplicati/duplicati:latest@sha256:d63ea5b2524b7e73889f3c7b9bee48690cc6dc4ae7f46f48d9c70d265e2f99ce`
+
+Checks:
+
+- Container health checked: OK. `duplicati-fc1_duplicati_fc1` is `1/1`.
+- Public route checked: OK. `https://duplicati-fc1.format.lu/` redirects to
+  Cloudflare Access.
+- Running image checked: OK. Live image digest is
+  `duplicati/duplicati:latest@sha256:d63ea5b2524b7e73889f3c7b9bee48690cc6dc4ae7f46f48d9c70d265e2f99ce`.
+- Registry digest checked: Follow-up needed. The current `latest` registry
+  digest now resolves to `sha256:c5cc20fc744cce2957a61cb0b331ecdf333c9fcf28281f96cc587e11ed4536af`.
+- Duplicati version checked: Partial. The deployed digest still corresponds to
+  the older April stable build; GitHub now shows `v2.3.0.1_stable_2026-04-24`
+  as the latest release.
+- Upstream release checked: Update available. Latest release is
+  `v2.3.0.1_stable_2026-04-24`.
+- Mounted paths checked: OK. `/data`, `/source-data`, `/source-etc`,
+  `/source-root`, and `/sshkeys` are present as expected.
+- SSH key mount checked: OK. `/sshkeys/synology_backup_ed25519` exists.
+- Settings encryption checked: OK. `SETTINGS_ENCRYPTION_KEY` is set.
+- Backup jobs checked in UI: Not checked from CLI.
+- Last successful backup checked: Partial. Duplicati metadata records
+  `LastBackupDate=20260502T183000Z`.
+- Verification/restore test checked: Not verified in this run.
+- Logs reviewed: Follow-up needed. Duplicati notifications show repeated backup
+  warnings because `/source-data/portainer/data/portainer.db` is locked during
+  backup, and the database also reports that `v2.3.0.1` is available.
+- Update applied: No.
+- Rollback notes: Keep the current server database and backup definitions intact
+  if a future Duplicati image update is tested.
+- Notes: Backup coverage for Portainer is currently partial because the live
+  `portainer.db` file is skipped when locked.
+- Follow-up: Check the Duplicati UI for job health and restore-test status,
+  decide whether to upgrade to `2.3.0.1`, and create a consistent backup path
+  for Portainer state instead of relying on the locked live database file.
+
+## 2026-05-03 - Portainer Live Data Exclusion
+
+Date: 2026-05-03 09:25 CEST
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Duplicati configuration backup created: OK. Backed up
+  `Duplicati-server.sqlite` before changing the job filter list.
+- Backup job filter updated: OK. Added `/source-data/portainer/data/` as an
+  exclusion for `format-cloud-1 to Synology`.
+- Filter verification checked: OK. The live filter list now excludes database
+  dumps, the live Portainer data directory, Traefik logs, and `/root/.cache/`.
+- Warning source addressed: OK. Future runs should stop trying to copy the
+  locked live `portainer.db` file and instead rely on the quiesced archive
+  under `/source-data/backups/portainer/`.
+- Service restart applied: No. The Duplicati container was left running.
+- Follow-up: Confirm after the next scheduled backup that the previous
+  `portainer.db` locked-file warning no longer appears in Duplicati
+  notifications.
+
+## 2026-05-03 - Image Pinning
+
+Date: 2026-05-03 12:04 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `duplicati/duplicati:latest@sha256:d63ea5b2524b7e73889f3c7b9bee48690cc6dc4ae7f46f48d9c70d265e2f99ce`
+
+Stack version after: `duplicati/duplicati@sha256:d63ea5b2524b7e73889f3c7b9bee48690cc6dc4ae7f46f48d9c70d265e2f99ce`
+
+Checks:
+
+- Pinning target chosen: OK. Pinned Duplicati to the currently tested image
+  digest rather than a mutable `latest` tag.
+- Unpullable tag attempt reviewed: OK. The human-readable version-style tag
+  `2.3.0.0_stable_2026-04-14` was not available from Docker Hub and caused a
+  brief paused update state before the digest pin was applied.
+- Service recovery checked: OK. `duplicati-fc1_duplicati_fc1` returned to `1/1`
+  on the pinned digest.
+- Route check after pinning: OK. `https://duplicati-fc1.format.lu/` still
+  returns the expected Cloudflare Access challenge path.
+- Startup logs checked: OK. Recent logs show the server listening on port
+  `8200`.
+- Notes: This change improves rollout predictability without changing the tested
+  Duplicati build itself.
+- Follow-up: When a future Duplicati upgrade is chosen, move from this digest
+  pin to the next explicitly tested digest or documented pullable tag.
+
 ## Maintenance Template
 
 Date:

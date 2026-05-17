@@ -26,7 +26,7 @@ off-server backups with a daily MariaDB dump included in the backup set.
 - Backup destination: Synology SFTP, user `FormatBU`
 - Synology destination path: `/FORMATBF/duplicati/format-cloud-1`
 - WatchGuard SFTP forwarding: [watchguard-sftp.md](./watchguard-sftp.md)
-- Current live image: `duplicati/duplicati:latest`
+- Current live image: `duplicati/duplicati@sha256:d63ea5b2524b7e73889f3c7b9bee48690cc6dc4ae7f46f48d9c70d265e2f99ce`
 - Current observed digest: `sha256:d63ea5b2524b7e73889f3c7b9bee48690cc6dc4ae7f46f48d9c70d265e2f99ce`
 - Observed Duplicati version: `2.3.0.0_stable_2026-04-14`
 - Backend container port: `8200`
@@ -108,12 +108,16 @@ Exclusions:
 
 ```text
 /source-data/databases/
+/source-data/portainer/data/
 /source-data/traefik/logs/
 /source-root/.cache/
 ```
 
 The live MariaDB datadir is excluded deliberately. Database recovery should use
-the generated SQL dumps instead of a live datadir copy.
+the generated SQL dumps instead of a live datadir copy. The live Portainer data
+directory is excluded deliberately so Duplicati backs up the quiesced archive
+from `/source-data/backups/portainer/` instead of attempting to copy the locked
+`portainer.db` file directly.
 
 Schedule:
 
@@ -168,6 +172,40 @@ Local dump retention:
 The script uses `mariadb-dump` from the running MariaDB container and writes
 compressed SQL dumps under `/data/backups/mysql`, which is included in the
 Duplicati source via `/source-data/backups/mysql`.
+
+## Portainer Backups
+
+Portainer state is backed up separately from the live SQLite file copy problem.
+
+Host script:
+
+```text
+/usr/local/sbin/backup-portainer.sh
+```
+
+Host cron entry:
+
+```cron
+10 20 * * * /usr/local/sbin/backup-portainer.sh >> /data/backups/portainer/backup-portainer.log 2>&1
+```
+
+Output pattern:
+
+```text
+/data/backups/portainer/portainer-data-YYYYMMDD-HHMMSS.tar.gz
+```
+
+Local retention:
+
+```text
+7 days
+```
+
+The script briefly scales `portainer_portainer` to `0`, archives
+`/data/portainer/data`, scales the service back to `1`, and prunes local
+archives older than 7 days. Because the archive lives under `/data`, Duplicati
+includes it through the normal `/source-data` backup path while excluding the
+live `/source-data/portainer/data/` directory.
 
 ## Synology SFTP
 
