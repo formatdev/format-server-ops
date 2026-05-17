@@ -147,6 +147,73 @@ Follow-up:
 
 - Reboot FILE in an agreed file-server maintenance window, then re-run Windows Update scan and SMB/redirected-folder access checks.
 
+## 2026-05-03 - Bi-Monthly Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Scope:
+
+- Health and remote-admin baseline sweep on FILE without changing redirected-folder or legacy user data.
+
+Checks:
+
+- `win-file` break-glass SSH checked: OK; `whoami` returned `file\administrateur`.
+- `winad-file` domain SSH checked: OK; `whoami` returned `format\administrateur`.
+- Domain secure channel checked: healthy; `Test-ComputerSecureChannel -Verbose` returned `True`.
+- `sshd` service checked: `Running`, `Automatic`.
+- `WinRM` service checked: found `Stopped`/`Disabled` again, restored to `Running`/`Automatic`.
+- WinRM listener checked before restore attempt: `winrm enumerate` failed because the service was stopped.
+- Firewall scoping checked: `Allow remote Admin - SSH 22` and `Allow remote Admin - WinRM 5985` still scoped to `192.168.1.73,192.168.113.2`.
+- WinRM TCP checked after restore: `192.168.1.7:5985` reachable from the maintainer Mac.
+- Disk free space checked: C: about 52.3 GB free; D: about 322.3 GB free; F: about 1947.6 GB free; G: about 2086.3 GB free.
+- Legacy `D:\Users` content checked: top-level entries still include user folders such as `Administrateur`, `arnaud.delmelle`, `Atelier`, `bogdan.stachura`, `CBC`, `gilles.konsbruck`, `guy.kaulmann`, `Heiko.Maldener`, `kathryn.melchior`, and `nathalie.bresch`.
+- Desktop Markdown docs checked: `FILE-health-log.md`, `FILE-inspect.md`, and `FILE-todo.md` still exist on `C:\Users\Administrateur\Desktop`, last written `2026-04-06 20:30:13`.
+- Pending reboot checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Visible Windows updates checked: `0`.
+- File cleanup performed: no files older than 30 days remained in `C:\Windows\Temp`; remaining temp content about 59.9 MB.
+- Updates installed: No.
+- Reboot required: not indicated by CBS or Windows Update; `PendingFileRenameOperations` remains present.
+- Backup/snapshot confirmed: Not checked.
+
+Notes:
+
+- April update state appears finalized because visible updates and reboot flags are clear.
+- WinRM drift recurred again on FILE.
+- No redirected-folder data, legacy `D:\Users` data, SMB shares, firewall rules, or GPOs were changed.
+
+Follow-up:
+
+- Investigate why `WinRM` keeps drifting back to `Disabled`/`Stopped` on FILE.
+- Keep legacy `D:\Users` cleanup in the reviewed-plan lane only; this pass made no content changes there.
+
+## 2026-05-16 - Twice-Monthly Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Scope:
+
+- Health recheck, remote-admin drift repair, and no-reboot Windows Update install.
+
+Checks:
+
+- `win-file` break-glass SSH checked: OK.
+- `winad-file` domain SSH checked: OK.
+- Domain secure channel checked: `Test-ComputerSecureChannel -Verbose` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` service checked: `Running`/`Automatic`.
+- `WinRM` service checked: had drifted to `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- WinRM listener checked: TCP `5985` reachable again from the maintainer Mac.
+- Firewall scoping checked: still limited to `192.168.1.73` and `192.168.113.2`.
+- Disk free space checked: C: about 51.7 GB before update install; D: about 322.1 GB; F: about 1934.4 GB; G: about 2078.1 GB.
+- SMB shares checked: not changed in this pass.
+- Folder redirection state checked: desktop Markdown files still present; no redirected-folder data changed.
+- Legacy `D:\Users` content checked: not changed in this pass.
+- Event logs reviewed: Windows Update task log under `C:\ProgramData\Codex`.
+- Updates installed: Yes. A one-off SYSTEM task `Codex-WindowsUpdate-NoReboot` completed with `ResultCode=2`, `HResult=00000000`, `RebootRequired=True`.
+- Reboot required: Yes.
+- Backup/snapshot confirmed: Not checked.
+- Notes: Installed payloads were MRT `KB890830`, .NET cumulative update `KB5088862`, and OS cumulative update `KB5087545`. Post-install remote Windows Update scan returned `VisibleUpdates=0`. No redirected-folder data, legacy `D:\Users` data, SMB shares, firewall rules, or GPOs were changed.
+- Follow-up: remove the one-off task if it is still present, then reboot FILE in a planned file-server window and re-run update plus SMB/redirected-folder smoke checks.
+
 ## Maintenance Template
 
 Date:

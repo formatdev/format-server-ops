@@ -174,6 +174,50 @@ Follow-up:
 
 - Schedule/confirm a reboot window if the pending Windows reboot is expected after the 2026-04-18 updates.
 
+## 2026-05-03 - Bi-Monthly Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `win-admin` and `winad-admin` both connected; `winad-admin whoami` returned `format\administrateur`.
+- Secure channel checked: healthy; `Test-ComputerSecureChannel -Verbose` returned `True`.
+- `sshd` checked: `Running`, `Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled` again, restored to `Running`/`Automatic`.
+- WinRM TCP checked after restore: `admin.format.lu:5985` reachable from the maintainer Mac.
+- Disk space checked: C: about 38.8 GB free; D: about 34.1 GB free.
+- Pending reboot checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Visible Windows updates checked: `0`.
+- Recent hotfixes checked: `KB5083769`, `KB5088467`, `KB5082417`.
+- File cleanup performed: deleted 1 old file from `C:\Windows\Temp`; remaining temp content about 239.6 MB.
+- Updates installed by Codex: No.
+- Reboot performed: No.
+
+Notes:
+
+- April update/reboot state appears finalized because CBS and Windows Update reboot flags are now clear.
+- WinRM drift recurred without any corresponding firewall or GPO change made in this pass.
+
+Follow-up:
+
+- Investigate why `WinRM` keeps drifting back to `Disabled`/`Stopped` on Admin.
+
+## 2026-05-16 - Twice-Monthly Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `win-admin` returned `admin\administrateur`; SSH config still targets `admin.format.lu`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu -Verbose` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` checked: `Running`.
+- `WinRM` checked: had drifted to `Stopped`; restored to `Automatic`/`Running`; TCP `5985` is reachable again from the maintainer Mac.
+- Event logs reviewed: not deeply reviewed in this pass.
+- Updates installed: No. Remote Windows Update COM queries returned `0x80240032`; no install was attempted because Admin was already update-clean after the April window and the current pass focused on remoting recovery.
+- Reboot required: Not indicated in this pass.
+- Notes: C: free space about 34.2 GB. No GPO, firewall, or cleanup action was changed.
+- Follow-up: keep investigating the recurring `WinRM` startup drift on Admin.
+
 ## Maintenance Template
 
 Date:

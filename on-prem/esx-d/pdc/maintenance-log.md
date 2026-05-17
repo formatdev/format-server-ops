@@ -59,6 +59,134 @@ Follow-up:
 
 - Reboot PDC only in a planned DC maintenance window, then re-run replication, SYSVOL/DFSR, DNS, time, and Windows Update checks.
 
+## 2026-05-03 - Bi-Monthly Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `win-pdc` and `winad-pdc` both connected; `winad-pdc whoami` returned `format\administrateur`.
+- Domain controller services checked: `DNS`, `NTDS`, `DFSR`, `W32Time`, `Netlogon`, and `sshd` running; `WinRM` had drifted to `Stopped`/`Disabled`.
+- `WinRM` checked: restored to `Running`/`Automatic`.
+- WinRM listener checked after restore: GPO HTTP listener on `5985` listening on `127.0.0.1`, `192.168.1.5`, `::1`, and link-local IPv6.
+- WinRM firewall scope checked: `Allow remote Admin - WinRM 5985` still scoped to `192.168.1.73,192.168.113.2`.
+- WinRM TCP checked from the maintainer Mac after restore: `192.168.1.5:5985` still timed out.
+- Local WinRM self-test checked: `Test-NetConnection 127.0.0.1 -Port 5985` succeeded and `Test-WSMan 127.0.0.1` returned server identity.
+- Replication checked: `repadmin /replsummary` still showed 0 failed replications, but also reported operational error `1326` while retrieving info from `BDC.format.lu`.
+- `dcdiag /q` checked: still failed `Replications` because `DsBindWithSpnEx()` to `BDC` returned access denied.
+- `nltest /sc_query:format.lu` checked from PDC: returned `ERROR_NO_SUCH_DOMAIN`.
+- Time service checked: stratum 4, source `192.168.1.253,0x8`, last successful sync `2026-05-03 08:23:52`.
+- Disk space checked: C: about 67.3 GB free.
+- Pending reboot checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Visible Windows updates checked: `0`.
+- File cleanup performed: no files older than 30 days remained in `C:\Windows\Temp`; remaining temp content about 1.1 MB.
+- Updates installed by Codex: No.
+- Reboot performed: No.
+
+Notes:
+
+- April update state appears finalized because visible updates and reboot flags are clear.
+- WinRM drift recurred on the DC, and external TCP/5985 remains broken even though the local listener and firewall scope look correct.
+
+Follow-up:
+
+- Investigate the persistent PDC-to-BDC auth/replication oddity and the failed `nltest` result from the DC itself.
+- Investigate why external TCP/5985 to PDC still times out despite a healthy local listener and the expected firewall scope.
+
+## 2026-05-03 - Follow-Up Recheck
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `win-pdc` and `winad-pdc` both connected and returned `format\administrateur`.
+- WinRM TCP checked from the maintainer Mac: `192.168.1.5:5985` reachable again.
+- Domain controller services checked: `DNS`, `NTDS`, `DFSR`, `W32Time`, `Netlogon`, `sshd`, and `WinRM` all `Running` and `Automatic`.
+- WinRM listener checked: GPO HTTP listener still present on `5985`, listening on `127.0.0.1`, `192.168.1.5`, `::1`, and link-local IPv6.
+- WinRM firewall scope checked: `Allow remote Admin - WinRM 5985` still scoped to `192.168.1.73,192.168.113.2`.
+- SPN registration checked: `setspn -L PDC` now includes `WSMAN/PDC` and `WSMAN/PDC.format.lu`.
+- Replication summary checked: `repadmin /replsummary` still showed 0 failed replications, smallest delta about 3 minutes, but also reported operational error `1326` while retrieving information from `BDC.format.lu`.
+- `repadmin /showrepl` checked: all inbound naming contexts from `BDC` showed the last attempt as successful.
+- `dcdiag /q` checked: still failed `DFSREvent` and `Replications`.
+- DFSR event log checked: repeated transient communication failures to `BDC` (`5008`, `5014`, RPC `1722`/`1726`, and one `9036` paused-for-backup event) were followed by successful reconnection event `5004` at `2026-05-03 16:56:26`.
+- `nltest /sc_query:format.lu` checked from PDC: still returned `ERROR_NO_SUCH_DOMAIN`.
+- `nltest /dsgetdc:format.lu` checked from PDC: successfully returned `\\PDC.format.lu`.
+- `Test-ComputerSecureChannel -Server PDC.format.lu` checked from the DC context: failed with `The specified domain either does not exist or could not be contacted.` This result was treated as non-authoritative for the DC because DC secure-channel semantics differ from member servers and the DC-discovery/replication checks are the more relevant signals here.
+- AD topology checked: `Get-ADDomainController -Filter *` returned `PDC.format.lu` and `BDC.format.lu`, both global catalogs.
+- Time service checked: source `192.168.1.253,0x8`; last successful sync `2026-05-03 17:51:21`.
+- Disk space checked: C: about 67.3 GB free.
+- Pending reboot checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Visible Windows updates checked: `0`.
+
+Notes:
+
+- The earlier PDC external WinRM reachability problem is resolved.
+- The remaining issue is not a blanket replication failure, but intermittent BDC communication/auth noise that is still loud enough for `dcdiag` and DFSR event checks to complain.
+
+Follow-up:
+
+- Investigate BDC health directly, especially RPC/DFSR stability and the cause of the intermittent `1722`/`1726` communication failures.
+- Treat `repadmin /showrepl` and successful inbound attempts as a better short-term health indicator than `nltest /sc_query` on the DC itself.
+
+## 2026-05-03 - Cross-Check Against BDC
+
+Maintainer: Codex with Peter
+
+Scope:
+
+- Compare `PDC` and `BDC` directly to determine whether the earlier replication/auth noise reflects a real directory outage or intermittent partner-side instability.
+
+Checks:
+
+- `BDC` SSH checked: both `win-bdc` and `winad-bdc` connected and returned `format\administrateur`.
+- `BDC` core DC services checked: `DNS`, `NTDS`, `DFSR`, `W32Time`, `Netlogon`, and `sshd` `Running`/`Automatic`; `WinRM` had drifted to `Stopped`/`Disabled`.
+- `BDC` WinRM checked: restored to `Running`/`Automatic`; local listener and firewall scope matched the expected baseline, but external TCP/5985 from the maintainer Mac still timed out.
+- `BDC` secure channel checked: `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `BDC` DC discovery checked: `nltest /dsgetdc:format.lu` returned `\\BDC.format.lu`.
+- `BDC` replication summary checked: `repadmin /replsummary` still showed `0` failed replications, but also reported operational error `1326` while retrieving information from `PDC.format.lu`.
+- `BDC` `dcdiag /q` checked: failed `KnowsOfRoleHolders`, `Replications`, `RidManager`, and `SystemLog`, while the detailed warnings specifically complained that `PDC` was not responding to DS RPC/LDAP binds in that admin context.
+- `BDC` DFSR event log checked: showed the same pattern seen from `PDC` in reverse:
+  - transient `5014` warnings with errors `1726` and `9036`
+  - followed by successful reconnection event `5004`
+  - and fresh startup/registration events around `2026-05-03 16:56`
+- `PDC` and `BDC` SPNs checked: both accounts now include `WSMAN/<hostname>` and `WSMAN/<fqdn>`.
+- `BDC` WinRM event checked: warning `10154` still logged that WinRM failed to create `WSMAN/BDC` SPNs with error `8344`, even though those SPNs are already present on the computer account.
+
+Interpretation:
+
+- The strongest replication indicators (`repadmin /replsummary` and `repadmin /showrepl`) show that the directory is currently replicating successfully between `PDC` and `BDC`.
+- The recurring `dcdiag` bind failures are likely influenced by the remote SSH/logon context used for the checks and do not line up with the live replication data.
+- The remaining real problem is intermittent DFSR/RPC instability between the two DCs, not a sustained replication outage.
+
+Notes:
+
+- `BDC` also shows the same WinRM drift pattern seen on several other Windows hosts.
+- `BDC` reported `vmwTimeProvider` errors in `dcdiag` system-log output, but `W32Time` was synchronizing from `PDC.format.lu` at the time of the check.
+
+Follow-up:
+
+- Investigate what backup/restore or other scheduled activity is causing the recurrent DFSR pause/RPC noise between `PDC` and `BDC`.
+- Validate one `dcdiag` run from an interactive/local admin session on a DC to compare against the SSH-driven result set.
+- Treat the DC pair as operational but noisy unless replication failures begin appearing in `repadmin /showrepl` or `repadmin /replsummary`.
+
+## 2026-05-16 - Twice-Monthly Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `winad-pdc` connected and returned `format\administrateur`.
+- Domain controller health checked: `DNS`, `NTDS`, `DFSR`, `W32Time`, `Netlogon`, `sshd`, and `WinRM` were all `Running` after remoting recovery.
+- DNS checked: no new DNS fault surfaced in this pass.
+- Replication checked: `repadmin /replsummary` again showed `0` failed replications while still reporting operational error `1326` against `BDC`.
+- SYSVOL/DFSR checked: no fresh deep dive was done beyond confirming the prior noisy-but-operational pattern remains.
+- Time service checked: `W32Time` remained `Running`.
+- Event logs reviewed: Windows Update task log under `C:\ProgramData\Codex`; replication-noise context carried forward from the 2026-05-03 cross-check.
+- Updates installed: Yes. A one-off SYSTEM task `Codex-WindowsUpdate-NoReboot` completed with `ResultCode=2`, `HResult=00000000`, `RebootRequired=True`.
+- Reboot required: Yes.
+- Notes: Installed payloads were MRT `KB890830`, .NET cumulative update `KB5088862`, and OS cumulative update `KB5087545`. `WinRM` had again drifted to `Stopped`/`Disabled`; this pass restored it to `Running`/`Automatic`, and external TCP `5985` is reachable again from the maintainer Mac.
+- Follow-up: remove the one-off task if it is still present, reboot PDC only in a planned DC window, then re-run replication/DFSR/DNS/time checks afterward. Keep the `BDC`-side RPC/DFSR noise in the follow-up lane unless live replication failures appear.
+
 ## Maintenance Template
 
 Date:

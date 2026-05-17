@@ -60,6 +60,114 @@ Follow-up:
 
 - Reboot EXCHANGE3 in an agreed Exchange maintenance window, then re-run Windows Update scan and Exchange Management Shell health checks.
 
+## 2026-05-03 - Bi-Monthly Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `win-exchange3` and `winad-exchange3` both connected; `winad-exchange3 whoami` returned `format\administrateur`.
+- Secure channel checked: healthy; `Test-ComputerSecureChannel -Verbose` returned `True`.
+- `sshd` checked: `Running`, `Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled` again, restored to `Running`/`Automatic`.
+- WinRM TCP checked after restore: `192.168.1.6:5985` reachable from the maintainer Mac.
+- Exchange services checked: 25 `MSExchange*` services `Running`; 2 `Stopped`.
+- Disk space checked: C: about 55.6 GB free; E: about 85.1 GB free.
+- Pending reboot checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Visible Windows updates checked: `0`.
+- Recent hotfixes checked: `KB5082142`, `KB5082137`, `KB5082427`.
+- File cleanup performed: no files older than 30 days remained in `C:\Windows\Temp`; remaining temp content about 66.8 MB.
+- Updates installed by Codex: No.
+- Reboot performed: No.
+
+Notes:
+
+- April update state appears finalized because visible updates and reboot flags are clear.
+- WinRM drift recurred on this host as well.
+
+Follow-up:
+
+- Run the previously deferred Exchange Management Shell checks from a context that can load Exchange cmdlets cleanly.
+- Investigate why `WinRM` startup drift recurred after the April maintenance.
+
+## 2026-05-03 - Exchange Certificate Renewal Automation Repair
+
+Maintainer: Peter with Codex
+
+Scope:
+
+- Diagnose the near-expiry Exchange certificate and repair the broken `win-acme` renewal automation on `EXCHANGE3`.
+
+Checks:
+
+- Exchange Management Shell checks run locally by Peter and reviewed by Codex:
+  - `Get-ExchangeServer` reported `Version 15.2 (Build 1748.10)`, `Standard`, `Mailbox`.
+  - `Get-Queue` showed `Exchange3\\Submission` clean and one stale retry queue item for `eccfstudies.com`.
+  - `Get-ExchangeCertificate` showed the active `CN=exchange.format.lu` IIS/SMTP/IMAP certificate expiring `2026-06-01 10:53:03`.
+- The stale retry queue item was an old undeliverable message with remote socket refusal from `eccfstudies.com`; no broad queue backlog was present.
+- Scheduled task `win-acme renew (acme-v02.api.letsencrypt.org)` existed and was `Ready`, but `Get-ScheduledTaskInfo` showed repeated failures with `2147942593`.
+- `C:\Program Files\Lets Encrypt\wacs.exe` was found to be a zero-byte corrupted file.
+
+Actions:
+
+- Peter replaced the broken `wacs.exe` with a working `win-acme` binary.
+- Peter ran:
+  - `& "C:\Program Files\Lets Encrypt\wacs.exe" --renew --baseuri "https://acme-v02.api.letsencrypt.org/"`
+- Renewal succeeded for all 7 identifiers:
+  - `exchange.format.lu`
+  - `exchange3.format.lu`
+  - `autodiscover.format.lu`
+  - `autodiscover.floc.lu`
+  - `autodiscover.formatexpo.fr`
+  - `autodiscover.lmr-sa.lu`
+  - `autodiscover.nolimits.lu`
+- The manual run updated IIS bindings but failed its script step because `./Scripts/ImportExchange.ps1` was invoked from the wrong working directory.
+- The renewed certificate was then explicitly enabled for Exchange services by Peter:
+  - `Enable-ExchangeCertificate -Thumbprint 5A2FE271F5B6588917E7A37DC06DAF1C0EDA63FA -Services SMTP,IMAP,IIS`
+- Peter tested the scheduled task again:
+  - `Start-ScheduledTask -TaskName "win-acme renew (acme-v02.api.letsencrypt.org)"`
+  - `Get-ScheduledTaskInfo ...` then returned `LastTaskResult : 0`
+- A fresh `win-acme` log was created:
+  - `C:\ProgramData\win-acme\acme-v02.api.letsencrypt.org\Log\log-20260503.txt`
+
+Results:
+
+- Active Exchange certificate now:
+  - Thumbprint: `5A2FE271F5B6588917E7A37DC06DAF1C0EDA63FA`
+  - Subject: `CN=exchange.format.lu`
+  - Services: `IMAP, IIS, SMTP`
+  - Expiry: `2026-08-01 16:55:27`
+- Renewal automation is healthy again with scheduled-task result `0`.
+
+Notes:
+
+- The root cause was a corrupted zero-byte `wacs.exe`, not an Exchange certificate-store failure.
+- The manual renewal run initially reported `succeeded with errors` only because it was launched from `C:\Windows\System32`, so the relative `./Scripts/ImportExchange.ps1` path failed. The scheduled task works because its working directory is correctly set to `C:\Program Files\Lets Encrypt`.
+- No Exchange service restart, transport change, queue purge, or mailbox data change was performed during this repair.
+
+Follow-up:
+
+- Keep the new `win-acme` binary and monitor the next scheduled renewal run for a normal `LastTaskResult : 0`.
+- Review whether the stale retry queue item for `eccfstudies.com` still exists later; it was not treated as a mail-flow outage during this repair.
+
+## 2026-05-16 - Twice-Monthly Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `win-exchange3` and `winad-exchange3` remain usable for routine remoting.
+- Secure channel checked: `Test-ComputerSecureChannel -Verbose` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: had drifted back to `Stopped`/`Disabled`; restored to `Running`/`Automatic`; TCP `5985` reachable again from the maintainer Mac.
+- Exchange services checked: service summary remained `25 Running`, `2 Stopped`, matching the prior POP3-disabled baseline.
+- Certificates checked: no new certificate work was needed in this pass; the repaired `win-acme` path from 2026-05-03 remained in place.
+- Event logs reviewed: Windows Update task log under `C:\ProgramData\Codex`.
+- Updates installed: Yes. A one-off SYSTEM task `Codex-WindowsUpdate-NoReboot` completed with `ResultCode=2`, `HResult=00000000`, `RebootRequired=True`.
+- Reboot required: Yes.
+- Notes: Installed payloads were MRT `KB890830`, .NET cumulative update `KB5088862`, and OS cumulative update `KB5087545`. Post-install remote Windows Update scan returned `VisibleUpdates=0`.
+- Follow-up: remove the one-off task if it is still present, then reboot Exchange3 in a planned Exchange window and re-run Windows Update plus basic EMS health checks afterward.
+
 ## Maintenance Template
 
 Date:
