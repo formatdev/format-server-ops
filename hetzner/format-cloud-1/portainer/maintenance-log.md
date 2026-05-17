@@ -50,6 +50,174 @@ Checks:
 - Notes: The previous stale `2.33.6` stack image label follow-up is resolved.
 - Follow-up: Review access policy for `portainer.format.lu` together with broader origin hardening.
 
+## 2026-05-03 - Twice-Monthly Check
+
+Date: 2026-05-03 08:31 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `portainer/portainer-ce:2.39.1@sha256:1ae8e65d50ca5498cb2c33e617495a1e3ef245b0d2392b4a44c70ae09b822891`, `portainer/agent:2.39.1@sha256:7af856876dcb2778108bf6846f3da31b176443db90e3de31fcfdf17e5ab7857e`
+
+Stack version after: `portainer/portainer-ce:2.39.1@sha256:1ae8e65d50ca5498cb2c33e617495a1e3ef245b0d2392b4a44c70ae09b822891`, `portainer/agent:2.39.1@sha256:7af856876dcb2778108bf6846f3da31b176443db90e3de31fcfdf17e5ab7857e`
+
+Checks:
+
+- Portainer server health checked: OK. `portainer_portainer` is `1/1`.
+- Portainer agent health checked: OK. `portainer_agent` is `1/1`.
+- Running images checked: OK. Server and agent both match the current
+  `2.39.1` digests.
+- Latest Portainer release checked: OK. Latest LTS release remains `2.39.1`.
+- Release notes reviewed: No newer LTS release was found.
+- Server logs reviewed: OK. No recent filtered error or warning lines were
+  observed.
+- Agent logs reviewed: OK. No recent filtered error or warning lines were
+  observed.
+- Traefik route checked: OK. `https://portainer.format.lu/` redirects to
+  Cloudflare Access.
+- UI login checked: Not interactively checked in this run.
+- Swarm visibility checked: OK. The host remains a single-node leader and all
+  documented services are `1/1`.
+- Backup coverage checked: Partial. Portainer data still lives at
+  `/data/portainer/data`, but the Duplicati backup job is warning that the live
+  `portainer.db` file is locked during backup.
+- Latest backup checked: Partial. Duplicati metadata shows the job ran on
+  `2026-05-02`, but the locked `portainer.db` warning means the resulting backup
+  is not a complete Portainer state capture.
+- Update applied: No.
+- Post-update logs checked: Not applicable.
+- Notes: Portainer itself is healthy; the real maintenance follow-up is the
+  backup gap around the live SQLite database.
+- Follow-up: Introduce a consistent Portainer backup method that does not rely
+  on copying the locked live `portainer.db`, and keep the Access/origin review
+  on the broader hardening list.
+
+## 2026-05-03 - Portainer Backup Automation
+
+Date: 2026-05-03 09:16 CEST
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Backup script created: OK. Added `backup-portainer.sh` to the repo and
+  installed it on `format-cloud-1` at `/usr/local/sbin/backup-portainer.sh`.
+- Backup flow checked: OK. The script scales `portainer_portainer` to `0`,
+  archives `/data/portainer/data`, scales the service back to `1`, and prunes
+  local archives older than 7 days.
+- Retention checked: OK. Local Portainer backup retention is set to `7` days.
+- Cron entry checked: OK. Daily backup is scheduled for `20:10` local time.
+- Duplicati pickup path checked: OK. The output archive lives under `/data`, so
+  it is included in the normal `/source-data` backup path.
+- Notes: This avoids relying on a live copy of the locked `portainer.db`
+  SQLite file.
+- Follow-up: After the first scheduled run, verify that a fresh archive appears
+  under `/data/backups/portainer` and that Duplicati carries it off-host.
+
+## 2026-05-03 - Duplicati Pickup Alignment
+
+Date: 2026-05-03 09:25 CEST
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Duplicati live-source exclusion checked: OK. The backup job now excludes
+  `/source-data/portainer/data/`.
+- Archive pickup path checked: OK. Duplicati still includes
+  `/source-data/backups/portainer/` through the normal `/source-data` source.
+- Warning cleanup follow-up set: OK. The next scheduled backup should verify
+  that the old locked `portainer.db` warning is gone.
+
+## 2026-05-03 - Portainer STS Upgrade
+
+Date: 2026-05-03 10:15 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `portainer/portainer-ce:2.39.1`, `portainer/agent:2.39.1`
+
+Stack version after: `portainer/portainer-ce:2.41.0`, `portainer/agent:2.41.0`
+
+Checks:
+
+- Pre-update backup checked: OK. Created manual archive
+  `/data/backups/portainer/portainer-data-manual-20260503-0815UTC.tar.gz`
+  before the image update.
+- Portainer server update applied: OK. Updated `portainer_portainer` to
+  `portainer/portainer-ce:2.41.0`.
+- Portainer agent update applied: OK. Updated `portainer_agent` to
+  `portainer/agent:2.41.0`.
+- Service convergence checked: OK. Both services returned to `1/1`.
+- Route check after update: OK. `https://portainer.format.lu/` remained behind
+  Cloudflare and returned a challenge response while the backend stayed up.
+- Agent connectivity checked: OK. Agent logs show API server `2.41.0` started
+  normally on port `9001`.
+- Logs reviewed: OK. Portainer migrated its database from `2.39.1` to `2.41.0`
+  and started normally. No trusted-origin or CSRF startup errors were observed.
+- Notes: Portainer still logs that `/run/secrets/portainer` is not present and
+  proceeds without an encryption key; this is unchanged from before the
+  upgrade.
+- Follow-up: Do one authenticated UI sanity check for state-changing actions in
+  the browser, since `2.41.0 STS` changed CSRF trusted-origin handling.
+
+## 2026-05-03 - Backup Script Filter Fix
+
+Date: 2026-05-03 10:18 CEST
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Backup helper failure reviewed: OK. The earlier run hung before archiving
+  because the service replica check filtered on `name=^portainer_portainer$`.
+- Script fix applied: OK. Changed the helper to filter on
+  `name=portainer_portainer`, which matches Docker service listings on this
+  host.
+- Host script sync checked: OK. Reinstalled the corrected helper at
+  `/usr/local/sbin/backup-portainer.sh`.
+- Follow-up: Let the scheduled `20:10` backup run once and confirm the helper
+  now scales down, archives, and scales back up cleanly.
+
+## 2026-05-17 - Portainer Patch Upgrade
+
+Date: 2026-05-17 14:52 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `portainer/portainer-ce:2.41.0`, `portainer/agent:2.41.0`
+
+Stack version after: `portainer/portainer-ce:2.41.1`, `portainer/agent:2.41.1`
+
+Checks:
+
+- Pre-update backup checked: OK. Ran `/usr/local/sbin/backup-portainer.sh` and
+  created `/data/backups/portainer/portainer-data-20260517-124925.tar.gz`.
+- Portainer server health checked: OK. `portainer_portainer` returned to `1/1`.
+- Portainer agent health checked: OK. `portainer_agent` returned to `1/1`.
+- Running images checked: OK. Server and agent both now run `2.41.1`.
+- Latest Portainer release checked: OK. `2.41.1` is the current CE patch
+  release observed during this run.
+- Release notes reviewed: Patch-level update applied within the existing
+  `2.41.x` line.
+- Server logs reviewed: OK overall. Portainer migrated the database from
+  `2.41.0` to `2.41.1` and started normally.
+- Agent logs reviewed: OK. The agent converged cleanly on `2.41.1`.
+- Traefik route checked: OK. `https://portainer.format.lu/` redirects to
+  Cloudflare Access as expected.
+- UI login checked: Not interactively checked in this run.
+- Swarm visibility checked: OK. The single-node Swarm remained `Ready` and
+  `Leader` throughout the update.
+- Backup coverage checked: OK. Portainer data remains under
+  `/data/portainer/data` and the local backup archive was created successfully.
+- Latest backup checked: OK. Fresh manual backup archive exists from this run.
+- Update applied: Yes.
+- Post-update logs checked: OK. No fresh startup or migration errors were
+  observed after convergence.
+- Notes: Portainer still logs that `/run/secrets/portainer` is not present and
+  proceeds without an encryption key; this is unchanged from earlier runs.
+- Follow-up: Do one authenticated UI sanity check when convenient, mainly for
+  environment and stack visibility.
+
 ## Maintenance Template
 
 Date:

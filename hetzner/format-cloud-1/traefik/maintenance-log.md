@@ -112,3 +112,150 @@ Checks:
 - Logs reviewed: OK for novaculture. No remaining novaculture ACME entries were found in storage. The only current Traefik error observed after restart is the known `api is not enabled` dashboard-router mismatch.
 - Notes: During cleanup, Traefik temporarily returned a Cloudflare `526` because the rewritten ACME file had `0644` permissions. This was corrected immediately by restoring `0600` and restarting Traefik.
 - Follow-up: The dashboard/API mismatch remains intentionally open for later cleanup. Direct-origin exposure remains a platform hardening item.
+
+## 2026-05-03 - Twice-Monthly Check
+
+Date: 2026-05-03 08:31 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `traefik:3.6.13@sha256:34d5089d0b414945342848518b383f11f5b3a645504ed87b77ffeb9d683d0e48`
+
+Stack version after: `traefik:3.6.13@sha256:34d5089d0b414945342848518b383f11f5b3a645504ed87b77ffeb9d683d0e48`
+
+Checks:
+
+- Container health checked: OK. `traefik_traefik` is `1/1`.
+- Running image checked: OK. Live image digest is the one above.
+- Latest Traefik release checked: OK. Latest verifiable stable release remains
+  `v3.6.13` (published 2026-04-07).
+- Release notes reviewed: No newer stable patch release was verified in this
+  run.
+- Provider health checked: OK. Swarm provider remains enabled with
+  `exposedByDefault=false` on the `proxy` network.
+- Network membership checked: OK. Traefik remains attached to the shared proxy
+  network.
+- Ports checked: OK for current use. Public HTTPS routes continue to respond as
+  expected.
+- ACME storage checked: OK. `/data/traefik/certificates/acme.json` exists and
+  is non-empty.
+- Log storage checked: OK. `/data/traefik/logs/access.log` exists and is
+  growing.
+- Logs reviewed: OK. No recent filtered Traefik error lines were observed in
+  this run.
+- Certificate renewals checked: OK in this run. No fresh renewal errors were
+  observed in the recent log sample.
+- Routed app smoke tests checked: OK. Public checks for the documented services
+  returned the expected `200`, `302`, and `403` responses.
+- Dashboard/API policy checked: Follow-up needed. The service still advertises a
+  `traefik.format.lu` router to `api@internal` while `--api=false` and
+  `--api.dashboard=false` remain set.
+- Update applied: No.
+- Post-update logs checked: Not applicable.
+- Notes: Direct-origin probes to several Access-protected hostnames timed out
+  from this workstation, which is an improvement over the earlier April direct
+  origin exposure finding.
+- Follow-up: Decide whether to remove the dashboard router or intentionally
+  enable the dashboard behind strong access control.
+
+## 2026-05-03 - Disabled Dashboard Route Cleanup
+
+Date: 2026-05-03 11:09 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `traefik:3.6.13`
+
+Stack version after: `traefik:3.6.13`
+
+Checks:
+
+- Live labels reviewed: OK. The service still had stale `traefik.format.lu`
+  router labels pointing to `api@internal`.
+- Dashboard route cleanup applied: OK. Removed the stale dashboard router and
+  dummy service labels from `traefik_traefik`.
+- Container health checked: OK. `traefik_traefik` returned to `1/1` after the
+  service update.
+- Post-change logs checked: OK. No fresh `api is not enabled` lines appeared in
+  the immediate post-change log sample.
+- Route behavior checked: OK. Local host-header requests for `traefik.format.lu`
+  now return `404` without the stale internal API route.
+- Notes: The Traefik dashboard remains intentionally disabled.
+- Follow-up: Leave the dashboard disabled unless there is a real operational
+  need to expose it behind strong access control.
+
+## 2026-05-03 - Middleware Regression Fix
+
+Date: 2026-05-03 11:16 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `traefik:3.6.13`
+
+Stack version after: `traefik:3.6.13`
+
+Checks:
+
+- Regression cause identified: OK. Removing the stale dashboard route also
+  removed the dummy Traefik service-port label that the Swarm provider was
+  relying on to load the Traefik-defined middlewares.
+- Service label restored: OK. Re-added
+  `traefik.http.services.traefik-lb-dummy.loadbalancer.server.port=8080`
+  without restoring the old dashboard router labels.
+- Container health checked: OK. `traefik_traefik` remained `1/1`.
+- Routed app recovery checked: OK. Local host-header probes for
+  `portainer.format.lu`, `bitwarden.format.lu`, and `floc.lu` returned `200`
+  after the fix.
+- Logs checked: OK. The earlier `middleware ... does not exist` and
+  `service \"traefik-traefik\" error: port is missing` errors stopped after the
+  label was restored.
+- Notes: The dashboard route remains disabled; only the middleware-supporting
+  dummy service label was restored.
+- Follow-up: When changing self-referential Traefik labels later, keep the
+  dummy service label in place unless the middleware definitions are moved to a
+  dedicated dynamic config source.
+
+## 2026-05-17 - Traefik Patch Upgrade
+
+Date: 2026-05-17 14:52 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `traefik:3.6.13`
+
+Stack version after: `traefik:3.6.17`
+
+Checks:
+
+- Container health checked: OK. `traefik_traefik` returned to `1/1`.
+- Running image checked: OK. The live service now runs `traefik:3.6.17`.
+- Latest Traefik release checked: OK. Latest `3.6.x` patch observed during this
+  run is `v3.6.17`.
+- Release notes reviewed: Patch-level update applied within the existing
+  `3.6.x` line.
+- Provider health checked: OK. Swarm provider remained active on the `proxy`
+  network after convergence.
+- Network membership checked: OK. Routed services recovered after the restart.
+- Ports checked: OK after update. Public `443` traffic resumed normally.
+- ACME storage checked: Implicitly OK. Existing certificate storage continued to
+  serve HTTPS routes after the restart.
+- Log storage checked: OK. Post-update log sampling worked normally.
+- Logs reviewed: OK in the final sample. Early replacement-task log lines
+  briefly showed missing middleware references while the new task was coming up,
+  but no fresh Traefik errors remained in the final post-convergence sample.
+- Certificate renewals checked: Not fully revalidated in this run.
+- Routed app smoke tests checked: OK. `https://portainer.format.lu/` returned
+  the expected Cloudflare Access redirect, `https://bitwarden.format.lu/`
+  returned `200`, and `https://floc.lu/` returned `200`.
+- Dashboard/API policy checked: OK for current stance. The dashboard remains
+  intentionally disabled.
+- Update applied: Yes.
+- Post-update logs checked: OK. No fresh error lines remained in the final
+  `--since 60s` log sample.
+- Notes: The first rollout attempt hit the expected single-node Swarm
+  `host-mode port already in use` conflict while replacing a service that owns
+  `443`. The service then completed with `stop-first` behavior and recovered
+  cleanly.
+- Follow-up: `com.docker.stack.image` metadata still reports `traefik:3.6.13`
+  even though the live service image is `3.6.17`; reconcile that label later if
+  metadata cleanliness matters.

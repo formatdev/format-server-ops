@@ -155,3 +155,122 @@ Checks:
 - Browser extension or mobile sync checked: Not checked from CLI.
 - Notes: No Vaultwarden image bump was needed.
 - Follow-up: Lock down direct origin access where practical and verify backup success in Duplicati UI.
+
+## 2026-05-03 - Twice-Monthly Check
+
+Date: 2026-05-03 08:31 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `ghcr.io/dani-garcia/vaultwarden:1.35.7@sha256:9a8eec71f4a52411cc43edc7a50f33e9b6f62b5baca0dd95f0c6e7fd60f1a341`
+
+Stack version after: `ghcr.io/dani-garcia/vaultwarden:1.35.7@sha256:9a8eec71f4a52411cc43edc7a50f33e9b6f62b5baca0dd95f0c6e7fd60f1a341`
+
+Checks:
+
+- Container health checked: OK. `vaultwarden_server` is `1/1` and healthy.
+- Vaultwarden release checked: OK. Latest verifiable official release remains
+  `1.35.7`, published 2026-04-13.
+- Release notes reviewed: No newer stable patch release was verified in this
+  run.
+- Container logs reviewed: OK overall. Recent logs show successful login-token
+  responses; the recurring `PathBuf BadStart('.')` warnings remain but no
+  database or startup failure was observed.
+- Traefik routing checked: OK. Public `https://bitwarden.format.lu/` returned
+  `200`.
+- TLS checked: OK. Public HTTPS is responding normally through Cloudflare.
+- Normal login checked: Not interactively checked. Logs show recent successful
+  `/identity/connect/token` responses.
+- Admin login checked: Not interactively checked in this run.
+- Signup policy checked: OK. `SIGNUPS_ALLOWED=false` remains set in the service
+  environment and persisted config.
+- Admin token hash checked: OK. `ADMIN_TOKEN` remains Argon2-hashed in the
+  service environment and persisted config.
+- Cloudflare protection checked: OK. Public DNS continues to resolve through
+  Cloudflare.
+- Direct origin exposure checked: OK from this workstation. Direct-origin probes
+  to `188.245.43.92` with the Vaultwarden host header timed out.
+- Backup coverage checked: Partial. Vaultwarden data remains under
+  `/data/files/vaultwarden/data`, which is included in the broader Duplicati
+  source-data backup path.
+- Latest backup checked: Partial. The Duplicati metadata check shows the latest
+  backup date as `2026-05-02 18:30 UTC`.
+- Update applied: No.
+- Post-update logs checked: Not applicable.
+- Browser extension or mobile sync checked: Not checked in this run.
+- Notes: The earlier April config-hardening work is still in place and appears
+  durable across the reboot and later host changes.
+- Follow-up: Keep an eye on the recurring `PathBuf` warnings even though they
+  are not currently blocking service health.
+
+## 2026-05-03 - Vaultwarden Upgrade To 1.35.8
+
+Date: 2026-05-03 11:20 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `ghcr.io/dani-garcia/vaultwarden:1.35.7`
+
+Stack version after: `ghcr.io/dani-garcia/vaultwarden:1.35.8`
+
+Checks:
+
+- Container update applied: OK. Updated `vaultwarden_server` to
+  `ghcr.io/dani-garcia/vaultwarden:1.35.8`.
+- Container health checked: OK. The replacement task reached `1/1` and healthy
+  state.
+- Startup logs checked: OK. Vaultwarden `1.35.8` launched normally and
+  continued using the persisted `config.json`.
+- Web vault version checked: OK. The running container now reports
+  `Web-Vault 2026.3.1`.
+- Route check after update: OK. Local Traefik host-header probes for
+  `bitwarden.format.lu` returned `200` after service convergence.
+- Notes: This matches the newer web vault version already seen on
+  `bitwarden.esst.lu`.
+- Follow-up: Do one normal browser login check when convenient, mainly to
+  confirm the newer web vault behaves as expected for day-to-day users.
+
+## 2026-05-17 - Vaultwarden Upgrade To 1.36.0
+
+Date: 2026-05-17 14:52 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `ghcr.io/dani-garcia/vaultwarden:1.35.8`
+
+Stack version after: `ghcr.io/dani-garcia/vaultwarden:1.36.0`
+
+Checks:
+
+- Container health checked: OK. `vaultwarden_server` returned to `1/1` and
+  healthy.
+- Vaultwarden release checked: OK. Latest official GitHub release observed
+  during this run is `1.36.0`.
+- Release notes reviewed: `1.36.0` includes security fixes and a web-vault
+  update, so the patch was treated as worth applying promptly.
+- Container logs reviewed: OK. Vaultwarden `1.36.0` launched normally and
+  continued using the persisted `data/config.json`.
+- Traefik routing checked: OK after convergence. Public
+  `https://bitwarden.format.lu/` returned `200`.
+- TLS checked: OK. Public HTTPS continued to work through Cloudflare after the
+  update.
+- Normal login checked: Not interactively checked in this run.
+- Admin login checked: Not interactively checked in this run.
+- Signup policy checked: OK. Startup logs still show `SIGNUPS_ALLOWED` is
+  managed through the persisted config.
+- Admin token hash checked: OK. Startup logs still show `ADMIN_TOKEN` is
+  managed through the persisted config.
+- Cloudflare protection checked: OK. Public access remains proxied by
+  Cloudflare.
+- Direct origin exposure checked: Not revalidated in this run.
+- Backup coverage checked: Partial. Vaultwarden data remains under
+  `/data/files/vaultwarden/data`, inside the broader host backup scope.
+- Latest backup checked: Not revalidated in this run.
+- Update applied: Yes.
+- Post-update logs checked: OK. The final startup log shows Rocket launched on
+  port `80` without application errors.
+- Browser extension or mobile sync checked: Not checked in this run.
+- Notes: The update took a little while to finish pulling and pass health, but
+  it converged cleanly in the end.
+- Follow-up: Do one real browser login and `/admin` sanity check when
+  convenient, mainly because `1.36.0` includes security-sensitive changes.
