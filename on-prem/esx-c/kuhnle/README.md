@@ -2,7 +2,7 @@
 
 Starter runbook for the `Kuhnle` VM on ESX-C.
 
-Last updated: 2026-04-18
+Last updated: 2026-05-03
 
 ## Known State
 
@@ -14,7 +14,8 @@ Last updated: 2026-04-18
 - Expected SSH identity: `~/.ssh/windows-admin_ed25519`
 - Role: unknown Windows production VM; verify before maintenance.
 - Verified live state: confirmed domain-joined Windows member server on 2026-04-18.
-- Update state: 2026-04 updates remain pending after reboot; remote elevated install attempts were blocked by access-denied errors on 2026-04-18.
+- Update state: the 2026-04 pending-update finding from 2026-04-18 is stale; by 2026-05-03, `KB5082142` was installed and the Windows Update operational log was repeatedly reporting `0 updates found`.
+- Cleanup state: operator later ran Windows system-file cleanup and recovered about `4.3 GB` before the planned ESX-C host-maintenance shutdown.
 
 ## Safety Rules
 

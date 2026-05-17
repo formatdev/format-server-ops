@@ -117,3 +117,216 @@ Next:
 
 - Verify application role and SQL Server state if applicable.
 - Review post-reboot event logs during the next application-specific health check.
+
+## 2026-05-03 - Planned Shutdown For ESX-C Host Maintenance
+
+Scope:
+
+- Operator indicated `LMR` would be shut down as part of a coordinated three-VM
+  ESX-C host-maintenance window.
+- This entry records the approved maintenance context only.
+- No live verification command was run from this thread at the time of
+  documentation.
+
+Findings:
+
+- `LMR` had already completed its April 2026 Windows update and reboot cycle in
+  the earlier entries above.
+- The planned shutdown is for ESX-C host maintenance, not for additional guest
+  OS patching.
+
+Notes:
+
+- Shutdown action was operator-performed/planned outside this thread.
+- Any later power-on verification should confirm SSH reachability, domain
+  secure channel, and SQL/application service state again after the ESX-C host
+  work.
+
+## 2026-05-16 - Twice-Monthly Maintenance Attempt Blocked While VM Offline
+
+Scope:
+
+- Started the next twice-monthly ESX-C maintenance pass.
+- Limited this entry to non-mutating reachability checks because the VMs were
+  expected to have been shut down for ESX-C host maintenance.
+- No VMware, Windows, GPO, firewall, SSH, WinRM, update, reboot, snapshot,
+  migration, power, or data changes were made from this thread.
+
+Findings:
+
+- `nc -vz -G 5 192.168.1.8 22` timed out.
+- `nc -vz -G 5 192.168.1.8 5985` timed out.
+- `LMR` was not reachable yet for guest-level maintenance verification.
+
+Result:
+
+- Twice-monthly guest maintenance for `LMR` could not proceed because the VM
+  was still offline or otherwise unreachable during the ESX-C host-maintenance
+  window.
+
+Next:
+
+- Re-run the normal `LMR` post-power-on verification after ESX-C host work is
+  complete and guest network reachability returns.
+
+## 2026-05-16 - Post-Power-On Verification After ESX-C Host Maintenance
+
+Scope:
+
+- Re-tried the twice-monthly ESX-C maintenance pass after VPN reachability was
+  restored and the guest came back online.
+- Limited this entry to post-power-on verification and Windows Update
+  discovery.
+- No VMware, Windows, GPO, firewall, SSH, WinRM, update, reboot, snapshot,
+  migration, power, or data changes were made from this thread.
+
+Findings:
+
+- `LMR` responded on SSH again as `lmr\administrateur`.
+- Last boot time observed: `2026-05-03 16:55:55`.
+- Domain secure channel still tested healthy.
+- `sshd` remained `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Current observed free space:
+  - `C:` about `27.0 GB` free of `119.4 GB`
+  - `D:` about `895.8 GB` free of `1024 GB`
+- Windows Update COM search from the SSH session failed with `0x80240032`.
+- Windows Update operational log still showed background scans finding
+  available software updates on 2026-05-16:
+  - repeated `found 3 updates`
+  - repeated `found 1 updates`
+- Reboot indicators were mostly clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=True`
+- Recent warnings/errors remained mostly baseline-type noise, especially VMware
+  virtual TPM `1803`, `DCOM 10016`, and recurring `AutoEnrollment 64`
+  application warnings.
+
+Result:
+
+- `LMR` came back cleanly after ESX-C host maintenance and remained generally
+  consistent with its earlier baseline.
+- Guest patch installation did not proceed yet in this entry because the
+  remote, non-interactive Windows Update enumeration path was not giving a
+  trustworthy update list.
+
+## 2026-05-16 - Windows Update Install Started, Servicing Still Running
+
+Scope:
+
+- Started Windows Update installation on `LMR` using a temporary
+  `NT AUTHORITY\\SYSTEM` scheduled task after the post-power-on checks.
+- No reboot was performed in this entry.
+- No VMware, GPO, firewall, SSH, WinRM, snapshot, migration, power, or data
+  changes were made.
+
+Findings:
+
+- SYSTEM-side update inventory/logging captured this currently available update
+  set:
+  - Security update for SQL Server 2019 RTM GDR (`KB5090408`)
+  - Windows Malicious Software Removal Tool x64 v5.141 (`KB890830`)
+  - 2026-05 cumulative update for .NET Framework 3.5, 4.8, and 4.8.1
+    (`KB5088862`)
+  - 2026-05 cumulative update for Microsoft server operating system version
+    21H2 (`KB5087545`)
+- Download phase reported `DownloadResult=2` (succeeded).
+- `TrustedInstaller` and `TiWorker` remained active for an extended period
+  after the task launch, indicating Windows servicing was still in progress.
+- `Get-ScheduledTaskInfo` for `FormatOps-WU-Install-20260516` continued to show
+  `LastTaskResult=267009` (`0x41301`, task still running).
+- During servicing, Windows Update operational events shifted from repeated
+  `found 3 updates` / `found 1 updates` to `found 1 updates` / `found 1
+  updates`.
+- Reboot indicators during the in-progress state were:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=True`
+  - `PendingFileRenameOperations=False`
+- `Get-HotFix` did not yet show the May 2026 update KBs at the time of this
+  snapshot.
+
+Result:
+
+- Update installation was started successfully on `LMR`, but it had not reached
+  a final completed state within this maintenance window snapshot.
+- `LMR` should be treated as mid-servicing until a later verification confirms
+  task completion or a reboot-finalized post-install state.
+
+## 2026-05-17 - Manual Update Install And Reboot Verified
+
+Scope:
+
+- Operator reported manually completing the pending May 2026 Windows updates
+  and reboot on `2026-05-16`.
+- Performed read-only verification on `2026-05-17` over SSH.
+- No VMware, Windows, GPO, firewall, SSH, WinRM, update, reboot, snapshot,
+  migration, power, or data changes were made from this thread.
+
+Findings:
+
+- `LMR` responded on SSH as `lmr\administrateur`.
+- Last boot time observed after the operator reboot:
+  `2026-05-16 16:22:14` Europe/Luxembourg time.
+- Domain secure channel still tested healthy against `\\BDC.format.lu`.
+- `Get-HotFix` now shows the May 2026 OS cumulative update `KB5087545`
+  installed on `2026-05-16`.
+- Windows Update operational log on `2026-05-17` repeatedly reported
+  `Windows Update successfully found 0 updates`.
+- Reboot indicators are clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=False`
+- `sshd` remained `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+
+Result:
+
+- `LMR` appears successfully updated and rebooted for the May 2026 cycle.
+- The earlier `2026-05-16` "servicing still running" state is now superseded
+  by the operator-completed update and the clean post-reboot verification.
+
+## 2026-05-17 - System Cleanup Launched
+
+Scope:
+
+- Launched Windows Disk Cleanup (`cleanmgr`) on `C:` for `LMR`.
+- Selected the system-cleanup categories by setting the `VolumeCaches`
+  `StateFlags517` entries and running `cleanmgr /d C /sagerun:517`.
+- Interpreted "system files cleanup" conservatively by excluding only
+  `DownloadsFolder`; the rest of the cleanup categories exposed by `cleanmgr`
+  were selected.
+- No reboot, VMware, GPO, firewall, SSH, WinRM, update, snapshot, migration,
+  power, or data changes were made from this thread.
+
+Blast radius review:
+
+- `cleanmgr.exe` was present at `C:\\Windows\\System32\\cleanmgr.exe`.
+- Pre-launch `C:` free space was about `26.7 GB` of about `128.2 GB`.
+- `LMR` had no Windows Update or CBS reboot-required flags before launch.
+
+Selected cleanup surface:
+
+- Included all visible `VolumeCaches` categories except `DownloadsFolder`.
+- This included categories such as `Update Cleanup`, `Temporary Files`,
+  `Windows Defender`, `Recycle Bin`, `Previous Installations`,
+  `Temporary Setup Files`, `Windows Upgrade Log Files`, and any other cleanup
+  categories currently exposed by `cleanmgr` on this host.
+
+Observed runtime state:
+
+- `cleanmgr`, `DismHost`, `TiWorker`, and `TrustedInstaller` all started and
+  remained present during observation.
+- The SSH wrapper was interrupted after an extended wait, but the cleanup
+  processes continued to run on the host.
+- Latest observed `C:` free space during the in-progress state was about
+  `26.6 GB`.
+- Reboot-required indicators stayed clear during observation:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+
+Result:
+
+- Cleanup launch succeeded on `LMR`.
+- At the end of this observation window, cleanup still appeared to be
+  in progress rather than fully completed.
