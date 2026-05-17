@@ -9,8 +9,8 @@ Traefik is the public ingress layer for this host. Treat changes carefully becau
 - service: Traefik
 - server: `hetzner-cloud-1`
 - Docker service: `traefik_traefik`
-- public dashboard hostname in labels: `traefik.format.lu`
-- current live image: `traefik:3.6.13`
+- previous dashboard hostname in labels: `traefik.format.lu`
+- current live image: `traefik:3.6.17`
 - live replica state during documentation: `1/1`
 - shared Docker network: `proxy`
 - published ports: `443/tcp` and `443/udp`
@@ -62,9 +62,6 @@ The live service currently uses these important arguments:
 
 ## Known Issues
 
-- The live service is running `traefik:3.6.13`, but the Swarm stack image label still says `traefik:3.6.6`. This can happen after image updates and should be cleaned up when the stack is next reconciled through Portainer.
-- Traefik logs show repeated ACME renewal errors for `novaculture.lu` and `www.novaculture.lu`. The error says the Cloudflare DNS challenge cannot find the expected zone.
-- Traefik labels still define a router for `traefik.format.lu` pointing to `api@internal`, but `--api=false` and `--api.dashboard=false` are set. This causes repeated `api is not enabled` log errors when the dashboard route is accessed.
 - The live Traefik service currently publishes `443`, but the inspected live port output did not show host port `80` published. Confirm whether HTTP-to-HTTPS redirects are intentionally handled elsewhere before changing this.
 
 ## Dashboard Policy
@@ -77,7 +74,8 @@ The current live configuration disables the Traefik API and dashboard:
 --api.dashboard=false
 ```
 
-If the dashboard should stay disabled, remove or disable the `traefik.format.lu` router labels to stop `api is not enabled` errors.
+The stale `traefik.format.lu` router labels were removed on 2026-05-03 so the
+service no longer advertises a disabled dashboard route.
 
 If the dashboard should be enabled, protect it with strong authentication and preferably Cloudflare Access or IP allowlisting before enabling `api@internal`.
 

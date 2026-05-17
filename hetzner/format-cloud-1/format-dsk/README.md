@@ -5,14 +5,19 @@ This runbook documents the `format-dsk` custom app stack hosted through Portaine
 ## Live Services
 
 - stack: `format-dsk`
-- PM service: `format-dsk_pm`
 - TIM service: `format-dsk_tim`
-- PM hostname: `dsk-pm.format.lu`
 - TIM hostname: `dsk-tim.format.lu`
-- PM image: `esst/format:dsk-pm`
 - TIM image: `esst/format-dsk:tim`
 - backend port: `80`
 - reverse proxy: Traefik on external Docker network `proxy`
+
+## Current Status
+
+- `format-dsk_tim` remains live and routed at `https://dsk-tim.format.lu/`.
+- `format-dsk_pm` is intentionally disabled and is no longer present as a live
+  Swarm service.
+- `https://dsk-pm.format.lu/` currently returns Traefik `404`, which is
+  expected while the PM service remains disabled.
 
 ## Version Check
 
@@ -41,16 +46,21 @@ Also review the Dockerfiles for EOL runtimes. `tim/docker/Dockerfile` currently 
 
 ## Maintenance Checklist
 
-1. Confirm `format-dsk_pm` and `format-dsk_tim` are running `1/1`.
-2. Record the live image tag and digest for both services.
-3. Record the current source repo commit.
-4. Run the base-image freshness commands above and record whether updates are available.
-5. Compare both live images with Peter's latest accepted builds.
-6. Confirm `https://dsk-pm.format.lu/` and `https://dsk-tim.format.lu/` return expected statuses.
-7. Review logs for frontend errors, API failures, auth failures, and missing assets.
-8. Confirm whether either service has persistent data or depends on external APIs.
-9. If updating, test both PM and TIM routes before closing the maintenance window.
-10. Record all results in [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-cloud-1/format-dsk/maintenance-log.md).
+1. Confirm `format-dsk_tim` is running `1/1`.
+2. Confirm whether `format-dsk_pm` is intentionally disabled or expected to be
+   live before treating its absence as a fault.
+3. Record the live image tag and digest for `format-dsk_tim`, plus the PM image
+   only if the PM service is enabled.
+4. Record the current source repo commit.
+5. Run the base-image freshness commands above and record whether updates are available.
+6. Compare the live image with Peter's latest accepted build.
+7. Confirm `https://dsk-tim.format.lu/` returns an expected status, and treat
+   `https://dsk-pm.format.lu/` `404` as expected only when PM is intentionally
+   disabled.
+8. Review logs for frontend errors, API failures, auth failures, and missing assets.
+9. Confirm whether the live service has persistent data or depends on external APIs.
+10. If updating, test the live TIM route before closing the maintenance window.
+11. Record all results in [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-cloud-1/format-dsk/maintenance-log.md).
 
 ## Files
 

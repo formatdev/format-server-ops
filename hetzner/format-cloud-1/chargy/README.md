@@ -10,7 +10,7 @@ This runbook documents the `chargy` custom app stack hosted through Portainer on
 - public hostname: `chargy.format.lu`
 - live app image: `esst/chargy:latest`
 - observed app digest: `sha256:49b95d2bcf606935eb0a60fe9d05acd8eaaabcac8c92e36dd705643e4324d16a`
-- Redis image: `redis:7.4-alpine3.21`
+- Redis image: `redis:7.4.8-alpine3.21`
 - backend port: `80`
 - reverse proxy: Traefik on external Docker network `proxy`
 - Redis volume: `chargy_redis:/data`

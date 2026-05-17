@@ -4,7 +4,7 @@ networks:
 
 services:
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
+    image: phpmyadmin/phpmyadmin:5.2.3
     networks:
       - proxy
     environment:

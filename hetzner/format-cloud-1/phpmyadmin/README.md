@@ -10,7 +10,7 @@ phpMyAdmin is a sensitive administrative interface for database access. Treat ex
 - server: `hetzner-cloud-1`
 - Docker service: `phpmyadmin_phpmyadmin`
 - public hostname in labels: `pma.format.lu`
-- current live image: `phpmyadmin/phpmyadmin:latest`
+- current live image: `phpmyadmin/phpmyadmin:5.2.3`
 - live replica state during documentation: `1/1`
 - reverse proxy: Traefik on external Docker network `proxy`
 - backend container port: `80`
@@ -25,11 +25,10 @@ phpMyAdmin is a sensitive administrative interface for database access. Treat ex
 - Keep `HIDE_PHP_VERSION=true`.
 - Do not store database credentials in the stack or docs.
 - Review access policy regularly because phpMyAdmin is a high-value admin surface.
-- Prefer pinning the image version instead of using `latest` once the current exact version/tag policy is chosen.
+- Keep the image pinned to an explicit phpMyAdmin version tag.
 
 ## Known Issues
 
-- The live image is `phpmyadmin/phpmyadmin:latest`. For predictable maintenance, this should eventually be replaced with a pinned version tag.
 - Public hostname is `pma.format.lu`, not `phpmyadmin.format.lu`.
 - Access policy for `pma.format.lu` should be reviewed with the broader Hetzner origin-hardening and admin-surface hardening work.
 

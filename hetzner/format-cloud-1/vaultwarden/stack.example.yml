@@ -4,7 +4,7 @@ networks:
 
 services:
   server:
-    image: ghcr.io/dani-garcia/vaultwarden:1.35.7
+    image: ghcr.io/dani-garcia/vaultwarden:1.36.0
     networks:
       - proxy
     environment:

@@ -10,8 +10,8 @@ Portainer is the control plane for this Docker Swarm environment. Treat updates 
 - stack namespace: `portainer`
 - Portainer service: `portainer_portainer`
 - Agent service: `portainer_agent`
-- Portainer image: `portainer/portainer-ce:2.39.1`
-- Agent image: `portainer/agent:2.39.1`
+- Portainer image: `portainer/portainer-ce:2.41.1`
+- Agent image: `portainer/agent:2.41.1`
 - live replica state during documentation: `1/1` for both services
 - public hostname in labels: `portainer.format.lu`
 - reverse proxy: Traefik on external Docker network `proxy`
@@ -26,7 +26,8 @@ Portainer is the control plane for this Docker Swarm environment. Treat updates 
 
 - Pin Portainer and Portainer Agent image versions instead of using `latest`.
 - Keep Portainer server and agent on the same version.
-- Prefer LTS releases for this production management UI.
+- Prefer LTS releases for this production management UI unless there is a
+  specific reason to take the STS line.
 - Confirm backup status before any Portainer update.
 - Update Portainer deliberately through Portainer or Swarm, not blindly.
 - Treat the Portainer data directory as critical state.
@@ -34,10 +35,12 @@ Portainer is the control plane for this Docker Swarm environment. Treat updates 
 
 ## Known Issues
 
-- The live services run `2.39.1`, but Swarm stack image labels still report `2.33.6`:
-  - `portainer/portainer-ce:2.33.6`
-  - `portainer/agent:2.33.6`
-- Portainer is reachable through Traefik at `portainer.format.lu`; access policy should be reviewed later together with the broader Hetzner origin-hardening work.
+- Portainer is reachable through Traefik at `portainer.format.lu`; access
+  policy should be reviewed later together with the broader Hetzner
+  origin-hardening work.
+- Portainer `2.41.x STS` changes CSRF trusted-origin handling. If a future
+  upgrade fails with trusted-origin or CSRF errors, review the configured
+  origins and use full URLs including scheme.
 
 ## Update Policy
 
@@ -49,6 +52,7 @@ Before updating:
 4. Update `portainer_portainer` and `portainer_agent` together.
 5. Watch service convergence.
 6. Test the Portainer UI and agent connectivity immediately after the update.
+7. For `2.41.x`, verify that any trusted-origin settings use full URLs.
 
 ## Maintenance Cadence
 
@@ -69,6 +73,55 @@ Use this checklist:
 11. If an update is applied, redeploy server and agent together.
 12. After an update, test UI login and stack/service visibility.
 13. Record the result in [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-cloud-1/portainer/maintenance-log.md).
+
+## Backup Automation
+
+Portainer uses SQLite state under:
+
+```text
+/data/portainer/data
+```
+
+Because `portainer.db` is live and frequently locked while Portainer is
+running, the reliable backup flow is:
+
+1. Scale `portainer_portainer` to `0`
+2. Archive `/data/portainer/data`
+3. Scale `portainer_portainer` back to `1`
+4. Keep only the most recent 7 days of local archives
+
+Reference script in this repo:
+
+```text
+/Users/czibulapeter/Documents/GitHub/format-server-ops/scripts/backup-portainer.sh
+```
+
+Recommended host install path:
+
+```text
+/usr/local/sbin/backup-portainer.sh
+```
+
+Recommended host cron entry:
+
+```cron
+10 20 * * * /usr/local/sbin/backup-portainer.sh >> /data/backups/portainer/backup-portainer.log 2>&1
+```
+
+Expected archive output:
+
+```text
+/data/backups/portainer/portainer-data-YYYYMMDD-HHMMSS.tar.gz
+```
+
+Local archive retention:
+
+```text
+7 days
+```
+
+These archives live under `/data`, so Duplicati can ship them off-host during
+its normal backup run.
 
 ## Files
 
