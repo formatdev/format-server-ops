@@ -6,6 +6,83 @@ Docker Engine maintenance, and reboot decisions for `format-cloud-1`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-05-31 - End-Of-Month Host Maintenance
+
+Date: 2026-05-31
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-117-generic`
+- Docker Engine: `29.5.0`
+- Portainer: `2.41.0`
+- Root filesystem was about 33% used.
+- Swarm was healthy before maintenance; all services were `1/1`.
+- Pending apt work included `containerd.io`, Docker Engine `29.5.2`
+  packages, `docker-compose-plugin`, `docker-buildx-plugin`, `snapd`, and a
+  kept-back `linux-image-virtual` upgrade.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.2`
+- Portainer: `2.41.0`
+- Root filesystem remained about 33% used.
+- Uptime at verification: about 1 minute.
+
+Checks:
+
+- SSH checked: OK. `ssh hetzner-cloud-1` worked before reboot and returned
+  cleanly after reboot.
+- Firewall checked: OK. `ufw` remains active with inbound `22/tcp`,
+  `443/tcp`, and `443/udp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail remained active.
+- System health checked: OK. `systemctl --failed` reported 0 failed units
+  after maintenance.
+- Disk checked: OK. Root filesystem remained about 33% used.
+- Memory checked: OK. About 11 GiB was available at the discovery pass and
+  about 13 GiB after reboot.
+- Docker Swarm checked: OK. Single node remained `active/true` and all
+  services converged back to `1/1`.
+- Docker services checked: OK. Docker and containerd package maintenance
+  briefly recycled Swarm tasks during package maintenance and reboot; all
+  services recovered.
+- Container health checked: OK. `database-1_db` and `vaultwarden_server`
+  reported healthy after convergence.
+- Portainer checked: OK. `portainer_portainer` and `portainer_agent` returned
+  to `1/1` on `2.41.0`.
+- HTTPS routing checked: OK. Direct local `https://127.0.0.1` returned
+  HTTP `404`, which is consistent with Traefik host-header routing on the raw
+  host endpoint. Public smoke checks returned `200` for
+  `bitwarden.format.lu`, `200` for `floc.lu`, `302` for
+  `portainer.format.lu` through Cloudflare Access, `302` for
+  `chargy.format.lu` to `/auth/login`, and `302` for `ts.format.lu`
+  through Cloudflare Access.
+- Public port exposure checked: Not re-run externally during this pass.
+- Apt upgrade applied: Yes. Ran `apt-get update`, `apt-get upgrade`, and
+  `apt-get full-upgrade`.
+- Remaining apt upgrades checked: OK. No packages remained upgradable after the
+  maintenance pass.
+- Reboot requirement checked: OK. No reboot required after reboot.
+
+Notes:
+
+- This pass updated Docker Engine to `29.5.2`, `containerd.io` to `2.2.4`,
+  `docker-compose-plugin` to `5.1.4`, and `snapd` to `2.75.2+ubuntu24.04`.
+- `vaultwarden_server` was again the slowest service to settle after reboot,
+  but it returned to healthy `1/1` without intervention.
+- Public app smoke checks matched the expected production behavior after the
+  host recovered.
+
+Follow-up:
+
+- Keep the known Traefik host-header behavior in mind when checking the raw
+  host endpoint; app-specific validation should continue to use the routed
+  public hostnames.
+
 ## 2026-05-16 - Monthly Host Maintenance
 
 Date: 2026-05-16

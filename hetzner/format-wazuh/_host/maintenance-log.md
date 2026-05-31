@@ -6,6 +6,89 @@ Wazuh health checks, and reboot decisions for `format-wazuh`.
 Do not record passwords, API tokens, backup passwords, registry credentials,
 certificate private keys, enrollment secrets, or other secrets here.
 
+## 2026-05-31 - End-Of-Month Maintenance
+
+Date: 2026-05-31
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-117-generic`
+- Wazuh packages: `wazuh-manager`, `wazuh-indexer`, and
+  `wazuh-dashboard` already at `4.14.5-1`
+- `filebeat` package: `7.10.2-2`
+- `systemctl --failed` reported 0 failed units before maintenance.
+- `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`, and `filebeat` were
+  active before maintenance.
+- Root filesystem was about 68% used; Wazuh data volume was about 48% used.
+- Pending apt work included `linux-libc-dev`, `snapd`, and a kept-back
+  `linux-image-virtual` upgrade.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Wazuh packages unchanged at `4.14.5-1`
+- `filebeat` package unchanged at `7.10.2-2`
+- Root filesystem after reboot: 75G total, 49G used, 24G free, 68% used.
+- Wazuh data volume after reboot: 79G total, 36G used, 40G free, 48% used.
+- Uptime at verification: roughly 5 minutes when the full service checks were
+  green.
+
+Checks:
+
+- SSH checked: OK. `ssh format-wazuh` worked before reboot, disappeared during
+  reboot, then took a longer-than-usual recovery window before returning.
+- Firewall checked: OK. `ufw` remained active with inbound `443/tcp`,
+  `1514/tcp`, `1515/tcp`, and rate-limited `22/tcp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail remained active.
+- System health checked: OK. `systemctl --failed` reported 0 failed units
+  after maintenance.
+- Disk checked: OK. Root and Wazuh indexer volume still have free space.
+- Memory checked: OK. Memory remained within the same general range after
+  reboot; swap use dropped back to negligible levels.
+- Wazuh deployment model checked: OK. Still package/systemd-managed; Docker,
+  Compose, Swarm, and Portainer remain absent.
+- Wazuh health checked: OK. `wazuh-manager`, `wazuh-indexer`,
+  `wazuh-dashboard`, and `filebeat` are active. Final local checks returned
+  `401` from `https://127.0.0.1:55000/`, `401` from
+  `https://127.0.0.1:9200/`, and `302` to `/app/login` from
+  `https://127.0.0.1/`. `agent_control -lc` showed active agents including
+  `MBP-PCZ.local` as agent `042`.
+- Docker checked: OK. Still not installed.
+- Portainer checked: OK by deployment evidence. Still not present.
+- Public port exposure checked: Not re-run externally during this pass; local
+  endpoint and listening behavior remained consistent with the documented
+  exposure model.
+- Apt upgrade applied: Yes. Ran `apt-get update`, `apt-get upgrade`, and
+  `apt-get full-upgrade`.
+- Remaining apt upgrades checked: OK. No packages remained upgradable after the
+  maintenance pass.
+- Reboot requirement checked: OK. No reboot required after reboot.
+
+Notes:
+
+- Ubuntu package maintenance updated the host kernel to `6.8.0-124-generic`,
+  `linux-libc-dev` to `6.8.0-124.124`, and `snapd` to
+  `2.75.2+ubuntu24.04`, but Wazuh application package versions did not change
+  in this pass.
+- During startup, the dashboard again returned temporary HTTP `503` while the
+  indexer and saved-object migrations finished initializing. Once warm, it
+  returned the normal HTTP `302` redirect to `/app/login`.
+- SSH remained unavailable longer than in the previous maintenance pass, but no
+  manual repair was needed once the host completed its startup sequence.
+- The active Mac agent is currently registered as `MBP-PCZ.local` with agent
+  ID `042`, not the older `MBP-PCZ` / `041` entry seen in earlier notes.
+- `wazuh-agent.format.lu` remains the intended DNS-only Cloudflare hostname for
+  Wazuh agents.
+
+Follow-up:
+
+- Continue using `wazuh-agent.format.lu` for agent enrollment and connectivity
+  instead of the dashboard hostname.
+
 ## 2026-05-16 - Monthly Maintenance
 
 Date: 2026-05-16
