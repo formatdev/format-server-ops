@@ -55,8 +55,8 @@ Checks:
   `wazuh-dashboard`, and `filebeat` are active. Final local checks returned
   `401` from `https://127.0.0.1:55000/`, `401` from
   `https://127.0.0.1:9200/`, and `302` to `/app/login` from
-  `https://127.0.0.1/`. `agent_control -lc` showed active agents including
-  `MBP-PCZ.local` as agent `042`.
+  `https://127.0.0.1/`. After Mac agent cleanup, `agent_control -lc` showed
+  `MBP-PCZ` as active agent `043`.
 - Docker checked: OK. Still not installed.
 - Portainer checked: OK by deployment evidence. Still not present.
 - Public port exposure checked: Not re-run externally during this pass; local
@@ -79,8 +79,12 @@ Notes:
   returned the normal HTTP `302` redirect to `/app/login`.
 - SSH remained unavailable longer than in the previous maintenance pass, but no
   manual repair was needed once the host completed its startup sequence.
-- The active Mac agent is currently registered as `MBP-PCZ.local` with agent
-  ID `042`, not the older `MBP-PCZ` / `041` entry seen in earlier notes.
+- The Mac agent identity was normalized to `MBP-PCZ`: macOS `HostName`,
+  `LocalHostName`, and runtime `hostname` now match, and Wazuh agent `043`
+  is active as `MBP-PCZ`.
+- Stale Wazuh agent records were removed: `040 p-65787` was registered on
+  2026-04-30 but never connected, and `042 MBP-PCZ.local` was the prior Mac
+  registration.
 - `wazuh-agent.format.lu` remains the intended DNS-only Cloudflare hostname for
   Wazuh agents.
 
@@ -88,6 +92,7 @@ Follow-up:
 
 - Continue using `wazuh-agent.format.lu` for agent enrollment and connectivity
   instead of the dashboard hostname.
+- Keep `043 MBP-PCZ` as the canonical Mac agent identity.
 
 ## 2026-05-16 - Monthly Maintenance
 
