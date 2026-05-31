@@ -3,6 +3,40 @@
 Use this log for ESXi host and vCenter platform checks. Keep per-VM operating
 system and application maintenance in the matching VM folder.
 
+## 2026-05-31 - MSA2062 Firmware Update To IN210P003
+
+- Scope: updated the HPE MSA 2062 SAN at Niederanven - Atelier from firmware
+  `IN210P002` to `IN210P003`.
+- Initial issue: the Windows flash component workflow failed, and a wrong
+  extracted bundle (`IN300R007_hpe_enc.sfw`, for the MSA 2070/2072 line) was
+  rejected by the array with a version-verify/downgrade compatibility message.
+- Correct package: `firmware-hpe-msa-2060-IN210P003_3.0.0-1.1.x86_64.rpm`.
+  The payload was extracted on macOS with `rpm2cpio`/`cpio`; the extracted
+  `IN210P003...hpe_enc.sfw` file was used for the update.
+- SMU upload initially remained stuck as a failed firmware upload at `99%`.
+  `restart mc` / full Management Controller restart restored `System Ready:
+  Ready`, but did not clear the failed upload record by itself.
+- Recovery path: uploaded the correct `IN210P003` `.sfw` file via SFTP to
+  controller management IP `192.168.5.210` on port `1022`; upload completed
+  successfully and started the partner firmware update flow.
+- Pre-update checks:
+  - `check firmware-upgrade-health` returned `Pass`;
+  - controller redundancy was `Active-Active ULP`;
+  - Controller A and B were both `Operational`.
+- Final verification:
+  - `show firmware-update-status` reported `Completion Status: Success`,
+    `Bundle Version: IN210P003`, and all update/reboot/cleanup steps `OK` or
+    `N/A`;
+  - `show redundancy-mode` reported `Controller Redundancy Status: Redundant`,
+    both controllers `Operational`, `Other MC Status: Operational`, and
+    `System Ready: Ready`;
+  - `show versions` reported `IN210P003` on both Controller A and Controller B;
+  - `show firmware-bundles` reported `IN210P003` as `Active` and `OK`, with
+    `IN210P002` retained as `Available`.
+- Notes: avoid activating `firmware bundle available` unless verifying the
+  available bundle first, because during the failed-upload recovery the
+  available bundle was still the older `IN110P002`.
+
 ## 2026-05-03 - SSH Login Path Planning
 
 - Scope: created a dedicated VMware platform runbook for ESXi 8.x and vCenter
