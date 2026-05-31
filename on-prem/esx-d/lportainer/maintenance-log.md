@@ -206,6 +206,41 @@ Follow-up:
 - Open the Portainer and Paperless UIs once from a browser for a quick human smoke test after the image refresh.
 - Keep the backup and working directories until the refreshed stacks have had a normal business-day soak.
 
+## 2026-05-31 - End-Of-Month Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH checked: OK. `lportainer` reachable; uptime about 1 week 6 days before the Portainer refresh.
+- Docker checked: `Docker version 29.5.0, build 98f1464`.
+- Portainer checked: updated from `portainer/portainer-ce:2.41.0` to `portainer/portainer-ce:2.41.1`.
+- Compose stacks checked: `paperless`, `paperless-ai`, `paperless-core`, `paperless-pcz`, `paperless-pcz-gpt`, and `traefik` all remained `running` after the standalone Portainer container refresh.
+- Disk space checked: not deeply re-measured in this pass.
+- Backups checked: created manual backup archive `/data/backups/portainer/portainer-data-manual-20260531-063647Z.tar.gz` before recreating the Portainer container.
+- Updates installed: Yes. Standalone Portainer was refreshed to `2.41.1`; after Peter temporarily enabled passwordless sudo for remote user `peter`, the Docker/containerd package wave was installed: `containerd.io`, `docker-buildx-plugin`, `docker-ce`, `docker-ce-cli`, `docker-ce-rootless-extras`, and `docker-compose-plugin`.
+- Reboot required: Yes. `/var/run/reboot-required.pkgs` still listed `linux-image-6.8.0-117-generic` and `linux-base`.
+- Notes: Local HTTPS check `https://127.0.0.1:9443` returned `HTTP/1.1 200 OK` after the container refresh. Docker now reports `Docker version 29.5.2, build 79eb04c`. `apt list --upgradable` returned no remaining package lines after the package update. Docker package restart reset container uptime counters, but `docker compose ls` returned all expected projects `running`, and `paperless` plus `paperless-pcz` returned `healthy` after startup.
+- Follow-up: schedule the host reboot needed to boot the newer kernel and clear the lingering kernel reboot flag. The temporary sudo override files were removed after the package update.
+
+## 2026-05-31 - Post-Host-Reboot Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Peter rebooted the guest/host maintenance set after the manual update window.
+- SSH checked: `lportainer` reachable after reboot; uptime about 7 minutes at validation time.
+- Kernel checked: booted into `6.8.0-117-generic`.
+- Docker checked: `Docker version 29.5.2, build 79eb04c`.
+- Reboot flag checked: `/var/run/reboot-required` absent.
+- Compose/container state checked: Portainer `2.41.1`, Traefik `3.7.0`, Paperless `2.20.15`, Paperless-PCZ `2.20.15`, Ollama `0.23.1`, Gotenberg `8.32.0`, Tika `3.2.3.0`, Redis/Postgres support containers, and `whoami` were all `Up`; Paperless and Paperless-PCZ were `healthy`.
+- Package state checked: `apt list --upgradable` returned no package lines.
+
+Notes:
+
+- Lportainer is clean after reboot: updated Docker packages are active, the newer kernel is running, and the kernel reboot flag is cleared.
+
 ## Maintenance Template
 
 Date:

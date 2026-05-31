@@ -218,6 +218,41 @@ Checks:
 - Notes: C: free space about 34.2 GB. No GPO, firewall, or cleanup action was changed.
 - Follow-up: keep investigating the recurring `WinRM` startup drift on Admin.
 
+## 2026-05-31 - End-Of-Month Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `winad-admin` connected and returned `FORMAT\Administrateur`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: had drifted again to `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Event logs reviewed: no deep event-log pass in this sweep; Windows Update task log under `C:\ProgramData\Codex` was checked.
+- Updates installed: No. A one-off SYSTEM task `Codex-WindowsUpdate-NoReboot` ran successfully and logged `VisibleCount=0`.
+- Reboot required: No reboot flag was present in this pass.
+- Notes: Remote COM-based Windows Update queries still fail from the SSH admin context with `0x80240032`, but the SYSTEM-context update script completed normally and found no visible updates.
+- Follow-up: keep investigating the recurring `WinRM` startup drift on Admin.
+
+## 2026-05-31 - Post-Update/Reboot Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Peter completed manual Windows Update, cleanup, guest reboot, and ESX-D host reboot.
+- Post-host-reboot SSH checked: `winad-admin` and `win-admin` returned `admin`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: `Stopped`/`Disabled` again after reboot, consistent with the suspected GPO/startup drift.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Latest hotfix checked: `KB5089573`, installed `2026-05-31`.
+
+Notes:
+
+- Admin is operational after the full guest/host reboot cycle.
+- WinRM remains a policy/drift follow-up; no GPO or firewall change was made in this validation.
+
 ## Maintenance Template
 
 Date:

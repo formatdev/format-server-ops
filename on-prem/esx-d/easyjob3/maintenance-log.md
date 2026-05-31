@@ -107,6 +107,85 @@ Checks:
 - Notes: `Easyjob3` is the only May 16 Windows host still actively servicing updates at the end of this pass; `TiWorker` and `TrustedInstaller` were still active, which is consistent with the SQL-inclusive update set still processing.
 - Follow-up: re-check the task log `C:\ProgramData\Codex\windows-update-EASYJOB3-20260516-090235.log`, remove the one-off task after completion, and then schedule the reboot once the install result is logged.
 
+## 2026-05-31 - End-Of-Month Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `winad-easyjob3` connected and returned `FORMAT\Administrateur`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_verify:format.lu` returned `NERR_Success` against `\\BDC.format.lu`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: had drifted again to `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Application role checked: `Spooler` remained `Running`/`Automatic`.
+- Print service checked: `Spooler` `Running`.
+- Disk space checked: not deeply re-measured in this pass.
+- Event logs reviewed: no deep event-log pass in this sweep; Windows Update task log under `C:\ProgramData\Codex` was checked.
+- Updates installed: No. A one-off SYSTEM task `Codex-WindowsUpdate-NoReboot` ran successfully and logged `VisibleCount=0`.
+- Reboot required: No reboot flag was present in this pass.
+- Notes: Remote COM-based Windows Update queries still fail from the SSH admin context with `0x80240032`, but the SYSTEM-context update script completed normally and found no visible updates.
+- Follow-up: keep watching for both recurring `WinRM` startup drift and the historically noisy secure-channel state on EASYJOB3.
+
+## 2026-05-31 - Post-Update/Reboot Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Peter completed manual Windows Update, cleanup, guest reboot, and ESX-D host reboot.
+- Post-host-reboot network checked: `192.168.1.13` responded to ping.
+- Post-host-reboot SSH checked: `win-easyjob3` returned `Easyjob3`; `winad-easyjob3` reached the host but returned SSH permission denied for the domain-admin alias.
+- Secure channel checked from the local SSH context: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `False`, while `nltest /sc_query:format.lu` returned `NERR_Success` against `\\BDC.format.lu`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: `Running`/`Automatic`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Latest hotfix checked: `KB5087539`, installed `2026-05-17`.
+
+Notes:
+
+- Easyjob3 is reachable and booted after the host reboot.
+- Domain SSH and PowerShell secure-channel checks remain noisy and should be treated as follow-up unless application symptoms appear.
+
+## 2026-05-31 - Domain SSH Follow-Up
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Compared domain SSH behavior against Admin and FILE.
+- `sshd_config` includes `AllowGroups administrators format\sshadmins` and uses `__PROGRAMDATA__/ssh/administrators_authorized_keys` for `Match Group administrators`.
+- AD group `SSH Admins` exists with SamAccountName `sshadmins`, and `FORMAT\Administrateur` is a member.
+- `winad-easyjob3` continued to return SSH permission denied for `format\Administrateur`.
+- OpenSSH logs showed `Invalid user format\Administrateur`.
+- `nltest /sc_reset:format.lu\\PDC.format.lu` and `nltest /sc_verify:format.lu` completed successfully, but local SID translation for `format\Administrateur` and `format\sshadmins` still returned trust-relationship failures.
+- `Restart-Service Netlogon -Force` did not clear the split; `Test-ComputerSecureChannel -Server PDC.format.lu` still returned `False` while `nltest /sc_verify` returned `NERR_Success`.
+
+Notes:
+
+- EASYJOB3 local SSH remains usable.
+- Domain SSH requires a credentialed machine-password repair from an interactive/domain-admin context.
+
+## 2026-05-31 - Domain SSH Restored
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Peter ran the credentialed machine-password repair interactively on EASYJOB3:
+  - `Reset-ComputerMachinePassword -Server PDC.format.lu -Credential format\Administrateur`
+  - `Restart-Service Netlogon -Force`
+  - `Test-ComputerSecureChannel -Server PDC.format.lu -Verbose`
+  - `nltest /sc_query:format.lu`
+- The explicit PDC-targeted secure-channel check returned `True`.
+- `nltest /sc_query:format.lu` still returned `1311`, matching the known generic-query split.
+- Codex retested `winad-easyjob3`; domain SSH returned `Easyjob3`.
+- OpenSSH logs confirmed `Accepted publickey for format\Administrateur`.
+
+Notes:
+
+- EASYJOB3 domain SSH is restored.
+- Local-admin PowerShell trust checks can still report misleading split results after the repair; the practical domain SSH access path is healthy.
+
 ## Maintenance Template
 
 Date:

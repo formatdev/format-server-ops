@@ -187,6 +187,42 @@ Checks:
 - Notes: Installed payloads were MRT `KB890830`, .NET cumulative update `KB5088862`, and OS cumulative update `KB5087545`. `WinRM` had again drifted to `Stopped`/`Disabled`; this pass restored it to `Running`/`Automatic`, and external TCP `5985` is reachable again from the maintainer Mac.
 - Follow-up: remove the one-off task if it is still present, reboot PDC only in a planned DC window, then re-run replication/DFSR/DNS/time checks afterward. Keep the `BDC`-side RPC/DFSR noise in the follow-up lane unless live replication failures appear.
 
+## 2026-05-31 - End-Of-Month Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `winad-pdc` connected and returned `FORMAT\Administrateur`.
+- Domain controller health checked: `DNS`, `NTDS`, `DFSR`, `W32Time`, `Netlogon`, `sshd`, and `WinRM` were all `Running` after remoting recovery.
+- DNS checked: no new DNS fault surfaced in this pass.
+- Replication checked: `repadmin /replsummary` again showed `0` failed replications while still reporting operational error `1326` against `BDC`. A direct cross-check on `BDC` showed the same pattern in reverse.
+- SYSVOL/DFSR checked: no fresh SYSVOL failure surfaced; the directory pair remains noisy rather than outright broken.
+- Time service checked: `W32Time` remained `Running`.
+- Event logs reviewed: no deep event-log pass in this sweep; Windows Update task log under `C:\ProgramData\Codex` was checked.
+- Updates installed: No. A one-off SYSTEM task `Codex-WindowsUpdate-NoReboot` ran successfully and logged `VisibleCount=0`.
+- Reboot required: No reboot flag was present in this pass.
+- Notes: `WinRM` had drifted again to `Stopped`/`Disabled` on both `PDC` and `BDC`; both were restored to `Running`/`Automatic` for maintenance visibility. Remote COM-based Windows Update queries still fail from the SSH admin context with `0x80240032`, but the SYSTEM-context update script completed normally.
+- Follow-up: keep treating the `PDC`/`BDC` pair as operational but noisy unless live replication failures begin appearing. Continue watching the recurring `WinRM` drift on both DCs.
+
+## 2026-05-31 - Post-Update/Reboot Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Peter completed manual Windows Update, cleanup, guest reboot, and ESX-D host reboot.
+- Post-host-reboot SSH checked: `winad-pdc` and `win-pdc` returned `PDC`.
+- Domain controller health checked: `DNS`, `NTDS`, `DFSR`, `W32Time`, `Netlogon`, `sshd`, and `WinRM` were all `Running`/`Automatic`.
+- Replication checked: `repadmin /replsummary` reported `0 / 5` failures in both directions, while still reporting operational error `1326 - BDC.format.lu`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Latest hotfix checked: `KB5087545`, installed `2026-05-17`.
+
+Notes:
+
+- PDC is operational after the full guest/host reboot cycle.
+- The known BDC credential/RPC noise remains present, but live replication summary still shows no replication failures.
+
 ## Maintenance Template
 
 Date:

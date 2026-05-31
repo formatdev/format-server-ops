@@ -290,6 +290,44 @@ Checks:
 - Notes: On the first post-reboot manager check, `esst-cloud-1` and `esst-cloud-2` were still marked `Unknown` briefly and `traefik_traefik` / `portainer_portainer` had not reconverged yet. A short wait was enough for all four nodes to return to `Ready`, the manager to remain `Leader`, `portainer_agent` to return to `4/4`, `portainer_portainer` to return to `1/1`, and `traefik_traefik` to return to `1/1`.
 - Follow-up: No immediate host-level follow-up required for `esst-cloud-4`.
 
+## 2026-05-31 - End-Of-Month Host Upgrade And Reboot
+
+Date: 2026-05-31
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-117-generic`
+- Docker Engine: `29.5.0`
+- Docker Swarm state: active manager and leader
+- Root filesystem: `/dev/vda1` 35% used
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.2`
+- Docker Swarm state: active manager and leader
+- Root filesystem: `/dev/vda1` 36% used
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked after maintenance.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: Upgrade and reboot completed cleanly.
+- Disk checked: OK. Root filesystem remained healthy at about 36% used with about 59G free.
+- Memory checked: OK. About 5.0 GiB available after reboot.
+- Docker checked: OK. Docker upgraded to `29.5.2`.
+- Public port exposure checked: Not rechecked directly during this run, but Traefik and Portainer both remained converged after the manager reboot.
+- Apt upgrade applied: Yes. Upgraded `containerd.io`, Docker CE/CLI, `docker-buildx-plugin`, `docker-compose-plugin`, `snapd`, and the `6.8.0-124` virtual kernel package set.
+- Remaining apt upgrades checked: OK. No reboot required after the host returned.
+- Reboot requirement checked: Reboot required after package install; host returned on the new kernel.
+- Notes: On the first post-reboot manager check, `esst-cloud-2` and `esst-cloud-3` briefly showed `Unknown` before returning to `Ready`. The previously degraded `esst-monitoring-beta_app` and `esst-monitoring-mcp-server_mcp` services remained `0/1`; they were already in that state before this maintenance run and did not appear to be caused by the host upgrades.
+- Follow-up: Review the pre-existing `esst-monitoring-beta_app` and `esst-monitoring-mcp-server_mcp` service failures separately from host maintenance when convenient.
+
 ## Maintenance Template
 
 Date:

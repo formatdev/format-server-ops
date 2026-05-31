@@ -218,6 +218,35 @@ Checks:
 - Follow-up: Do one authenticated UI sanity check when convenient, mainly for
   environment and stack visibility.
 
+## 2026-05-31 - End-Of-Month Portainer Check
+
+Date: 2026-05-31 08:38 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `portainer/portainer-ce:2.41.1`, `portainer/agent:2.41.1`
+
+Stack version after: `portainer/portainer-ce:2.41.1`, `portainer/agent:2.41.1`
+
+Checks:
+
+- Portainer server health checked: OK. `portainer_portainer` converged to `1/1`.
+- Portainer agent health checked: OK. `portainer_agent` converged to `1/1`.
+- Running images checked: OK. Server and agent both run `2.41.1`.
+- Latest Portainer release checked: OK. Upstream now offers newer releases, including `2.42.0 STS`, but no version jump was applied in this run.
+- Release notes reviewed: No action taken; this pass stayed on the pinned `2.41.1` line.
+- Server logs reviewed: OK. Portainer started cleanly on `2.41.1`; the familiar "no encryption key file present" message remains unchanged.
+- Agent logs reviewed: OK. Agent started cleanly on `2.41.1`; the existing warning about the agent being attached to more than one overlay network remains unchanged.
+- Traefik route checked: OK. `https://portainer.format.lu/` returned the expected Cloudflare Access `403` challenge response from the unauthenticated check path.
+- UI login checked: Not interactively checked in this run.
+- Swarm visibility checked: OK. The single-node Swarm remained `Ready` and `Leader`.
+- Backup coverage checked: OK. Portainer data remains under `/data/portainer/data`.
+- Latest backup checked: OK. Recent archives were present, including `portainer-data-20260530-201002.tar.gz`.
+- Update applied: No.
+- Post-update logs checked: Not applicable.
+- Notes: During the sweep, `docker service ps` briefly showed fresh task history while the current `2.41.1` tasks settled, but the services ended in the expected `1/1` healthy state.
+- Follow-up: do one authenticated UI sanity check when convenient, mainly for environment and stack visibility.
+
 ## Maintenance Template
 
 Date:

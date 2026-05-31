@@ -214,6 +214,77 @@ Checks:
 - Notes: Installed payloads were MRT `KB890830`, .NET cumulative update `KB5088862`, and OS cumulative update `KB5087545`. Post-install remote Windows Update scan returned `VisibleUpdates=0`. No redirected-folder data, legacy `D:\Users` data, SMB shares, firewall rules, or GPOs were changed.
 - Follow-up: remove the one-off task if it is still present, then reboot FILE in a planned file-server window and re-run update plus SMB/redirected-folder smoke checks.
 
+## 2026-05-31 - End-Of-Month Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Scope:
+
+- Health recheck, remoting recovery, secure-channel sanity check, and no-reboot Windows Update validation.
+
+Checks:
+
+- `win-file` break-glass SSH checked: OK.
+- `winad-file` domain SSH checked: OK.
+- Domain secure channel checked: still split. `nltest /sc_query:format.lu` returned `1311`, `nltest /sc_verify:format.lu` returned `NERR_Success` against `\\BDC.format.lu`, and `Test-ComputerSecureChannel -Server PDC.format.lu` still returned `False`.
+- `sshd` service checked: `Running`/`Automatic`.
+- `WinRM` service checked: had drifted again to `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- WinRM listener checked: service recovery completed; no listener reconfiguration was needed.
+- Firewall scoping checked: not changed in this pass.
+- Disk free space checked: not deeply re-measured in this pass.
+- SMB shares checked: not changed in this pass.
+- Folder redirection state checked: no redirected-folder content was touched.
+- Legacy `D:\Users` content checked: no legacy content was touched.
+- Event logs reviewed: no deep event-log pass in this sweep; Windows Update task log under `C:\ProgramData\Codex` was checked.
+- Updates installed: No. A one-off SYSTEM task `Codex-WindowsUpdate-NoReboot` ran successfully and logged `VisibleCount=0`.
+- Reboot required: No reboot flag was present in this pass.
+- Backup/snapshot confirmed: Not checked.
+- Notes: A low-impact `nltest /sc_reset:format.lu\\PDC.format.lu` succeeded and `nltest /sc_verify` remained healthy, but the generic secure-channel split persists. Remote COM-based Windows Update queries still fail from the SSH admin context with `0x80240032`, while the SYSTEM-context update script completed normally.
+- Follow-up: keep FILE in the "operational but secure-channel noisy" lane unless the split starts causing SMB, GPO, or login failures. Keep redirected-folder and legacy-user-data cleanup strictly out of band.
+
+## 2026-05-31 - Post-Update/Reboot Validation
+
+Maintainer: Codex with Peter
+
+Scope:
+
+- Validate FILE after Peter completed manual updates, cleanup, guest reboot, and ESX-D host reboot.
+
+Checks:
+
+- Post-host-reboot network checked: `192.168.1.7` responded to ping.
+- `win-file` break-glass SSH checked: OK, returned `file`.
+- `winad-file` domain SSH checked: reached the host but returned SSH permission denied for the domain-admin alias.
+- Domain secure channel checked from the local SSH context: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` service checked: `Running`/`Automatic`.
+- `WinRM` service checked: `Running`/`Automatic`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Latest hotfix checked: `KB5087545`, installed `2026-05-17`.
+
+Notes:
+
+- FILE is operational after the full guest/host reboot cycle.
+- No redirected-folder data, legacy `D:\Users` data, SMB shares, firewall rules, or GPOs were changed in this validation.
+
+## 2026-05-31 - Domain SSH Follow-Up
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Compared domain SSH behavior after the post-host-reboot validation.
+- `winad-file` initially reached the host but returned SSH permission denied for `format\Administrateur`.
+- `nltest /sc_verify:format.lu` already returned `NERR_Success` against `\\PDC.format.lu`.
+- Ran low-impact secure-channel reset:
+  - `nltest /sc_reset:format.lu\\PDC.format.lu`
+  - `nltest /sc_verify:format.lu`
+- Retested `winad-file`; domain SSH returned `file`.
+
+Notes:
+
+- FILE domain SSH access is restored.
+- No local group, SSH key, firewall, GPO, SMB, or redirected-folder data change was made.
+
 ## Maintenance Template
 
 Date:

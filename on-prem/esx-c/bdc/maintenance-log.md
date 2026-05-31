@@ -384,3 +384,148 @@ Result:
 - Cleanup launch succeeded on `BDC`.
 - At the end of this observation window, cleanup still appeared to be
   in progress rather than fully completed.
+
+## 2026-05-31 - End-Of-Month Verification
+
+Scope:
+
+- Performed read-only end-of-month verification for `BDC`.
+- Checked reboot state, current update posture, cleanup follow-through, disk
+  state, and core domain-controller services.
+- No reboot, VMware, AD, DNS, DHCP, time sync, replication, SYSVOL, GPO,
+  firewall, SSH, WinRM, update, snapshot, migration, power, or data changes
+  were made from this thread.
+
+Findings:
+
+- `BDC` responded on SSH as `format\administrateur`.
+- Last boot time remained `2026-05-17 10:19:20` Europe/Luxembourg time.
+- `C:` free space is now about `72.5 GB` of about `96.0 GB`, which is about
+  `1.9 GB` higher than the pre-cleanup snapshot recorded on `2026-05-17`.
+- Windows Update operational events on `2026-05-31` repeatedly reported
+  `Windows Update successfully found 0 updates`.
+- Reboot-required indicators are clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+- `PendingFileRenameOperations=True` has returned, but this time the queue is
+  not the earlier stale spool-driver pattern.
+- Current pending rename queue is much larger (`110` entries) and is mostly
+  composed of:
+  - `C:\\Config.Msi\\*.rbf`
+  - `C:\\Windows\\Temp\\eset.temp\\...`
+  - `C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\1.3.233.3`
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `Spooler`, `sshd`, and `W32Time` remained
+  `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- `repadmin /replsummary` again showed `0` failures in the returned summary
+  view for `PDC` source / `BDC` destination.
+- `cleanmgr.exe` and `DismHost` were no longer present during this check, so
+  the earlier cleanup launch no longer appears to be actively running.
+- `TiWorker` and `TrustedInstaller` were present at low activity during the
+  check, but without any reboot-required flags or available updates.
+
+Result:
+
+- `BDC` is currently reachable, stable, and not offering new Windows updates
+  at the end of the month.
+- Mid-month cleanup appears to have completed and reclaimed some space.
+- A new, nontrivial pending rename queue remains and should be handled
+  cautiously because it now includes MSI/ESET/EdgeUpdate-related entries rather
+  than obviously stale print-driver leftovers.
+
+## 2026-05-31 - Rebooted To Clear Pending Rename Queue
+
+Scope:
+
+- Rebooted `BDC` with explicit operator approval to test whether the current
+  `PendingFileRenameOperations` queue would clear naturally.
+- Performed post-reboot verification for boot time, reboot-required flags,
+  pending rename state, and domain-controller core services.
+- No VMware, AD, DNS, DHCP, time sync, replication, SYSVOL, GPO, firewall,
+  SSH, WinRM, update, snapshot, migration, power, or data changes were made
+  from this thread beyond the approved reboot itself.
+
+Findings:
+
+- Post-reboot boot time observed: `2026-05-31 09:15:41` Europe/Luxembourg
+  time.
+- Reboot-required indicators are clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+- `PendingFileRenameOperations=False` after reboot; pending count is now `0`.
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `sshd`, and `W32Time` were
+  `Running`/`Automatic` after reboot.
+- `WinRM` came back `Running`/`Automatic`; this thread did not change the
+  service configuration directly.
+- `repadmin /replsummary` after reboot continued to show `0` failures in the
+  returned summary view for `PDC` source / `BDC` destination.
+
+Result:
+
+- The reboot cleared the current `PendingFileRenameOperations` queue on `BDC`.
+- `BDC` itself came back cleanly and continued to show healthy core
+  domain-controller service state in this post-reboot check.
+
+## 2026-05-31 - End-Of-Month Windows Update Check
+
+Scope:
+
+- Ran a Windows Update inventory/install pass as `NT AUTHORITY\\SYSTEM` using
+  the Windows Update COM API.
+- No updates were installed because Windows Update returned no applicable
+  software updates.
+- No reboot, VMware, AD, DNS, DHCP, time sync, replication, SYSVOL, GPO,
+  firewall, SSH, WinRM, snapshot, migration, power, or data changes were made.
+
+Findings:
+
+- Temporary task `FormatOps-WU-Install-20260531` ran successfully with
+  `LastTaskResult=0`.
+- Installer log was left on the server at:
+  `C:\\ProgramData\\FormatOps\\Logs\\windows-update-20260531-bdc.log`
+- Windows Update result:
+  - `Count=0`
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=False`
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `sshd`, and `W32Time` remained
+  `Running`/`Automatic`.
+- `WinRM` was `Stopped`/`Disabled` during the cleanup verification; no change
+  was made.
+
+Cleanup:
+
+- Removed temporary scheduled task `FormatOps-WU-Install-20260531`.
+- Removed temporary scripts:
+  - `C:\\ProgramData\\FormatOps\\esxc_wu_task.ps1`
+  - `C:\\ProgramData\\FormatOps\\WU-Install-20260531.ps1`
+
+Result:
+
+- `BDC` had no pending Windows software updates at the time of this pass.
+- No reboot is required from this update check.
+
+## 2026-05-31 - Operator Cleanup And Shutdown For ESX-C Host Restart
+
+Scope:
+
+- Operator reported cleaning up disk space on `BDC`.
+- Operator reported shutting down `BDC` afterward as part of an ESX-C host
+  restart window.
+- This entry records the approved maintenance context only.
+- No live verification command was run from this thread at the time of this
+  documentation entry.
+
+Findings:
+
+- The disk cleanup and shutdown were operator-performed outside this thread.
+- The shutdown is for ESX-C host maintenance, not for additional guest Windows
+  patching.
+- Earlier in this maintenance pass, Windows Update returned `Count=0`,
+  `PendingFileRenameOperations=False`, and no reboot-required flags.
+
+Next:
+
+- After ESX-C host restart and guest power-on, verify `BDC` SSH reachability,
+  AD DS, DNS, DFSR/SYSVOL-related services, time sync, replication summary,
+  and reboot-required state before closing the maintenance cycle.

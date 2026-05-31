@@ -318,6 +318,7 @@ Warnings and log signals:
 - Recent Veeam log activity under `C:\ProgramData\Veeam\Backup` confirmed active service logging.
 - `Svc.VeeamBackup.log` showed recent stopped jobs with `Result: [Warning]`:
   - `Backup Copy Job to NAS4\Backup Job to ESXE`
+
   - `Backup Job to ESXE`
   - `Replication`
 - For the newest sampled status block at `2026-05-03 07:47:01`, those jobs showed the following latest run times:
@@ -543,3 +544,128 @@ Observed runtime state:
 Operational note:
 
 - This log entry records the launch and observed reclaim during runtime. Confirm final completion and final reclaimed space in a later check if exact final totals are needed.
+
+## 2026-05-31 - End-Of-Month Read-Only Maintenance
+
+Performed an end-of-month read-only maintenance sweep over key-only SSH from the maintainer Mac. No reboots, Windows updates, Veeam configuration changes, repository changes, firewall changes, VM power actions, or credential changes were made.
+
+Access and identity:
+
+- Check time: `2026-05-31 08:29:53`.
+- Host responded as `veeam`.
+- Current identity remained `veeam\administrator`.
+- Host remained standalone: `PartOfDomain=False`, `Domain=WORKGROUP`.
+
+Current host state:
+
+- OS remained Microsoft Windows Server 2022 Standard, version `10.0.20348`.
+- Last boot observed: `2026-05-17 10:19:29`.
+- Reboot flags:
+  - CBS reboot pending: `False`
+  - Windows Update reboot required: `False`
+  - Pending file rename operations: `True`
+- `PendingFileRenameOperations` had reappeared since the May 16 patch cycle even though CBS and Windows Update reboot flags remained clear.
+
+Storage and service state:
+
+- `C:` about `50.62 GB` free.
+- `E:` about `1882.76 GB` free.
+- SQL and remote-admin services remained at baseline:
+  - `MSSQL$VEEAMSQL2016`: running/automatic
+  - `SQLAgent$VEEAMSQL2016`: stopped/disabled
+  - `SQLTELEMETRY$VEEAMSQL2016`: running/automatic
+  - `sshd`: running/automatic
+  - `WinRM`: running/automatic
+- Automatic Veeam services remained running, including Backup, REST API, Broker, Catalog, Cloud Connect, Data Analyzer, Data Mover, Distribution, Guest Interaction, Mount, NFS, Threat Hunter, and Web Service.
+
+Update state:
+
+- Windows Update scan returned no pending updates.
+- Recent update history still reflected the successful May 16, 2026 servicing window.
+- SQL build remained `13.0.7085.1`, `SP3`, `CU1`.
+
+Warnings and log signals:
+
+- Application log still showed recurring `Perflib` noise:
+  - `Perflib 2003` for `MSSQL$VEEAMSQL2016` trusted performance library mismatch referencing `perf-MSSQL$VEEAMSQL2016-sqlctr13.3.6300.2.dll`
+  - `Perflib 1008` for `BITS` / `bitsperf.dll`
+- System log still showed recurring `DistributedCOM 10028` errors involving `Veeam.Backup.Manager.exe` activating CLSID `{8BC3F05E-D86B-11D0-A075-00C04FB68820}` against `192.168.90.10`.
+- `Svc.VeeamBackup.log` continued to show recent warning-result jobs for:
+  - `Backup Copy Job to NAS4\Backup Job to ESXE`
+  - `Backup Job to ESXE`
+  - `Replication`
+- Continue treating those warning-result jobs as explained by backup-destination free space dropping below the `10%` warning threshold and SMTP/email warning behavior unless later maintenance finds a different cause.
+
+Next safest target:
+
+- No new Windows updates were available as of `2026-05-31`, so the safest next maintenance target is continued read-only monitoring of repository free space on `E:` and the known warning-job pattern rather than invasive host changes.
+
+## 2026-05-31 - Pending File Rename Follow-Up
+
+Performed a read-only follow-up to identify what had repopulated `PendingFileRenameOperations`.
+
+Findings:
+
+- The queue no longer looked like the earlier `.NET 8.0.25` state seen before the May 16 patch cycle.
+- Current queued paths were dominated by:
+  - `C:\Config.Msi\*.rbf` rollback/installer files
+  - `C:\WINDOWS\Temp\eset.temp\...` installer-temp paths
+  - `C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.26\...`
+  - `C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.26\...`
+  - a small number of `C:\WINDOWS\Temp\DEL*.tmp` paths
+  - `C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.233.3`
+- `dotnet --list-runtimes` showed both `8.0.26` and newer `8.0.27` runtimes installed side by side for `Microsoft.NETCore.App` and `Microsoft.AspNetCore.App`.
+
+Interpretation:
+
+- This queue currently reads more like MSI/installer cleanup and .NET runtime replacement bookkeeping than an active Windows Update/CBS servicing hold.
+- Because `CBS reboot pending` and `Windows Update reboot required` remained `False`, do not treat the queue by itself as proof that Windows patching is incomplete.
+- The presence of `Config.Msi`, `eset.temp`, and `EdgeUpdate` paths suggests at least one application-level installer/update sequence also contributed to the rename queue.
+
+Operational stance:
+
+- Keep this read-only unless a future maintenance window specifically approves deeper cleanup of installer leftovers.
+- Re-check whether the queue clears after a later intentional reboot or application update cycle rather than forcing manual registry cleanup.
+
+## 2026-05-31 - Reboot Cleared Pending Rename Queue
+
+With operator approval, rebooted the standalone Veeam server to see whether the pending rename queue would drain cleanly. No Veeam configuration, repository settings, firewall rules, or Windows update settings were changed.
+
+Pre-reboot state:
+
+- Check time before reboot: `2026-05-31 08:44:55`.
+- Host remained standalone: `PartOfDomain=False`, `Domain=WORKGROUP`.
+- `PendingFileRenameOperations`: present.
+- No new Windows updates were pending.
+
+Reboot sequence:
+
+- Remote reboot command was accepted over `win-veeam`.
+- Host dropped from SSH at about `2026-05-31 08:45:35`.
+- Host was reachable on SSH again by about `2026-05-31 08:46:14`.
+
+Post-reboot verification:
+
+- Last boot observed: `2026-05-31 08:45:44`.
+- `PendingFileRenameOperations`: cleared.
+- `CBS reboot pending`: `False`.
+- `Windows Update reboot required`: `False`.
+- `sshd` and `WinRM` returned to `RUNNING`.
+- SQL baseline recovered:
+  - `MSSQL$VEEAMSQL2016`: `RUNNING`
+  - `SQLAgent$VEEAMSQL2016`: remained `STOPPED`, matching baseline
+  - `SQLTELEMETRY$VEEAMSQL2016`: `RUNNING`
+- Veeam service recovery showed the normal short post-boot delay, then recovered:
+  - `VeeamBackupSvc`: `RUNNING`
+  - `VeeamBackupRESTSvc`: `RUNNING`
+  - `VeeamBrokerSvc`: `RUNNING`
+  - `VeeamTransportSvc`: `RUNNING`
+  - `VeeamWebSvc`: `RUNNING`
+- Disk state after reboot:
+  - `C:` used `73891033088`, free `54587834368`
+  - `E:` used `28764656828416`, free `2021601640448`
+
+Interpretation:
+
+- The pending rename queue on 2026-05-31 was consistent with installer/runtime cleanup state that a normal reboot could clear.
+- No follow-up cleanup of the registry queue is needed at this point.

@@ -196,6 +196,44 @@ Checks:
 - Notes: Worker maintenance completed without the earlier overlay-network issue seen on 2026-05-03.
 - Follow-up: No immediate host-level follow-up required for `esst-cloud-1`.
 
+## 2026-05-31 - End-Of-Month Host Upgrade And Reboot
+
+Date: 2026-05-31
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-117-generic`
+- Docker Engine: `29.5.0`
+- Docker Swarm state: active worker
+- Root filesystem: `/dev/vda1` 96% used
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.2`
+- Docker Swarm state: active worker, rejoined as `Ready`
+- Root filesystem: `/dev/vda1` 94% used
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked after maintenance.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: Upgrade and reboot completed cleanly.
+- Disk checked: Follow-up noted. Root filesystem remains tight at about 94% used with about 7.0G free, though slightly improved from before the upgrade.
+- Memory checked: OK. About 5.0 GiB available after reboot.
+- Docker checked: OK. Docker upgraded to `29.5.2`.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: Yes. Upgraded `containerd.io`, Docker CE/CLI, `docker-buildx-plugin`, `docker-compose-plugin`, `snapd`, and the `6.8.0-124` virtual kernel package set.
+- Remaining apt upgrades checked: OK. No reboot required after the host returned.
+- Reboot requirement checked: Reboot required after package install; host returned on the new kernel.
+- Notes: Worker maintenance completed cleanly and the node rejoined Swarm without overlay or convergence issues.
+- Follow-up: Plan a separate disk-usage cleanup review for `esst-cloud-1`; the host still has less free headroom than the rest of the fleet.
+
 ## Maintenance Template
 
 Date:

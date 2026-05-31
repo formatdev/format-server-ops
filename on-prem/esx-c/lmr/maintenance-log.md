@@ -330,3 +330,150 @@ Result:
 - Cleanup launch succeeded on `LMR`.
 - At the end of this observation window, cleanup still appeared to be
   in progress rather than fully completed.
+
+## 2026-05-31 - End-Of-Month Verification
+
+Scope:
+
+- Performed read-only end-of-month verification for `LMR`.
+- Checked reboot state, current update posture, cleanup follow-through, disk
+  state, and domain secure-channel health.
+- No reboot, VMware, GPO, firewall, SSH, WinRM, update, snapshot, migration,
+  power, or data changes were made from this thread.
+
+Findings:
+
+- `LMR` responded on SSH as `lmr\administrateur`.
+- Last boot time remained `2026-05-17 10:19:25` Europe/Luxembourg time.
+- Domain secure channel still tested healthy against `\\PDC.format.lu`.
+- Current free space:
+  - `C:` about `30.6 GB` of about `128.2 GB`
+  - `D:` about `961.7 GB` of about `1099.5 GB`
+- Relative to the pre-cleanup `2026-05-17` snapshot, `C:` free space is up by
+  about `3.9 GB`.
+- Windows Update operational events on `2026-05-31` repeatedly reported
+  `Windows Update successfully found 0 updates`.
+- Reboot-required indicators are clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+- `PendingFileRenameOperations=True` has returned.
+- Current pending rename queue is large (`70` entries) and is mostly composed
+  of:
+  - `C:\\Config.Msi\\*.rbf`
+  - `C:\\WINDOWS\\Temp\\eset.temp\\...`
+  - `C:\\Program Files\\TeamViewer\\Update\\update.exe`
+  - `C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\1.3.233.3`
+- `sshd` remained `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- `cleanmgr.exe` and `DismHost` were no longer present during this check, so
+  the earlier cleanup launch no longer appears to be actively running.
+- `TiWorker` and `TrustedInstaller` were present at low activity during the
+  check, but without any reboot-required flags or available updates.
+
+Result:
+
+- `LMR` is currently reachable, stable, and not offering new Windows updates
+  at the end of the month.
+- Mid-month cleanup appears to have completed and reclaimed some space.
+- A new pending rename queue remains and appears tied to MSI/ESET/TeamViewer/
+  EdgeUpdate cleanup rather than the earlier empty-update state alone.
+
+## 2026-05-31 - Rebooted To Clear Pending Rename Queue
+
+Scope:
+
+- Rebooted `LMR` with explicit operator approval to test whether the current
+  `PendingFileRenameOperations` queue would clear naturally.
+- Performed post-reboot verification for boot time, reboot-required flags,
+  pending rename state, and initial domain secure-channel behavior.
+- No VMware, GPO, firewall, SSH, WinRM, update, snapshot, migration, power, or
+  data changes were made from this thread beyond the approved reboot itself.
+
+Findings:
+
+- Post-reboot boot time observed: `2026-05-31 09:15:41` Europe/Luxembourg
+  time.
+- Reboot-required indicators are clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+- `PendingFileRenameOperations=False` after reboot; pending count is now `0`.
+- `sshd` remained `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Immediate post-reboot secure-channel checks still returned:
+  - `Status = 1311 0x51f ERROR_NO_LOGON_SERVERS`
+- A second check after a short wait still returned the same `ERROR_NO_LOGON_SERVERS`
+  result during this turn.
+
+Result:
+
+- The reboot cleared the current `PendingFileRenameOperations` queue on `LMR`.
+- `LMR` came back on SSH cleanly, but domain logon/DC reachability still needs
+  follow-up because the secure-channel check did not recover during this
+  observation window.
+
+## 2026-05-31 - End-Of-Month Windows Update Check
+
+Scope:
+
+- Ran a Windows Update inventory/install pass as `NT AUTHORITY\\SYSTEM` using
+  the Windows Update COM API.
+- No updates were installed because Windows Update returned no applicable
+  software updates.
+- No reboot, VMware, GPO, firewall, SSH, WinRM, snapshot, migration, power, or
+  data changes were made.
+
+Findings:
+
+- Temporary task `FormatOps-WU-Install-20260531` ran successfully with
+  `LastTaskResult=0`.
+- Installer log was left on the server at:
+  `C:\\ProgramData\\FormatOps\\Logs\\windows-update-20260531-lmr.log`
+- Windows Update result:
+  - `Count=0`
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=False`
+- Domain secure channel recovered after the earlier post-reboot warning:
+  `nltest /sc_query:format.lu` succeeded against `\\BDC.format.lu`.
+- `sshd` remained `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+
+Cleanup:
+
+- Removed temporary scheduled task `FormatOps-WU-Install-20260531`.
+- Removed temporary scripts:
+  - `C:\\ProgramData\\FormatOps\\esxc_wu_task.ps1`
+  - `C:\\ProgramData\\FormatOps\\WU-Install-20260531.ps1`
+
+Result:
+
+- `LMR` had no pending Windows software updates at the time of this pass.
+- No reboot is required from this update check.
+- The earlier post-reboot `ERROR_NO_LOGON_SERVERS` condition is no longer
+  present in this follow-up check.
+
+## 2026-05-31 - Operator Cleanup And Shutdown For ESX-C Host Restart
+
+Scope:
+
+- Operator reported cleaning up disk space on `LMR`.
+- Operator reported shutting down `LMR` afterward as part of an ESX-C host
+  restart window.
+- This entry records the approved maintenance context only.
+- No live verification command was run from this thread at the time of this
+  documentation entry.
+
+Findings:
+
+- The disk cleanup and shutdown were operator-performed outside this thread.
+- The shutdown is for ESX-C host maintenance, not for additional guest Windows
+  patching.
+- Earlier in this maintenance pass, Windows Update returned `Count=0`,
+  `PendingFileRenameOperations=False`, no reboot-required flags, and the domain
+  secure channel had recovered successfully.
+
+Next:
+
+- After ESX-C host restart and guest power-on, verify `LMR` SSH reachability,
+  domain secure channel, reboot-required state, free space, and SQL/application
+  service state if applicable before closing the maintenance cycle.

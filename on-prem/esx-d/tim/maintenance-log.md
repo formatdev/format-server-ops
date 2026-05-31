@@ -140,6 +140,86 @@ Checks:
 - Notes: Installed payloads were MRT `KB890830`, .NET security update `KB5087051`, and Windows security update `KB5089549`. Post-install remote Windows Update scan returned `VisibleUpdates=0`.
 - Follow-up: remove the one-off task if it is still present, reboot TIM in an agreed window, and keep watching for the recurring machine-trust or WinRM drift symptoms after reboot.
 
+## 2026-05-31 - End-Of-Month Maintenance Sweep
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH aliases checked: `winad-tim` connected and returned `FORMAT\Administrateur`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: had drifted again to `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Role verified: no additional role expansion in this pass.
+- Disk space checked: not deeply re-measured in this pass.
+- Event logs reviewed: no deep event-log pass in this sweep; Windows Update task log under `C:\ProgramData\Codex` was checked.
+- Updates installed: No. A one-off SYSTEM task `Codex-WindowsUpdate-NoReboot` ran successfully and logged `VisibleCount=0`.
+- Reboot required: No reboot flag was present in this pass.
+- Notes: Remote COM-based Windows Update queries still fail from the SSH admin context with `0x80240032`, but the SYSTEM-context update script completed normally and found no visible updates.
+- Follow-up: keep watching the recurring `WinRM` startup drift on TIM after future reboots.
+
+## 2026-05-31 - Post-Update/Reboot Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Peter completed manual Windows Update, cleanup, guest reboot, and ESX-D host reboot.
+- Post-host-reboot network checked: `192.168.1.12` responded to ping.
+- Post-host-reboot SSH checked: `win-tim` returned `Tim`; `winad-tim` reached the host but returned SSH permission denied for the domain-admin alias.
+- Secure channel checked from the local SSH context: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` still returned `1311` / `ERROR_NO_LOGON_SERVERS`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: `Stopped`/`Disabled` again after reboot, consistent with the suspected GPO/startup drift.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Latest hotfix checked: `KB5089573`, installed `2026-05-31`.
+
+Notes:
+
+- TIM is operational after the full guest/host reboot cycle.
+- Generic `nltest /sc_query` and WinRM startup state remain noisy despite the explicit PDC-targeted secure-channel check returning healthy.
+
+## 2026-05-31 - Domain SSH Follow-Up
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Compared domain SSH behavior against Admin and FILE.
+- `sshd_config` includes `AllowGroups administrators format\sshadmins` and uses `__PROGRAMDATA__/ssh/administrators_authorized_keys` for `Match Group administrators`.
+- AD group `SSH Admins` exists with SamAccountName `sshadmins`, and `FORMAT\Administrateur` is a member.
+- `winad-tim` continued to return SSH permission denied for `format\Administrateur`.
+- `nltest /sc_reset:format.lu\\PDC.format.lu` and `nltest /sc_verify:format.lu` completed successfully, but local SID translation for `format\Administrateur` and `format\sshadmins` still returned trust-relationship failures.
+- `Restart-Service Netlogon -Force` did not clear the split; `Test-ComputerSecureChannel -Server PDC.format.lu` still returned `False` while `nltest /sc_verify` returned `NERR_Success`.
+
+Notes:
+
+- TIM local SSH remains usable.
+- Domain SSH requires a credentialed machine-password repair from an interactive/domain-admin context.
+
+## 2026-05-31 - Domain SSH Restored
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Peter ran the credentialed machine-password repair interactively on TIM:
+  - `Reset-ComputerMachinePassword -Server PDC.format.lu -Credential format\Administrateur`
+  - `Restart-Service Netlogon -Force`
+  - `Test-ComputerSecureChannel -Server PDC.format.lu -Verbose`
+  - `nltest /sc_query:format.lu`
+- Peter's immediate console check initially still reported `False` / `1311`.
+- Codex rechecked shortly afterward and confirmed:
+  - `winad-tim` returned `Tim`
+  - `whoami` over domain SSH returned `format\administrateur`
+  - `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`
+  - `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`
+  - OpenSSH logs showed `Accepted publickey for format\Administrateur`
+
+Notes:
+
+- TIM domain SSH is restored.
+- `WinRM` remains `Stopped`/`Disabled`, consistent with the separate WinRM policy/startup drift follow-up.
+
 ## Maintenance Template
 
 Date:
