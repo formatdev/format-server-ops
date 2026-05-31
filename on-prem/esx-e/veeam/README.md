@@ -2,7 +2,7 @@
 
 Runbook for the standalone Windows Veeam server VM on ESX-E.
 
-Last updated: 2026-05-16
+Last updated: 2026-05-31
 
 ## Known State
 
@@ -15,7 +15,7 @@ Last updated: 2026-05-16
 - Role: Veeam backup server
 - OS: Microsoft Windows Server 2022 Standard, build `20348`
 - VM platform: VMware virtual machine
-- Last boot observed after May 2026 updates: `2026-05-16 09:27:51`
+- Last boot observed after the end-of-month reboot: `2026-05-31 08:45:44`
 
 ## Critical Role Notes
 
@@ -70,14 +70,16 @@ Current remote-admin findings:
 
 Current storage findings:
 
-- `C:` NTFS, healthy, about 47.3 GB free of 128.5 GB after May 2026 updates
-- `E:` `VeeamHDD`, ReFS, healthy, about 2.03 TB free of 30.8 TB during 2026-05-16 maintenance
+- `C:` NTFS, healthy, about 50.6 GB free of 128.5 GB during 2026-05-31 maintenance
+- `E:` `VeeamHDD`, ReFS, healthy, about 1.88 TB free of 30.8 TB during 2026-05-31 maintenance
 
 Current Windows Update findings:
 
 - April 2026 Windows/.NET/SQL updates installed on `2026-04-18`.
 - May 2026 update cycle completed on `2026-05-16`: `KB5089270`, `KB890830` v5.141, `KB5088862`, and `KB5087545`.
 - CBS, Windows Update reboot flags, and pending file rename operations were all clear after the May 2026 reboot.
+- End-of-month check on `2026-05-31` found no new pending updates; CBS and Windows Update reboot flags remained clear, but `PendingFileRenameOperations` had reappeared.
+- A later operator-approved reboot on `2026-05-31` cleared `PendingFileRenameOperations` again without introducing new CBS or Windows Update reboot flags.
 - SQL Server instance `.\VEEAMSQL2016` reported `13.0.7085.1`, `SP3`, `CU1`.
 - Veeam services returned to `Running` after the normal post-boot delay; `SQLAgent$VEEAMSQL2016` remained stopped/disabled as before.
 
