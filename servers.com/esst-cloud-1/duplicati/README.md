@@ -10,7 +10,7 @@ sources are local host paths on that node.
 
 The `duplicati-ec1` job backs up these paths:
 
-- `/data`, read-only, for production bind mounts such as Vaultwarden, Vtiger,
+- `/data`, read-only, for production bind mounts such as Vaultwarden,
   WordPress, MariaDB data, and n8n files.
 - `/opt/esst`, read-only, for ESST FTP/application-side files.
 - `/etc`, read-only, for host configuration needed during recovery.
@@ -62,11 +62,12 @@ Dump outputs:
 
 ```text
 /data/backups/databases/glitchtip-postgres/glitchtip-postgres-all-databases-YYYY-MM-DD-HHMMSS.sql.gz
-/data/backups/databases/vtiger-mysql/vtiger-mysql-all-databases-YYYY-MM-DD-HHMMSS.sql.gz
 /data/backups/databases/website-mariadb/website-mariadb-all-databases-YYYY-MM-DD-HHMMSS.sql.gz
 ```
 
-Local dump retention is 14 days. Duplicati handles off-host retention.
+Local dump retention is 14 days. The script prunes old `.sql.gz` files on exit,
+even if one dump fails, and only promotes completed dumps from
+`.sql.gz.partial`. Duplicati handles off-host retention.
 
 ## Exclusions
 

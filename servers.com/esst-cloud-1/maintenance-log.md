@@ -234,6 +234,58 @@ Checks:
 - Notes: Worker maintenance completed cleanly and the node rejoined Swarm without overlay or convergence issues.
 - Follow-up: Plan a separate disk-usage cleanup review for `esst-cloud-1`; the host still has less free headroom than the rest of the fleet.
 
+## 2026-06-10 - Database Backup Script Retention Fix
+
+Date: 2026-06-10
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- `/data/backups/databases/backup-databases.sh` still used `set -euo pipefail`
+  with retention pruning only at the end of the script.
+- The `esst-vtiger_mysql` dump block was still present even though the related
+  Swarm service is no longer deployed.
+- Failed or interrupted dumps could leave behind incomplete `.sql.gz` files.
+- A separate cleanup earlier in the day restored free space after GlitchTip
+  logical backups filled the root filesystem.
+
+Host after:
+
+- The backup script now runs retention cleanup from a `trap prune EXIT`
+  handler, so old dump cleanup still runs if one dump fails.
+- The obsolete `vtiger` dump block and its local directory handling were
+  removed.
+- Database dumps now write to `.sql.gz.partial` and only move into place on
+  success.
+- The script now continues through the remaining dumps and returns non-zero only
+  after all dump attempts finish.
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login worked during the fix.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: OK. No host instability observed during the test run.
+- Disk checked: OK. Root filesystem had healthy headroom at about 39% used
+  after the earlier cleanup.
+- Memory checked: Not specifically rechecked during this run.
+- Docker checked: OK. Relevant `esst-glitchtip_postgres`,
+  `esst-website_mariadb`, and `esst-website_wordpress` containers were present.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: No.
+- Remaining apt upgrades checked: Not rechecked during this run.
+- Reboot requirement checked: No reboot required.
+- Notes: Deployed the patched script to the live host, kept a timestamped backup
+  of the previous script, and ran a real backup pass successfully. The run
+  produced a new `glitchtip-postgres` dump of about `732M` and a new
+  `website-mariadb` dump of about `20M`, with no leftover `.partial` files.
+  `pg_dumpall` emitted PostgreSQL collation version mismatch warnings for
+  `postgres`, `template1`, and `glitchtip`, but the dump completed
+  successfully.
+- Follow-up: Plan a separate PostgreSQL collation maintenance task; it is not
+  part of the backup-retention bug but should not be forgotten.
+
 ## Maintenance Template
 
 Date:

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 BACKUP_ROOT="/data/backups/databases"
 RETENTION_DAYS="14"
@@ -7,9 +7,46 @@ TIMESTAMP="$(date +%F-%H%M%S)"
 
 mkdir -p \
   "$BACKUP_ROOT/glitchtip-postgres" \
-  "$BACKUP_ROOT/vtiger-mysql" \
   "$BACKUP_ROOT/website-mariadb"
 chmod 700 "$BACKUP_ROOT" "$BACKUP_ROOT"/*
+
+prune() {
+  for dir in glitchtip-postgres website-mariadb; do
+    find "$BACKUP_ROOT/$dir" -maxdepth 1 -type f -name "*.sql.gz" \
+      -mtime +"$RETENTION_DAYS" -delete 2>/dev/null || true
+    find "$BACKUP_ROOT/$dir" -maxdepth 1 -type f -name "*.sql.gz.partial" \
+      -mtime +1 -delete 2>/dev/null || true
+  done
+}
+
+trap prune EXIT
+
+finish_dump() {
+  local partial_file="$1"
+  local out_file="$2"
+
+  chmod 600 "$partial_file"
+  mv "$partial_file" "$out_file"
+  ls -lh "$out_file"
+}
+
+run_dump() {
+  local label="$1"
+  local out_file="$2"
+  local dump_cmd="$3"
+  local partial_file="${out_file}.partial"
+
+  rm -f "$partial_file"
+
+  if bash -o pipefail -lc "$dump_cmd" >"$partial_file"; then
+    finish_dump "$partial_file" "$out_file"
+    return 0
+  fi
+
+  rm -f "$partial_file"
+  echo "Backup failed for $label" >&2
+  return 1
+}
 
 find_container() {
   local service_name="$1"
@@ -29,28 +66,10 @@ dump_glitchtip_postgres() {
     return 1
   fi
 
-  docker exec "$container" sh -lc \
-    'PGPASSWORD="$POSTGRES_PASSWORD" pg_dumpall -U "$POSTGRES_USER"' \
-    | gzip > "$out_file"
-  chmod 600 "$out_file"
-  ls -lh "$out_file"
-}
-
-dump_vtiger_mysql() {
-  local container out_file
-  container="$(find_container esst-vtiger_mysql)"
-  out_file="$BACKUP_ROOT/vtiger-mysql/vtiger-mysql-all-databases-$TIMESTAMP.sql.gz"
-
-  if [[ -z "$container" ]]; then
-    echo "No running esst-vtiger_mysql container found" >&2
-    return 1
-  fi
-
-  docker exec "$container" sh -lc \
-    '/usr/local/mysql/bin/mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --all-databases --single-transaction --quick --routines --events --triggers' \
-    | gzip > "$out_file"
-  chmod 600 "$out_file"
-  ls -lh "$out_file"
+  run_dump \
+    "glitchtip-postgres" \
+    "$out_file" \
+    "docker exec $container sh -lc 'PGPASSWORD=\"\$POSTGRES_PASSWORD\" pg_dumpall -U \"\$POSTGRES_USER\"' | gzip"
 }
 
 dump_website_mariadb() {
@@ -74,18 +93,15 @@ dump_website_mariadb() {
       'php -r "include \"/var/www/html/wp-config.php\"; echo base64_encode(DB_NAME), \" \", base64_encode(DB_USER), \" \", base64_encode(DB_PASSWORD), \"\n\";"'
   )"
 
-  docker exec -e DB_ENV="$db_env" "$container" sh -lc \
-    'set -- $DB_ENV; DB_NAME="$(printf %s "$1" | base64 -d)"; DB_USER="$(printf %s "$2" | base64 -d)"; DB_PASS="$(printf %s "$3" | base64 -d)"; mariadb-dump -u"$DB_USER" -p"$DB_PASS" -h127.0.0.1 --single-transaction --quick --routines --events --triggers "$DB_NAME"' \
-    | gzip > "$out_file"
-  chmod 600 "$out_file"
-  ls -lh "$out_file"
+  run_dump \
+    "website-mariadb" \
+    "$out_file" \
+    "docker exec -e DB_ENV='$db_env' $container sh -lc 'set -- \$DB_ENV; DB_NAME=\"\$(printf %s \"\$1\" | base64 -d)\"; DB_USER=\"\$(printf %s \"\$2\" | base64 -d)\"; DB_PASS=\"\$(printf %s \"\$3\" | base64 -d)\"; mariadb-dump -u\"\$DB_USER\" -p\"\$DB_PASS\" -h127.0.0.1 --single-transaction --quick --routines --events --triggers \"\$DB_NAME\"' | gzip"
 }
 
-dump_glitchtip_postgres
-dump_vtiger_mysql
-dump_website_mariadb
+status=0
 
-# Keep local dump staging tidy. Duplicati handles off-host retention.
-find "$BACKUP_ROOT/glitchtip-postgres" -maxdepth 1 -type f -name "glitchtip-postgres-all-databases-*.sql.gz" -mtime +"$RETENTION_DAYS" -delete
-find "$BACKUP_ROOT/vtiger-mysql" -maxdepth 1 -type f -name "vtiger-mysql-all-databases-*.sql.gz" -mtime +"$RETENTION_DAYS" -delete
-find "$BACKUP_ROOT/website-mariadb" -maxdepth 1 -type f -name "website-mariadb-all-databases-*.sql.gz" -mtime +"$RETENTION_DAYS" -delete
+dump_glitchtip_postgres || status=1
+dump_website_mariadb || status=1
+
+exit "$status"
