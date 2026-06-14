@@ -539,3 +539,52 @@ Next:
 - After ESX-C host restart and guest power-on, verify `Kuhnle` SSH reachability,
   domain secure channel, reboot-required state, free space, and application
   role/service state before closing the maintenance cycle.
+
+## 2026-06-14 - Twice-Monthly Maintenance Verification
+
+Scope:
+
+- Performed read-only post-host-restart and twice-monthly maintenance checks.
+- Ran a Windows Update inventory/install pass as `NT AUTHORITY\\SYSTEM` using
+  the Windows Update COM API.
+- No updates were installed because Windows Update returned no applicable
+  software updates.
+- No reboot, VMware, GPO, firewall, SSH, WinRM, snapshot, migration, power, or
+  data changes were made.
+
+Findings:
+
+- `Kuhnle` responded on SSH as `kuhnle\\administrateur`.
+- Last boot time observed: `2026-06-13 22:30:21` Europe/Luxembourg time.
+- Domain secure channel tested healthy against `\\PDC.format.lu`.
+- Recent hotfixes show June 2026 updates already installed on `2026-06-13`:
+  - `KB5094147`
+  - `KB5094128`
+- Windows Update operational events repeatedly reported
+  `Windows Update successfully found 0 updates`.
+- SYSTEM-side Windows Update task `FormatOps-WU-Install-20260614` completed
+  with `LastTaskResult=0`.
+- Installer log was left on the server at:
+  `C:\\ProgramData\\FormatOps\\Logs\\windows-update-20260614-kuhnle.log`
+- Windows Update result:
+  - `Count=0`
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=False`
+- `sshd` remained `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Current free space:
+  - `C:` about `23.0 GB` of about `53.0 GB`
+  - `D:` about `36.4 GB` of about `53.7 GB`
+
+Cleanup:
+
+- Removed temporary scheduled task `FormatOps-WU-Install-20260614`.
+- Removed temporary scripts:
+  - `C:\\ProgramData\\FormatOps\\esxc_wu_task_20260614.ps1`
+  - `C:\\ProgramData\\FormatOps\\WU-Install-20260614.ps1`
+
+Result:
+
+- `Kuhnle` has no pending Windows software updates visible to Windows Update.
+- No reboot is required from this check.

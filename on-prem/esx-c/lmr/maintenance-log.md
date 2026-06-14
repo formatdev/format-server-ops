@@ -477,3 +477,55 @@ Next:
 - After ESX-C host restart and guest power-on, verify `LMR` SSH reachability,
   domain secure channel, reboot-required state, free space, and SQL/application
   service state if applicable before closing the maintenance cycle.
+
+## 2026-06-14 - Twice-Monthly Maintenance Verification
+
+Scope:
+
+- Performed read-only post-host-restart and twice-monthly maintenance checks.
+- Ran a Windows Update inventory/install pass as `NT AUTHORITY\\SYSTEM` using
+  the Windows Update COM API.
+- No updates were installed because Windows Update returned no applicable
+  software updates.
+- No reboot, VMware, GPO, firewall, SSH, WinRM, snapshot, migration, power, or
+  data changes were made.
+
+Findings:
+
+- `LMR` responded on SSH as `lmr\\administrateur`.
+- Last boot time observed: `2026-06-13 22:29:39` Europe/Luxembourg time.
+- Domain secure channel tested healthy against `\\BDC.format.lu`.
+- Recent hotfixes show June 2026 updates already installed on `2026-06-13`:
+  - `KB5094147`
+  - `KB5094128`
+- Windows Update operational events repeatedly reported
+  `Windows Update successfully found 0 updates`.
+- SYSTEM-side Windows Update task `FormatOps-WU-Install-20260614` completed
+  with `LastTaskResult=0`.
+- Installer log was left on the server at:
+  `C:\\ProgramData\\FormatOps\\Logs\\windows-update-20260614-lmr.log`
+- Windows Update result:
+  - `Count=0`
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=True`
+- Current pending rename queue contains one EdgeUpdate cleanup entry:
+  `C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\1.3.239.19`.
+- `sshd` remained `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Current free space:
+  - `C:` about `27.5 GB` of about `128.2 GB`
+  - `D:` about `961.6 GB` of about `1099.5 GB`
+
+Cleanup:
+
+- Removed temporary scheduled task `FormatOps-WU-Install-20260614`.
+- Removed temporary scripts:
+  - `C:\\ProgramData\\FormatOps\\esxc_wu_task_20260614.ps1`
+  - `C:\\ProgramData\\FormatOps\\WU-Install-20260614.ps1`
+
+Result:
+
+- `LMR` has no pending Windows software updates visible to Windows Update.
+- A reboot window is recommended to clear the current EdgeUpdate
+  `PendingFileRenameOperations` queue.

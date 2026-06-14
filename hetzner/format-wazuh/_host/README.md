@@ -3,11 +3,11 @@
 Runbook for maintaining the Hetzner VPS that hosts Wazuh for the Format
 environment.
 
-Last updated: 2026-05-31
+Last updated: 2026-06-14
 
 ## Current Verified State
 
-Last verified: 2026-05-31. See
+Last verified: 2026-06-14. See
 [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/maintenance-log.md)
 for the inspection details.
 
@@ -26,8 +26,8 @@ for the inspection details.
 - Portainer: not present by current deployment evidence
 - Wazuh indexer data: `/var/lib/wazuh-indexer`, bind-mounted from
   `/mnt/HC_Volume_104575658/wazuh-indexer`
-- Reboot state: no reboot required after 2026-05-31 maintenance
-- Remaining apt upgrades: none as of 2026-05-31
+- Reboot state: no reboot required after 2026-06-14 maintenance
+- Remaining apt upgrades: none as of 2026-06-14
 
 ## Host Files
 

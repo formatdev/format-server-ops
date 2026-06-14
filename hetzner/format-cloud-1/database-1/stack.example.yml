@@ -1,6 +1,6 @@
 services:
   db:
-    image: mariadb:11.8.6
+    image: mariadb:11.8.8
     environment:
       - MARIADB_AUTO_UPGRADE=1
     volumes:

@@ -669,3 +669,67 @@ Interpretation:
 
 - The pending rename queue on 2026-05-31 was consistent with installer/runtime cleanup state that a normal reboot could clear.
 - No follow-up cleanup of the registry queue is needed at this point.
+
+## 2026-06-14 - Mid-Month Read-Only Maintenance
+
+Performed a read-only maintenance sweep over key-only SSH from the maintainer Mac. No Windows updates were installed, no reboot was triggered during this check, and no Veeam configuration, repository, firewall, or credential changes were made.
+
+Repo/worktree note:
+
+- The local git worktree was already dirty in unrelated `on-prem/esx-c` paths before this maintenance pass. Those changes were left untouched.
+
+Access and identity:
+
+- Check time: `2026-06-14 18:21:08`.
+- Host responded as `VEEAM`.
+- Current identity remained `VEEAM\Administrator`.
+- Host remained standalone: `PartOfDomain=False`, `Domain=WORKGROUP`.
+
+Current host state:
+
+- OS remained Microsoft Windows Server 2022 Standard, version `10.0.20348`.
+- Last boot observed: `2026-06-14 00:48:48`.
+- Reboot flags:
+  - CBS reboot pending: `False`
+  - Windows Update reboot required: `False`
+  - Pending file rename operations: `True`
+
+Storage and service state:
+
+- `C:` used `74969845760`, free `53509021696`.
+- `E:` used `29006834499584`, free `1779423969280`.
+- SQL and remote-admin services remained at baseline:
+  - `sshd`: `RUNNING`
+  - `WinRM`: `RUNNING`
+  - `MSSQL$VEEAMSQL2016`: `RUNNING`
+  - `SQLAgent$VEEAMSQL2016`: `STOPPED`, matching baseline
+  - `SQLTELEMETRY$VEEAMSQL2016`: `RUNNING`
+- Sampled Veeam services were healthy:
+  - `VeeamBackupSvc`: `RUNNING`
+  - `VeeamBackupRESTSvc`: `RUNNING`
+  - `VeeamBrokerSvc`: `RUNNING`
+  - `VeeamTransportSvc`: `RUNNING`
+  - `VeeamWebSvc`: `RUNNING`
+
+Update and version state:
+
+- Built-in Windows Update COM search returned `0` pending updates.
+- `PSWindowsUpdate` cmdlets were not available on the host during this maintenance pass; update discovery was done through the built-in COM search path instead.
+- `Veeam.Backup.Service.exe` reported product version `13.0.2.29`.
+
+Pending rename follow-up:
+
+- The queue no longer resembled the older .NET/MSI/ESET mix seen on 2026-05-31.
+- Current sampled queue content was limited to:
+  - `C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.239.19`
+- Interpretation: this currently looks like lightweight Edge updater housekeeping rather than incomplete Windows servicing or a broad installer backlog.
+
+Warnings and log signals:
+
+- No pending Windows update or CBS reboot condition was present.
+- The read-only Veeam warning/error tail used for this pass did not return any fresh log lines in the sampled window.
+
+Next safest target:
+
+- No patching action is waiting as of `2026-06-14`.
+- The safest next maintenance target is continued read-only monitoring of repository free space on `E:` and watching whether the small `EdgeUpdate` rename queue clears on the next ordinary reboot.

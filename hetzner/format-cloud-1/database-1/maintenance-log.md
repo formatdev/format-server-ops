@@ -4,6 +4,30 @@ Use this log for shared MariaDB checks during the combined Hetzner platform main
 
 Do not record root passwords, application database passwords, SQL dumps, personal data, customer data, or other secrets here.
 
+## 2026-06-14 - MariaDB Patch Upgrade
+
+Date: 2026-06-14 18:16 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `mariadb:11.8.6`
+
+Stack version after: `mariadb:11.8.8`
+
+Checks:
+
+- Fresh dump created: OK. Created `/data/backups/mysql/mariadb-all-databases-2026-06-14-161556.sql.gz` before the update.
+- Container health checked: OK. `database-1_db` is `1/1`.
+- Public exposure checked: OK. The shared database service remains unrouted by Traefik.
+- Running image checked: OK. Live service uses `mariadb:11.8.8`.
+- Stack image metadata checked: OK. `com.docker.stack.image` now reports `mariadb:11.8.8`.
+- Running version checked: OK. Container reports `11.8.8-MariaDB`.
+- Registry/current patch checked: OK. `11.8.8` was the current `11.8` patch observed during this run.
+- Logs reviewed: OK. MariaDB started cleanly and reported that a MariaDB upgrade was not required; existing cgroup and io_uring fallback warnings remain non-fatal.
+- Update applied: Yes.
+- Notes: Service task history included old rejected replacement tasks from the host reboot window and metadata label reconciliation, but the current `11.8.8` task is healthy.
+- Follow-up: Keep full table checks as controlled credentialed maintenance work.
+
 ## 2026-04-18 - Initial Runbook And Health Check
 
 Date: 2026-04-18

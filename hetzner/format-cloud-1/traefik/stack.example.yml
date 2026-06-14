@@ -4,7 +4,7 @@ networks:
 
 services:
   traefik:
-    image: traefik:3.6.13
+    image: traefik:3.6.21
     networks:
       - proxy
     command:
@@ -73,4 +73,5 @@ services:
         - traefik.http.routers.http-catchall.entrypoints=web
         - traefik.http.routers.http-catchall.middlewares=redirect-to-https
         - traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)
+        - traefik.http.services.traefik-lb-dummy.loadbalancer.server.port=8080
         # Dashboard labels are intentionally omitted while --api=false and --api.dashboard=false.

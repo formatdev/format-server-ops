@@ -529,3 +529,58 @@ Next:
 - After ESX-C host restart and guest power-on, verify `BDC` SSH reachability,
   AD DS, DNS, DFSR/SYSVOL-related services, time sync, replication summary,
   and reboot-required state before closing the maintenance cycle.
+
+## 2026-06-14 - Twice-Monthly Maintenance Verification
+
+Scope:
+
+- Performed read-only post-host-restart and twice-monthly maintenance checks.
+- Ran a Windows Update inventory/install pass as `NT AUTHORITY\\SYSTEM` using
+  the Windows Update COM API.
+- No updates were installed because Windows Update returned no applicable
+  software updates.
+- No reboot, VMware, AD, DNS, DHCP, time sync, replication, SYSVOL, GPO,
+  firewall, SSH, WinRM, snapshot, migration, power, or data changes were made.
+
+Findings:
+
+- `BDC` responded on SSH as `format\\administrateur`.
+- Last boot time observed: `2026-06-13 22:26:22` Europe/Luxembourg time.
+- Recent hotfixes show June 2026 updates already installed on `2026-06-13`:
+  - `KB5094147`
+  - `KB5094128`
+- Windows Update operational events repeatedly reported
+  `Windows Update successfully found 0 updates`.
+- SYSTEM-side Windows Update task `FormatOps-WU-Install-20260614` completed
+  with `LastTaskResult=0`.
+- Installer log was left on the server at:
+  `C:\\ProgramData\\FormatOps\\Logs\\windows-update-20260614-bdc.log`
+- Windows Update result:
+  - `Count=0`
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=True`
+- Current pending rename queue contains print/fax driver rename pairs under
+  `C:\\Windows\\System32\\spool\\drivers\\...`.
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `sshd`, and `W32Time` were
+  `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- `repadmin /replsummary` showed `0` failures in the returned summary view for
+  `PDC` source / `BDC` destination.
+- Time sync remained healthy from `PDC.format.lu`.
+- `C:` free space was about `69.2 GB` of about `96.0 GB`.
+
+Cleanup:
+
+- Removed temporary scheduled task `FormatOps-WU-Install-20260614`.
+- Removed temporary scripts:
+  - `C:\\ProgramData\\FormatOps\\esxc_wu_task_20260614.ps1`
+  - `C:\\ProgramData\\FormatOps\\WU-Install-20260614.ps1`
+
+Result:
+
+- `BDC` has no pending Windows software updates visible to Windows Update.
+- `BDC` is healthy from the checked DC-service, replication-summary, and time
+  sync perspective.
+- A reboot window is recommended to clear the current print/fax-driver
+  `PendingFileRenameOperations` queue.

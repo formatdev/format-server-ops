@@ -6,6 +6,91 @@ Wazuh health checks, and reboot decisions for `format-wazuh`.
 Do not record passwords, API tokens, backup passwords, registry credentials,
 certificate private keys, enrollment secrets, or other secrets here.
 
+## 2026-06-14 - June Maintenance
+
+Date: 2026-06-14
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Wazuh packages: `wazuh-manager`, `wazuh-indexer`, and
+  `wazuh-dashboard` already at `4.14.5-1`
+- `filebeat` package: `7.10.2-2`
+- `systemctl --failed` reported 0 failed units before maintenance.
+- `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`, and `filebeat` were
+  active before maintenance.
+- Root filesystem was about 70% used; Wazuh data volume was about 54% used.
+- Pending apt work included `apparmor`, `cloud-init`, `libapparmor1`, and
+  `libxmlb2`.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Wazuh packages unchanged at `4.14.5-1`
+- `filebeat` package unchanged at `7.10.2-2`
+- Root filesystem after reboot: 75G total, 49G used, 24G free, 68% used.
+- Wazuh data volume after reboot: 79G total, 40G used, 35G free, 54% used.
+- Uptime at verification: about 8 minutes.
+
+Checks:
+
+- SSH checked: OK. `ssh format-wazuh` worked before reboot and after the local
+  workstation's OpenVPN route to the host was removed.
+- Firewall checked: OK. `ufw` remained active with inbound `443/tcp`,
+  `1514/tcp`, `1515/tcp`, and rate-limited `22/tcp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail remained active.
+- System health checked: OK. `systemctl --failed` reported 0 failed units
+  after maintenance.
+- Disk checked: OK. Root and Wazuh indexer volume still have free space.
+- Memory checked: OK. About 2.9 GiB remained available after reboot and swap
+  use dropped to about 1 MiB.
+- Wazuh deployment model checked: OK. Still package/systemd-managed; Docker,
+  Compose, Swarm, and Portainer remain absent.
+- Wazuh health checked: OK. `wazuh-manager`, `wazuh-indexer`,
+  `wazuh-dashboard`, and `filebeat` are active. Final local checks returned
+  `401` from `https://127.0.0.1:55000/`, `401` from
+  `https://127.0.0.1:9200/`, and `302` to `/app/login` from
+  `https://127.0.0.1/`. `agent_control -lc` showed `MBP-PCZ` as active
+  agent `043`.
+- Docker checked: OK. Still not installed.
+- Portainer checked: OK by deployment evidence. Still not present.
+- Public port exposure checked: Not re-run externally during this pass; local
+  endpoint and listening behavior remained consistent with the documented
+  exposure model.
+- Apt upgrade applied: Yes. Ran `apt-get update`, `apt-get upgrade`, and
+  `apt-get full-upgrade`.
+- Remaining apt upgrades checked: OK. No packages remained upgradable after the
+  maintenance pass.
+- Reboot requirement checked: OK. `apparmor` required a reboot after the
+  package run; no reboot was required after the reboot.
+
+Notes:
+
+- Ubuntu package maintenance updated AppArmor packages to
+  `4.0.1really4.0.1-0ubuntu0.24.04.7`, `cloud-init` to
+  `26.1-0ubuntu1~24.04.1`, and `libxmlb2` to
+  `0.3.24-1~ubuntu0.24.04.1`. Wazuh application package versions did not
+  change in this pass.
+- `apparmor.postinst` printed `Illegal number: yes` while reloading profiles,
+  but apt completed successfully and `apparmor.service` was active after
+  reboot.
+- During startup, the dashboard again returned temporary HTTP `503` while the
+  indexer and saved-object migrations finished initializing. Once warm, it
+  returned the normal HTTP `302` redirect to `/app/login`.
+- Local OpenVPN routes initially made the host appear unreachable from the
+  workstation after reboot; removing the `116.203.114.188/32` and
+  `188.245.43.92/32` tunnel routes restored direct verification access.
+
+Follow-up:
+
+- Keep `043 MBP-PCZ` as the canonical Mac agent identity.
+- Remember to remove or avoid the local OpenVPN host routes before future
+  Wazuh/Hetzner verification checks.
+
 ## 2026-05-31 - End-Of-Month Maintenance
 
 Date: 2026-05-31

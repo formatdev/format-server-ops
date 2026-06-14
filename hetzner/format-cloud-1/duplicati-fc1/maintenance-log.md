@@ -4,6 +4,29 @@ Use this log for Duplicati checks during the combined Hetzner platform maintenan
 
 Do not record encryption keys, backup destination credentials, SSH private keys, Duplicati UI credentials, exported job definitions containing secrets, SQL dumps, or other secrets here.
 
+## 2026-06-14 - Duplicati Image Refresh
+
+Date: 2026-06-14 18:16 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `duplicati/duplicati@sha256:d63ea5b2524b7e73889f3c7b9bee48690cc6dc4ae7f46f48d9c70d265e2f99ce`
+
+Stack version after: `duplicati/duplicati@sha256:50555cd2cf1cd140ee240996cc3b94afb0254d07f6bccc5495561530a6c3d6ab`
+
+Checks:
+
+- Container health checked: OK. `duplicati-fc1_duplicati_fc1` is `1/1`.
+- Running image checked: OK. Live image digest is `sha256:50555cd2cf1cd140ee240996cc3b94afb0254d07f6bccc5495561530a6c3d6ab`.
+- Stack image metadata checked: OK. `com.docker.stack.image` now reports the same pinned digest as the live service image.
+- Latest upstream release checked: OK. Latest stable release observed during this run remains `v2.3.0.1_stable_2026-04-24`.
+- Mounted paths checked: OK. Service started with the existing mounts and listened on port `8200`.
+- Route checked: OK. Local host-header route for `duplicati-fc1.format.lu` returned `200`.
+- Logs reviewed: OK. Startup log showed the server listening on `0.0.0.0:8200`.
+- Update applied: Yes.
+- Notes: The service remains pinned by digest after pulling the current `duplicati/duplicati:latest` image. Metadata label reconciliation caused a brief recycle; the service returned to `1/1`.
+- Follow-up: Check the Duplicati UI for last successful backup, verification status, destination health, and last restore test.
+
 ## 2026-04-18 - Initial Runbook And Version Check
 
 Date: 2026-04-18

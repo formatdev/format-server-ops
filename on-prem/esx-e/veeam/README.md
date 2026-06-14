@@ -2,7 +2,7 @@
 
 Runbook for the standalone Windows Veeam server VM on ESX-E.
 
-Last updated: 2026-05-31
+Last updated: 2026-06-14
 
 ## Known State
 
@@ -15,7 +15,7 @@ Last updated: 2026-05-31
 - Role: Veeam backup server
 - OS: Microsoft Windows Server 2022 Standard, build `20348`
 - VM platform: VMware virtual machine
-- Last boot observed after the end-of-month reboot: `2026-05-31 08:45:44`
+- Last boot observed during mid-June maintenance: `2026-06-14 00:48:48`
 
 ## Critical Role Notes
 
@@ -70,8 +70,8 @@ Current remote-admin findings:
 
 Current storage findings:
 
-- `C:` NTFS, healthy, about 50.6 GB free of 128.5 GB during 2026-05-31 maintenance
-- `E:` `VeeamHDD`, ReFS, healthy, about 1.88 TB free of 30.8 TB during 2026-05-31 maintenance
+- `C:` NTFS, healthy, about 53.5 GB free of 128.5 GB during 2026-06-14 maintenance
+- `E:` `VeeamHDD`, ReFS, healthy, about 1.78 TB free of 30.8 TB during 2026-06-14 maintenance
 
 Current Windows Update findings:
 
@@ -80,7 +80,9 @@ Current Windows Update findings:
 - CBS, Windows Update reboot flags, and pending file rename operations were all clear after the May 2026 reboot.
 - End-of-month check on `2026-05-31` found no new pending updates; CBS and Windows Update reboot flags remained clear, but `PendingFileRenameOperations` had reappeared.
 - A later operator-approved reboot on `2026-05-31` cleared `PendingFileRenameOperations` again without introducing new CBS or Windows Update reboot flags.
+- Mid-June check on `2026-06-14` found no pending Windows updates, no CBS/Windows Update reboot flags, and `PendingFileRenameOperations=True` again after a same-day reboot; the current queue sampled only `C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.239.19`.
 - SQL Server instance `.\VEEAMSQL2016` reported `13.0.7085.1`, `SP3`, `CU1`.
+- Veeam Backup & Replication service executable now reports version `13.0.2.29`, indicating the later Veeam upgrade completed.
 - Veeam services returned to `Running` after the normal post-boot delay; `SQLAgent$VEEAMSQL2016` remained stopped/disabled as before.
 
 Current Veeam warning interpretation:

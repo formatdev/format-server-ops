@@ -6,6 +6,56 @@ Docker Engine maintenance, and reboot decisions for `format-cloud-1`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-06-14 - Mid-Month Host Maintenance
+
+Date: 2026-06-14
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.2`
+- Portainer: `2.41.1`
+- Root filesystem was about 33% used.
+- Swarm was healthy before maintenance; all services were `1/1`.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.3`
+- Portainer: `2.42.0`
+- Root filesystem remained about 33% used.
+- Uptime at verification: freshly rebooted during the package maintenance pass.
+
+Checks:
+
+- SSH checked: OK. `ssh hetzner-cloud-1` returned cleanly after the reboot.
+- Firewall checked: OK. `ufw` remains active with inbound `22/tcp`, `443/tcp`, and `443/udp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail remained active.
+- System health checked: OK. `systemctl --failed` reported 0 failed units after maintenance.
+- Docker Swarm checked: OK. Single node remained `active/true` and all services converged to `1/1`.
+- Container health checked: OK. No unhealthy containers were reported after convergence.
+- Backups checked: OK. Fresh Portainer archive `/data/backups/portainer/portainer-data-20260614-161347.tar.gz` and MariaDB dump `/data/backups/mysql/mariadb-all-databases-2026-06-14-161556.sql.gz` were created before service updates.
+- Apt upgrade applied: Yes. Docker Engine moved to `29.5.3`; `fwupd`, AppArmor, cloud-init, firmware, and related libraries were also updated.
+- Reboot requirement checked: OK. No `/var/run/reboot-required` marker remained after the host came back.
+- Stack updates applied: Yes. Portainer moved to `2.42.0`, Traefik to `3.6.21`, MariaDB to `11.8.8`, and Duplicati to digest `sha256:50555cd2cf1cd140ee240996cc3b94afb0254d07f6bccc5495561530a6c3d6ab`.
+- Stack image metadata checked: OK. Reconciled stale `com.docker.stack.image` labels for Portainer, Traefik, MariaDB, and Duplicati.
+- Routed app smoke tests checked: OK. Local Traefik host-header probes returned expected responses for Vaultwarden, FLOC, Portainer, Chargy, phpMyAdmin, and Duplicati.
+
+Notes:
+
+- The host rebooted during package maintenance; no reboot marker was present afterward and services recovered cleanly.
+- Reconciling stale stack image labels caused a brief Swarm recycle for the affected services; all returned to `1/1`.
+- Public hostname checks mostly hit Cloudflare Access/challenge behavior, so final backend health was verified with local Traefik host-header probes.
+- Redis was intentionally left on the current `7.4.8` line rather than jumping to Redis 8 during routine maintenance.
+
+Follow-up:
+
+- Keep custom `esst/*` application image refreshes as separate app maintenance work.
+
 ## 2026-05-31 - End-Of-Month Host Maintenance
 
 Date: 2026-05-31

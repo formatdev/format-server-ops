@@ -9,9 +9,9 @@ This database backs multiple applications. Treat updates, repairs, and restarts 
 - service: shared MariaDB
 - server: `hetzner-cloud-1`
 - Docker service: `database-1_db`
-- current live image: `mariadb:11.8.6`
+- current live image: `mariadb:11.8.8`
 - current observed digest: `sha256:78a5047d3ba33975f183f183c2464cc7f1eab13ec8667e57cc9a5821d6da7577`
-- observed MariaDB version: `11.8.6-MariaDB`
+- observed MariaDB version: `11.8.8-MariaDB`
 - upgrade environment: `MARIADB_AUTO_UPGRADE=1`
 - data bind mount: `/data/databases/db_1:/var/lib/mysql`
 - Traefik route: none
@@ -38,7 +38,7 @@ System schemas:
 
 ## Version Policy
 
-The current production line is `mariadb:11.8`, which is an active LTS line. On `2026-04-18`, the running server was upgraded from MariaDB `11.4.10` to `11.8.6`.
+The current production line is `mariadb:11.8`, which is an active LTS line. On `2026-04-18`, the running server was upgraded from MariaDB `11.4.10` to `11.8.6`; on `2026-06-14`, it was patched to `11.8.8`.
 
 Major LTS jumps should not be handled as routine twice-monthly patch bumps. Prefer:
 
@@ -50,7 +50,6 @@ Major LTS jumps should not be handled as routine twice-monthly patch bumps. Pref
 
 ## Current Follow-Ups
 
-- Confirm Duplicati or another off-host backup has a recent successful database backup before the next database maintenance window.
 - Keep the next MariaDB LTS jump as a planned compatibility upgrade later, not a routine twice-monthly maintenance bump.
 - `mariadb-check` requires controlled credentials; do not record those credentials in this repository.
 
@@ -63,6 +62,7 @@ Major LTS jumps should not be handled as routine twice-monthly patch bumps. Pref
 - On `2026-04-18`, a fresh pre-upgrade dump was created at `/data/backups/mysql/mariadb-all-databases-2026-04-18-161317.sql.gz` and gzip verification passed.
 - On `2026-04-18`, the service was upgraded from `mariadb:11.4.10` to `mariadb:11.8.6` with `MARIADB_AUTO_UPGRADE=1`.
 - On `2026-04-18`, `mariadb-upgrade` completed successfully and the post-upgrade full table check produced no non-OK table results.
+- On `2026-06-14`, a fresh pre-upgrade dump was created at `/data/backups/mysql/mariadb-all-databases-2026-06-14-161556.sql.gz` and the service was patched from `mariadb:11.8.6` to `mariadb:11.8.8`.
 
 ## Maintenance Checklist
 
