@@ -733,3 +733,75 @@ Next safest target:
 
 - No patching action is waiting as of `2026-06-14`.
 - The safest next maintenance target is continued read-only monitoring of repository free space on `E:` and watching whether the small `EdgeUpdate` rename queue clears on the next ordinary reboot.
+
+## 2026-07-04 - Early-July Read-Only Maintenance
+
+Performed a read-only maintenance sweep over key-only SSH from the maintainer Mac. No Windows updates were installed, no reboot was triggered during this check, and no Veeam configuration, repository, firewall, or credential changes were made.
+
+Repo/worktree note:
+
+- The local git worktree was already dirty in unrelated `on-prem/esx-d` and `servers.com` paths before this maintenance pass. Those changes were left untouched.
+
+Access and identity:
+
+- Check time: `2026-07-04 17:46:22`.
+- Host responded as `VEEAM`.
+- Current identity remained `VEEAM\Administrator`.
+- Host remained standalone: `PartOfDomain=False`, `Domain=WORKGROUP`.
+
+Current host state:
+
+- OS remained Microsoft Windows Server 2022 Standard, version `10.0.20348`.
+- Last boot observed: `2026-06-17 21:51:44`.
+- Reboot flags:
+  - CBS reboot pending: `False`
+  - Windows Update reboot required: `False`
+  - Pending file rename operations: `True`
+
+Storage and service state:
+
+- `C:` used `76899786752`, free `51579080704`.
+- `E:` used `29252629757952`, free `1533628710912`.
+- SQL and remote-admin services remained at baseline:
+  - `sshd`: `RUNNING`
+  - `WinRM`: `RUNNING`
+  - `MSSQL$VEEAMSQL2016`: `RUNNING`
+  - `SQLAgent$VEEAMSQL2016`: `STOPPED`, matching baseline
+  - `SQLTELEMETRY$VEEAMSQL2016`: `RUNNING`
+- Sampled Veeam services were healthy:
+  - `VeeamBackupSvc`: `RUNNING`
+  - `VeeamBackupRESTSvc`: `RUNNING`
+  - `VeeamBrokerSvc`: `RUNNING`
+  - `VeeamTransportSvc`: `RUNNING`
+  - `VeeamWebSvc`: `RUNNING`
+
+Update and version state:
+
+- Built-in Windows Update COM search returned `PendingUpdateCount=0`.
+- `Veeam.Backup.Service.exe` still reported product version `13.0.2.29`.
+
+Pending rename follow-up:
+
+- The queue remained present but was still much smaller than the broad May 31 installer/runtime backlog.
+- Current sampled queue content included:
+  - `C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.241.13`
+  - `C:\Config.Msi\3c2f1235.rbf`
+  - `C:\Config.Msi\3c2f1254.rbf`
+  - `C:\Config.Msi\3c2f125d.rbf`
+  - `C:\Config.Msi\3c2f125f.rbf`
+  - `C:\WINDOWS\Temp\DEL4FE9.tmp`
+  - `C:\WINDOWS\Temp\DELDDD1.tmp`
+- Interpretation: this still looks like lightweight updater/installer cleanup residue rather than incomplete Windows servicing.
+
+Warnings and log signals:
+
+- `Svc.VeeamBackup.log` continued to show the same warning-result trio on `2026-07-04`:
+  - `Backup Copy Job to NAS4\Backup Job to ESXE`
+  - `Backup Job to ESXE`
+  - `Replication`
+- Continue treating those warnings as explained by backup-destination free space dropping below the `10%` warning threshold and SMTP/email warning behavior unless later evidence changes.
+
+Next safest target:
+
+- No patching action is waiting as of `2026-07-04`.
+- The main item worth watching is repository free space on `E:`, which has dropped further to about `1.53 TB` free.
