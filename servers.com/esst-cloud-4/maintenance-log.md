@@ -328,6 +328,83 @@ Checks:
 - Notes: On the first post-reboot manager check, `esst-cloud-2` and `esst-cloud-3` briefly showed `Unknown` before returning to `Ready`. The previously degraded `esst-monitoring-beta_app` and `esst-monitoring-mcp-server_mcp` services remained `0/1`; they were already in that state before this maintenance run and did not appear to be caused by the host upgrades.
 - Follow-up: Review the pre-existing `esst-monitoring-beta_app` and `esst-monitoring-mcp-server_mcp` service failures separately from host maintenance when convenient.
 
+## 2026-06-14 - Twice-Monthly Host Upgrade And Reboot
+
+Date: 2026-06-14
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.2`
+- Docker Swarm state: active manager, `Leader`
+- Root filesystem: `/dev/vda1` 36% used
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.3`
+- Docker Swarm state: active manager, returned as `Leader`
+- Root filesystem: `/dev/vda1` 36% used
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked before and after the reboot.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: OK. Upgrade and reboot completed cleanly.
+- Disk checked: OK. Root filesystem remained healthy at about 36% used with about 59G free.
+- Memory checked: OK. About 5.0 GiB available after reboot.
+- Docker checked: OK. Docker upgraded to `29.5.3`. The manager returned as Swarm `Leader`, all four nodes reconverged as `Ready`, `portainer_agent` returned to `4/4`, `portainer_portainer` returned to `1/1`, and `traefik_traefik` returned to `1/1`.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: Yes. Upgraded Docker CE/CLI, `apparmor`, `cloud-init`, `libapparmor1`, `libjcat1`, and `libxmlb2`.
+- Remaining apt upgrades checked: `fwupd` remained held back.
+- Reboot requirement checked: Reboot required after package install due to `apparmor`; controlled reboot completed during this maintenance run.
+- Notes: Immediately after the manager reboot, all three workers briefly showed `Unknown` and both Portainer and Traefik had not reconverged yet. A short wait was enough for the cluster to recover naturally. `esst-monitoring-mcp-server_mcp` remained `0/1` after the host maintenance run, and `traefik_delay-start` still shows its old failed one-shot task history; both remain separate application-level issues.
+- Follow-up: Keep `esst-monitoring-mcp-server_mcp` on the application maintenance list; it was not caused by host patching.
+
+## 2026-07-04 - July Host Upgrade And Reboot
+
+Date: 2026-07-04
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.3`
+- Docker Swarm state: active manager, `Leader`
+- Root filesystem: `/dev/vda1` 37% used
+- Reboot-required marker was already present from an earlier kernel install and listed `linux-image-6.8.0-134-generic` plus `linux-base`.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-134-generic`
+- Docker Engine: `29.6.1`
+- Docker Swarm state: active manager, returned as `Leader`
+- Root filesystem: `/dev/vda1` 37% used
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked before and after the reboot.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: OK. Upgrade and reboot completed cleanly.
+- Disk checked: OK. Root filesystem remained healthy at about 37% used with about 58G free.
+- Memory checked: Not rechecked separately after reboot during this run.
+- Docker checked: OK. Docker upgraded to `29.6.1`. The manager returned as Swarm `Leader`, all four nodes reconverged as `Ready`, `portainer_agent` returned to `4/4`, `portainer_portainer` returned to `1/1`, and `traefik_traefik` returned to `1/1`.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: Yes. Upgraded `containerd.io`, Docker CE/CLI, `docker-buildx-plugin`, `docker-compose-plugin`, `iproute2`, `kpartx`, and `multipath-tools`.
+- Remaining apt upgrades checked: `fwupd` remained deferred by phasing.
+- Reboot requirement checked: Reboot required before maintenance due to the pending `6.8.0-134` kernel. Controlled reboot completed and the flag cleared.
+- Notes: Immediately after the manager reboot, `esst-cloud-3` briefly showed `Unknown` before returning to `Ready`. All monitored production services and the four Duplicati services converged cleanly after the cluster settled. `traefik_delay-start` still shows its old failed one-shot task history; it remains separate from host patching.
+- Follow-up: No immediate host-level follow-up required for `esst-cloud-4`.
+
 ## Maintenance Template
 
 Date:

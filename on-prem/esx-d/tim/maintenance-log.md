@@ -220,6 +220,47 @@ Notes:
 - TIM domain SSH is restored.
 - `WinRM` remains `Stopped`/`Disabled`, consistent with the separate WinRM policy/startup drift follow-up.
 
+## 2026-06-14 - Twice-Monthly Maintenance Discovery
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `winad-tim` checked: returned `Tim` and `format\administrateur`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Recent hotfixes checked: `KB5094135` and `KB5094126` installed on `2026-06-13`.
+- Visible Windows updates checked: `0`.
+
+Notes:
+
+- TIM domain SSH and trust are healthy.
+- Pending file rename indicates a planned reboot is useful, but no reboot was performed.
+- WinRM drift recurred again and was restored only at the service level; no GPO or firewall rule was changed.
+
+## 2026-07-04 - Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `win-tim` and `winad-tim` checked: both returned `Tim`; domain SSH returned `format\administrateur`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Recent hotfixes checked: latest visible installed security updates remained `KB5094126` and `KB5094135` from `2026-06-13`.
+- Visible Windows updates checked: `1`: Microsoft AudioProcessingObject driver update `1.0.4.7057`.
+
+Notes:
+
+- TIM domain SSH and trust are healthy.
+- Driver update was not installed.
+- Pending file rename indicates a planned reboot is useful, but no reboot was performed.
+- WinRM drift recurred again and was restored only at the service level.
+
 ## Maintenance Template
 
 Date:

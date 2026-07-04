@@ -180,6 +180,83 @@ Checks:
 - Notes: Worker maintenance completed cleanly and the node rejoined Swarm normally.
 - Follow-up: No immediate host-level follow-up required for `esst-cloud-3`.
 
+## 2026-06-14 - Twice-Monthly Host Upgrade And Reboot
+
+Date: 2026-06-14
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.2`
+- Docker Swarm state: active worker
+- Root filesystem: `/dev/vda1` 45% used
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.3`
+- Docker Swarm state: active worker, rejoined as `Ready`
+- Root filesystem: `/dev/vda1` 45% used
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked before and after the reboot.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: OK. Upgrade and reboot completed cleanly.
+- Disk checked: OK. Root filesystem remained healthy at about 45% used with about 41G free.
+- Memory checked: OK. About 3.2 GiB available after reboot.
+- Docker checked: OK. Docker upgraded to `29.5.3` and the node returned to Swarm as `Ready`.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: Yes. Upgraded Docker CE/CLI, `apparmor`, `cloud-init`, `libapparmor1`, `libjcat1`, and `libxmlb2`.
+- Remaining apt upgrades checked: `fwupd` remained held back.
+- Reboot requirement checked: Reboot required after package install due to `apparmor`; controlled reboot completed during this maintenance run.
+- Notes: `needrestart` reported that no containers required restart during package installation. `apparmor` emitted the same post-install warning seen on the other ESST hosts: `/var/lib/dpkg/info/apparmor.postinst: 148: [: Illegal number: yes`, but the package completed and the host returned healthy.
+- Follow-up: No immediate host-level follow-up required for `esst-cloud-3`.
+
+## 2026-07-04 - July Host Upgrade And Reboot
+
+Date: 2026-07-04
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Docker Engine: `29.5.3`
+- Docker Swarm state: active worker
+- Root filesystem: `/dev/vda1` 45% used
+- Reboot-required marker was already present from an earlier kernel install and listed `linux-image-6.8.0-134-generic` plus `linux-base`.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-134-generic`
+- Docker Engine: `29.6.1`
+- Docker Swarm state: active worker, rejoined as `Ready`
+- Root filesystem: `/dev/vda1` 45% used
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked before and after the reboot.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: OK. Upgrade and reboot completed cleanly.
+- Disk checked: OK. Root filesystem remained healthy at about 45% used with about 41G free.
+- Memory checked: Not rechecked separately after reboot during this run.
+- Docker checked: OK. Docker upgraded to `29.6.1` and the node returned to Swarm as `Ready`.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: Yes. Upgraded `containerd.io`, Docker CE/CLI, `docker-buildx-plugin`, `docker-compose-plugin`, `iproute2`, `kpartx`, and `multipath-tools`.
+- Remaining apt upgrades checked: `fwupd` remained deferred by phasing.
+- Reboot requirement checked: Reboot required before maintenance due to the pending `6.8.0-134` kernel. Controlled reboot completed and the flag cleared.
+- Notes: `needrestart` reported that no services, containers, or user sessions required additional restart after package installation.
+- Follow-up: No immediate host-level follow-up required for `esst-cloud-3`.
+
 ## Maintenance Template
 
 Date:

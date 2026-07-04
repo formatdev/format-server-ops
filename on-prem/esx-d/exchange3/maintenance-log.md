@@ -250,6 +250,78 @@ Notes:
 - Exchange3 domain SSH is restored.
 - Exchange core services remained healthy during the repair.
 
+## 2026-06-14 - Twice-Monthly Maintenance Discovery
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `winad-exchange3` checked: domain SSH failed with permission denied for `format\Administrateur`.
+- `win-exchange3` break-glass SSH checked: returned `Exchange3` and `exchange3\administrateur`.
+- Secure channel checked from local SSH context: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- Low-impact reset attempted:
+  - `nltest /sc_reset:format.lu\\PDC.format.lu`
+  - `Restart-Service Netlogon -Force`
+- Domain SSH retest still failed with permission denied.
+- Local SID translation for `format\Administrateur` and `format\sshadmins` still returned trust-relationship failures.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`; listener exists, but TCP/5985 from the maintainer Mac still timed out.
+- Exchange services checked: `MSExchangeADTopology`, `MSExchangeIS`, and `MSExchangeTransport` were `Running`.
+- EMS queue/certificate checks from local admin context failed with `ADInvalidCredentialException` for `EXCHANGE3\Administrateur`.
+- win-acme checked: scheduled task last ran `2026-06-14 10:17:17` with result `0`; recent log `log-20260614.txt` exists.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Recent hotfixes checked: `KB5094128` and `KB5094147` installed on `2026-06-13`.
+- Visible Windows updates checked: `0`.
+
+Notes:
+
+- Exchange3 core services and win-acme automation look healthy.
+- Domain SSH/EMS checks require domain-auth repair from an interactive/domain-admin context.
+- Pending file rename indicates a planned reboot is useful, but no reboot was performed.
+
+## 2026-06-14 - Domain SSH Partially Restored, EMS Still Blocked
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Peter ran the credentialed machine-password repair interactively on Exchange3.
+- Codex retested `winad-exchange3`; domain SSH returned `Exchange3` and `format\administrateur`.
+- OpenSSH logs confirmed `Accepted publickey for format\Administrateur`.
+- `nltest /sc_verify:format.lu`, `nltest /dsgetdc:format.lu`, and `nltest /sc_reset:format.lu\\PDC.format.lu` all succeeded against `\\PDC.format.lu`.
+- DC reachability checked from Exchange3: TCP `88`, `389`, and `445` to `PDC.format.lu` succeeded.
+- `Test-ComputerSecureChannel -Server PDC.format.lu` still returned `False`.
+- Exchange cmdlets over the restored domain SSH session still failed with `ADInvalidCredentialException` for `FORMAT\Administrateur`.
+- `whoami /groups` in the SSH session did not show the expected domain admin/Exchange role groups, only local administrators and generic logon groups.
+
+Notes:
+
+- Domain SSH transport is restored, but the domain authorization token/EMS path is not healthy yet.
+- Core Exchange services remained running. No queue, certificate, transport, or mailbox data change was made.
+- Recommended next step is an interactive domain-admin EMS check on the console/RDP session, or a fresh domain logon after reboot, before treating Exchange3 EMS access as restored.
+
+## 2026-07-04 - Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `win-exchange3` and `winad-exchange3` checked: both returned `Exchange3`; domain SSH returned `format\administrateur`.
+- Secure-channel checks remained split: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `False` / `1311`, while `nltest /sc_verify:format.lu` and `nltest /dsgetdc:format.lu` succeeded against `\\PDC.format.lu`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Exchange services checked: `MSExchangeADTopology`, `MSExchangeIS`, and `MSExchangeTransport` were `Running`.
+- EMS queue/certificate checks over domain SSH still failed with `ADInvalidCredentialException` for `FORMAT\Administrateur`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Recent hotfixes checked: latest visible installed security updates remained `KB5094128` and `KB5094147` from `2026-06-13`.
+- Visible Windows updates checked: `0`.
+
+Notes:
+
+- Exchange3 is reachable and core Exchange services are running.
+- EMS/domain authorization remains blocked from the SSH session, matching the prior June finding.
+- No queue, certificate, transport, mailbox, firewall, GPO, reboot, or update action was performed.
+
 ## Maintenance Template
 
 Date:

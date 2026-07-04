@@ -186,6 +186,78 @@ Notes:
 - EASYJOB3 domain SSH is restored.
 - Local-admin PowerShell trust checks can still report misleading split results after the repair; the practical domain SSH access path is healthy.
 
+## 2026-06-14 - Twice-Monthly Maintenance Discovery
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `winad-easyjob3` checked: domain SSH failed with permission denied for `format\Administrateur`.
+- `win-easyjob3` break-glass SSH checked: returned `Easyjob3` and `easyjob3\administrateur`.
+- Secure channel initially checked from local SSH context: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `False`; `nltest /sc_query:format.lu` returned `1311`.
+- Low-impact reset attempted:
+  - `nltest /sc_reset:format.lu\\PDC.format.lu`
+  - `Restart-Service Netlogon -Force`
+- Post-reset secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success`.
+- Domain SSH retest still failed with permission denied.
+- Local SID translation for `format\Administrateur` and `format\sshadmins` still returned trust-relationship failures.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Recent hotfixes checked: `KB5094137` and `KB5094125` installed on `2026-06-13`.
+- Visible Windows updates checked: `0`.
+- SQL check from local admin context failed because SQL rejected `EASYJOB3\Administrateur`; domain SQL check is blocked until domain SSH/domain auth is repaired.
+
+Notes:
+
+- EASYJOB3 is reachable by local break-glass SSH and appears patched/reboot-clean.
+- Domain SSH and domain-auth SQL checks require another credentialed machine-password repair from an interactive/domain-admin context.
+
+## 2026-06-14 - Domain SSH And SQL Auth Restored
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Peter ran the credentialed machine-password repair interactively on EASYJOB3.
+- Codex retested `winad-easyjob3`; domain SSH returned `Easyjob3` and `format\administrateur`.
+- Secure channel checked over domain SSH: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\BDC.format.lu`.
+- OpenSSH logs confirmed `Accepted publickey for format\Administrateur`.
+- SQL Server domain-auth checks succeeded against the running named instances:
+  - `APSAL`
+  - `CLOUDDEMAT`
+  - `DATAGATE`
+  - `EASYJOB6`
+  - `PLANNINGPME`
+  - `PNT`
+- All checked SQL instances reported SQL Server 2019 `15.0.4470.1`, `RTM-CU32-GDR`, `KB5090407`.
+
+Notes:
+
+- EASYJOB3 domain SSH and SQL integrated-auth checks are restored.
+
+## 2026-07-04 - Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `win-easyjob3` and `winad-easyjob3` checked: both returned `Easyjob3`; domain SSH returned `format\administrateur`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Recent hotfixes checked: latest visible installed security updates remained `KB5094137` and `KB5094125` from `2026-06-13`.
+- Visible Windows updates checked: `0`.
+- SQL integrated-auth checks succeeded over domain SSH for running named instances `APSAL`, `CLOUDDEMAT`, `DATAGATE`, `EASYJOB6`, `PLANNINGPME`, and `PNT`.
+- All checked SQL instances reported SQL Server 2019 `15.0.4470.1`, `RTM-CU32-GDR`, `KB5090407`.
+
+Notes:
+
+- EASYJOB3 domain SSH, trust, and SQL integrated-auth checks are healthy.
+- Pending file rename indicates a planned reboot is useful, but no reboot was performed.
+- WinRM drift recurred again and was restored only at the service level.
+
 ## Maintenance Template
 
 Date:

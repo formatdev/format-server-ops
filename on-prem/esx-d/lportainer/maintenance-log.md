@@ -241,6 +241,41 @@ Notes:
 
 - Lportainer is clean after reboot: updated Docker packages are active, the newer kernel is running, and the kernel reboot flag is cleared.
 
+## 2026-06-14 - Twice-Monthly Maintenance Discovery
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH checked: `lportainer` reachable; uptime about 14 days.
+- Kernel checked: `6.8.0-117-generic`.
+- Docker checked: `Docker version 29.5.2, build 79eb04c`.
+- Compose/container state checked: Portainer `2.41.1`, Traefik `3.7.0`, Paperless `2.20.15`, Paperless-PCZ `2.20.15`, Ollama `0.23.1`, Gotenberg `8.32.0`, Tika `3.2.3.0`, support containers, and `whoami` were all `Up`; Paperless and Paperless-PCZ were `healthy`.
+- Reboot flag checked: `/var/run/reboot-required` present.
+- Package state checked: Docker packages available: `docker-ce`, `docker-ce-cli`, and `docker-ce-rootless-extras` from `29.5.2` to `29.5.3`.
+- Sudo checked: `sudo -n true` failed; passwordless sudo is not currently available for Codex.
+
+Notes:
+
+- Lportainer is operational but has Docker package updates pending and requires a reboot.
+- No package update, Docker prune, image deletion, volume deletion, Portainer data reset, or reboot was performed.
+
+## 2026-07-04 - Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Network reachability checked: `192.168.1.9` did not respond to ping from the maintainer Mac.
+- SSH checked: `lportainer` timed out on TCP/22.
+- Follow-up TCP probe was started but stopped after confirming the host was not reachable on SSH.
+
+Notes:
+
+- Lportainer was not reachable from the maintainer path during this inspection.
+- No Docker, package, stack, prune, reboot, or host action was performed.
+- Follow up from vCenter/console or another LAN host to confirm whether the VM is powered on and network-connected.
+
 ## Maintenance Template
 
 Date:

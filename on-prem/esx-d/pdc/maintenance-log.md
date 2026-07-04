@@ -223,6 +223,43 @@ Notes:
 - PDC is operational after the full guest/host reboot cycle.
 - The known BDC credential/RPC noise remains present, but live replication summary still shows no replication failures.
 
+## 2026-06-14 - Twice-Monthly Maintenance Discovery
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `winad-pdc` checked: returned `PDC` and `format\administrateur`.
+- Domain controller services checked: `DFSR`, `DNS`, `Netlogon`, `NTDS`, `W32Time`, and `sshd` were `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`; listener exists, but TCP/5985 from the maintainer Mac still timed out.
+- Replication checked: `repadmin /replsummary` reported `0 / 5` failures in both directions, while still reporting operational error `58 - BDC.format.lu`.
+- `dcdiag /q` checked: still failed `DFSREvent` and `Replications`, including `DsBindWithSpnEx()` error `1722` against `BDC`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Recent hotfixes checked: `KB5094147` and `KB5094128` installed on `2026-06-13`.
+- Visible Windows updates checked: `0`.
+
+Notes:
+
+- PDC is operational but the known BDC-side RPC/DFSR noise remains.
+- Pending file rename indicates a planned reboot is useful, but no reboot was performed.
+
+## 2026-07-04 - Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Network reachability checked: `192.168.1.5` responded to ping from the maintainer Mac.
+- SSH checked: both `win-pdc` and `winad-pdc` timed out on TCP/22.
+- Additional TCP checks from the maintainer Mac timed out on `22`, `5985`, `443`, and `80`.
+- Cross-check from Admin to `PDC.format.lu:22` returned `TcpTestSucceeded : False`.
+
+Notes:
+
+- PDC appears network-present but remote management ports were not reachable from the maintainer path during this inspection.
+- No PDC service, DNS, SYSVOL, replication, firewall, GPO, reboot, or update action was performed.
+- Follow up from vCenter/console or another LAN host to confirm whether `sshd`/WinRM are stopped, firewall scope changed, or the DC is in a restricted network state.
+
 ## Maintenance Template
 
 Date:

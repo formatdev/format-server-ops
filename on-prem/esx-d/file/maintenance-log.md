@@ -285,6 +285,60 @@ Notes:
 - FILE domain SSH access is restored.
 - No local group, SSH key, firewall, GPO, SMB, or redirected-folder data change was made.
 
+## 2026-06-14 - Twice-Monthly Maintenance Discovery
+
+Maintainer: Codex with Peter
+
+Scope:
+
+- Start of the June maintenance round, discovery-first.
+
+Checks and actions:
+
+- `win-file` break-glass SSH checked: returned `file\administrateur`.
+- `winad-file` domain SSH checked: returned `format\administrateur`.
+- Domain secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` service checked: `Running`/`Automatic`.
+- `WinRM` service checked: found `Stopped`/`Disabled` again; restored to `Running`/`Automatic`.
+- WinRM listener checked: GPO listener present on `5985`.
+- Firewall scoping checked: `Allow remote Admin - SSH 22` and `Allow remote Admin - WinRM 5985` still scoped to `192.168.1.73,192.168.113.2`.
+- Disk free space checked: C: about 48.2 GB free; D: about 317.5 GB; F: about 1953.5 GB; G: about 2050.6 GB.
+- SMB shares checked: `RedirectedFolders` and `Users` still present; no share changes made.
+- SMB open files checked: active open files found under `D:\RedirectedFolders`; an open handle also existed on `D:\Users`.
+- Folder redirection state checked: no redirected-folder content was touched.
+- Legacy `D:\Users` content checked: top-level entries still present; compare report showed some old `Documents` folders still exist and should not be deleted without review.
+- Desktop Markdown docs checked: `FILE-todo.md`, `FILE-health-log.md`, and `FILE-inspect.md` still present on `C:\Users\Administrateur\Desktop`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Recent hotfixes checked: `KB5094147` and `KB5094128` installed on `2026-06-13`.
+- Visible Windows updates checked: `0`.
+
+Notes:
+
+- FILE is operational and update-clean.
+- WinRM drift recurred again and was restored only at the service level; no GPO or firewall rule was changed.
+- Legacy `D:\Users` cleanup remains out of scope because there are active/open handles and mixed old/new document-folder timestamps.
+
+## 2026-07-04 - Inspection Round
+
+Maintainer: Codex with Peter
+
+Scope:
+
+- Start of July ESX-D inspection, discovery-first.
+
+Checks:
+
+- Network reachability checked: `192.168.1.7` responded to ping from the maintainer Mac.
+- SSH checked: both `win-file` and `winad-file` timed out on TCP/22.
+- Additional TCP checks from the maintainer Mac timed out on `22`, `5985`, `443`, and `80`.
+- Cross-check from Admin toward `file.format.lu:22` could not complete before the probe was stopped after confirming the same pattern on PDC.
+
+Notes:
+
+- FILE appears network-present but remote management ports were not reachable from the maintainer path during this inspection.
+- No FILE service, share, redirected-folder, legacy `D:\Users`, firewall, GPO, cleanup, reboot, or update action was performed.
+- Follow up from vCenter/console or another LAN host to confirm whether `sshd`/WinRM are stopped, firewall scope changed, or the host is in a restricted network state.
+
 ## Maintenance Template
 
 Date:
