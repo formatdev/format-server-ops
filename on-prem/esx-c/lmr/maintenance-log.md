@@ -529,3 +529,44 @@ Result:
 - `LMR` has no pending Windows software updates visible to Windows Update.
 - A reboot window is recommended to clear the current EdgeUpdate
   `PendingFileRenameOperations` queue.
+
+## 2026-07-04 - Inspection Round
+
+Scope:
+
+- Performed read-only inspection of `LMR`.
+- Checked SSH reachability, boot time, update visibility, reboot flags,
+  pending rename state, free space, service state, and domain secure channel.
+- No reboot, VMware, GPO, firewall, SSH, WinRM, update, snapshot, migration,
+  power, or data changes were made.
+
+Findings:
+
+- `LMR` responded on SSH as `lmr\\administrateur`.
+- Last boot time observed: `2026-06-17 21:52:31` Europe/Luxembourg time.
+- Domain secure channel tested healthy against `\\BDC.format.lu`.
+- Windows Update operational events repeatedly reported
+  `Windows Update successfully found 0 updates`.
+- Recent hotfixes still show June 2026 updates installed:
+  - `KB5094147`
+  - `KB5094128`
+- Reboot-required indicators are clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+- `PendingFileRenameOperations=True`; current queue is small (`4` string
+  entries / `2` rename pairs), related to EdgeUpdate and TeamViewer cleanup:
+  - `C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\1.3.241.13`
+  - `C:\\Program Files\\TeamViewer\\Update\\update.exe`
+- `sshd` remained `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Current free space:
+  - `C:` about `24.8 GB` of about `128.2 GB`
+  - `D:` about `961.5 GB` of about `1099.5 GB`
+
+Result:
+
+- `LMR` is reachable, domain-connected, and not showing available Windows
+  updates in the inspected Windows Update events.
+- No update or reboot action was taken during this inspection.
+- The remaining pending rename queue appears tied to EdgeUpdate/TeamViewer
+  cleanup and can be cleared in a future reboot window.

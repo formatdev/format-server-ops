@@ -584,3 +584,48 @@ Result:
   sync perspective.
 - A reboot window is recommended to clear the current print/fax-driver
   `PendingFileRenameOperations` queue.
+
+## 2026-07-04 - Inspection Round
+
+Scope:
+
+- Performed read-only inspection of `BDC`.
+- Checked SSH reachability, boot time, update visibility, reboot flags,
+  pending rename state, free space, domain-controller services, replication
+  summary, and time sync.
+- No reboot, VMware, AD, DNS, DHCP, time sync, replication, SYSVOL, GPO,
+  firewall, SSH, WinRM, update, snapshot, migration, power, or data changes
+  were made.
+
+Findings:
+
+- `BDC` responded on SSH as `format\\administrateur`.
+- Last boot time observed: `2026-06-17 21:52:31` Europe/Luxembourg time.
+- Windows Update operational events repeatedly reported
+  `Windows Update successfully found 0 updates`.
+- Recent hotfixes still show June 2026 updates installed:
+  - `KB5094147`
+  - `KB5094128`
+- Reboot-required indicators are clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+- `PendingFileRenameOperations=True`, but the queue is now small (`4` string
+  entries / `2` rename pairs) and is EdgeUpdate-related:
+  - `C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\1.3.241.13`
+  - `C:\\ProgramData\\Microsoft\\EdgeUpdate\\Log\\MicrosoftEdgeUpdate.log`
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `sshd`, and `W32Time` were
+  `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- `repadmin /replsummary` showed `0` failures in the returned summary view for
+  `PDC` source / `BDC` destination.
+- Time sync remained healthy from `PDC.format.lu`; last successful sync was
+  `2026-07-04 17:42:20`.
+- `C:` free space was about `68.0 GB` of about `96.0 GB`.
+
+Result:
+
+- `BDC` is reachable and healthy from the checked DC-service, replication
+  summary, time sync, and Windows Update visibility perspective.
+- No update or reboot action was taken during this inspection.
+- The remaining pending rename queue appears tied to EdgeUpdate cleanup and can
+  be cleared in a future reboot window.
