@@ -4,6 +4,32 @@ Use this log for Traefik checks during the combined Hetzner platform maintenance
 
 Do not record Cloudflare tokens, dashboard credentials, ACME account private keys, or other secrets here.
 
+## 2026-07-04 - Traefik Patch Upgrade
+
+Date: 2026-07-04 17:52 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `traefik:3.6.21`
+
+Stack version after: `traefik:3.6.22`
+
+Checks:
+
+- Container health checked: OK. `traefik_traefik` is `1/1`.
+- Running image checked: OK. Live service uses `traefik:3.6.22`.
+- Stack image metadata checked: OK. `com.docker.stack.image` reports `traefik:3.6.22`.
+- Latest Traefik release checked: OK. Latest `3.6.x` patch observed during this run is `v3.6.22`; newer `3.7.x` releases exist and were not applied as a routine line jump.
+- Provider health checked: OK. Swarm provider remained active on the `proxy` network.
+- Network membership checked: OK. Routed services remained attached and recovered after update.
+- Ports checked: OK. HTTPS remained published on `443/tcp` and `443/udp`.
+- Logs reviewed: OK after convergence. Early startup showed the familiar temporary missing middleware lines, but a fresh post-convergence error sample was quiet.
+- Routed app smoke tests checked: OK. Local host-header probes for representative routes returned expected responses.
+- Dashboard/API policy checked: OK. The dashboard remains intentionally disabled.
+- Update applied: Yes.
+- Notes: The single-node host-mode `443` replacement wait occurred again during update and then converged cleanly.
+- Follow-up: None from this Traefik patch pass.
+
 ## 2026-06-14 - Traefik Patch Upgrade
 
 Date: 2026-06-14 18:15 CEST

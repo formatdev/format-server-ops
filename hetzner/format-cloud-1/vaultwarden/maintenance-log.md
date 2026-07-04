@@ -4,6 +4,26 @@ Use this log for the combined Vaultwarden maintenance run on the 15th and the la
 
 Do not record real admin passwords, invite links, backup credentials, or unredacted hashes here.
 
+## 2026-07-04 - Metadata And Route Check
+
+Date: 2026-07-04 17:54 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `ghcr.io/dani-garcia/vaultwarden:1.36.0`
+
+Stack version after: `ghcr.io/dani-garcia/vaultwarden:1.36.0`
+
+Checks:
+
+- Container health checked: OK. `vaultwarden_server` is `1/1` and healthy after the host reboot.
+- Vaultwarden release checked: OK. Latest GitHub release remains `1.36.0`.
+- Traefik routing checked: OK. Local host-header route for `bitwarden.format.lu` returned `200` after provider convergence.
+- Stack image metadata checked: OK. Reconciled stale `com.docker.stack.image` metadata from `1.35.7` to `1.36.0`.
+- Update applied: No image update. Metadata label only.
+- Notes: The first post-reboot local route check returned `404` while Traefik was resyncing provider state; repeated checks returned `200`.
+- Follow-up: Direct origin exposure and UI-level backup/restore verification remain broader platform follow-ups.
+
 ## 2026-04-18 - Initial Documentation
 
 - documented the format-cloud-1 Vaultwarden stack

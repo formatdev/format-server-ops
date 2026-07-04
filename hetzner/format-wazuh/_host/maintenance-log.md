@@ -6,6 +6,98 @@ Wazuh health checks, and reboot decisions for `format-wazuh`.
 Do not record passwords, API tokens, backup passwords, registry credentials,
 certificate private keys, enrollment secrets, or other secrets here.
 
+## 2026-07-04 - Maintenance Round
+
+Date: 2026-07-04
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Installed kernel package: `linux-image-virtual=6.8.0-134.134`
+- Wazuh packages: `wazuh-manager`, `wazuh-indexer`, and
+  `wazuh-dashboard` at `4.14.5-1`
+- `filebeat` package: `7.10.2-2`
+- Uptime: about 19 days, 23 hours
+- Root filesystem: 75G total, 54G used, 19G free, 75% used.
+- Wazuh data volume: 79G total, 46G used, 29G free, 62% used.
+- Memory: 7.6 GiB total, about 3.3 GiB available, 1.2 GiB swap used.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-134-generic`
+- Wazuh packages: `wazuh-manager`, `wazuh-indexer`, and
+  `wazuh-dashboard` at `4.14.6-1`
+- `filebeat` package unchanged at `7.10.2-2`
+- Uptime at final verification: about 1 minute when service checks were green.
+- Root filesystem: 75G total, 55G used, 18G free, 76% used.
+- Wazuh data volume: 79G total, 46G used, 29G free, 62% used.
+- Memory: 7.6 GiB total, about 3.2 GiB available, 0B swap used.
+
+Checks:
+
+- SSH checked: OK. `ssh format-wazuh` worked through the configured alias.
+- Firewall checked: OK. `ufw` remains active with inbound `443/tcp`,
+  `1514/tcp`, `1515/tcp`, and rate-limited `22/tcp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail are active.
+- System health checked: OK. `systemctl --failed` reported 0 failed units.
+- SSH hardening checked: OK. Password authentication remains disabled,
+  public-key authentication remains enabled, and `MaxAuthTries` remains 3.
+- Wazuh deployment model checked: OK. Still package/systemd-managed; Docker,
+  Compose, Swarm, and Portainer remain absent.
+- Wazuh health checked: OK. `wazuh-manager`, `wazuh-indexer`,
+  `wazuh-dashboard`, and `filebeat` are active after the upgrade and reboot.
+  Final local checks returned `401` from `https://127.0.0.1:55000/`, `401`
+  from `https://127.0.0.1:9200/`, and `302` from `https://127.0.0.1/`.
+- Agent list checked: OK after local repair. `043 MBP-PCZ` returned to
+  `Active`.
+- Local Mac agent checked: OK after route and launchd repair. The local Wazuh
+  agent was installed at `/Library/Ossec` but stopped; stale host routes through
+  OpenVPN interface `utun7` caused TCP 1514/1515 timeouts. Removing the
+  `116.203.114.188/32` and `188.245.43.92/32` routes restored direct `en0`
+  routing and port connectivity. A direct foreground `wazuh-agentd -fddd` test
+  connected and received agent ACKs, and `launchctl kickstart -k
+  system/com.wazuh.agent` then restored the normally supervised agent stack.
+- Apt upgrade applied: Yes. Ran `apt-get update`, `apt-get upgrade`, and
+  `apt-get full-upgrade`.
+- Remaining apt upgrades checked: OK. No package upgrades remained after
+  maintenance.
+- Reboot requirement checked: OK. Rebooted into `6.8.0-134-generic`; no
+  reboot marker remained afterward.
+
+Package changes:
+
+- Wazuh `4.14.6-1` for `wazuh-manager`, `wazuh-indexer`, and
+  `wazuh-dashboard`
+- `iproute2` `6.1.0-1ubuntu6.4`
+- `kpartx` and `multipath-tools` `0.9.4-5ubuntu8.2`
+- `qemu-guest-agent` `1:8.2.2+ds-0ubuntu1.17`
+- `linux-image-virtual` already installed at `6.8.0-134.134`; reboot moved
+  the running kernel to `6.8.0-134-generic`
+
+Notes:
+
+- Recent warning logs are dominated by expected internet background noise:
+  UFW blocks and failed root SSH attempts. `ufw limit` and fail2ban are active.
+- Local workstation routes for both Hetzner public IPs initially pointed
+  through OpenVPN interface `utun7` via `192.168.113.1`; removing those host
+  routes restored direct `en0` routing.
+- The dashboard returned temporary HTTP `503` for several minutes after reboot
+  while the indexer and dashboard finished warming up. It later returned the
+  normal HTTP `302`.
+- Disk usage on the Wazuh host continues to climb: root moved from about 68%
+  after the 2026-06-14 reboot to 76%, and the Wazuh data volume moved from
+  about 54% to 62%.
+
+Follow-up:
+
+- Keep watching Wazuh disk growth before it crosses the comfort line.
+- Watch for OpenVPN recreating stale Hetzner host routes; this has now caused
+  Wazuh verification or agent connectivity trouble more than once.
+
 ## 2026-06-14 - June Maintenance
 
 Date: 2026-06-14

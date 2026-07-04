@@ -6,6 +6,88 @@ Docker Engine maintenance, and reboot decisions for `format-cloud-1`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-07-04 - Inspection And Maintenance Round
+
+Date: 2026-07-04
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-124-generic`
+- Installed kernel package: `linux-image-virtual=6.8.0-134.134`
+- Docker Engine: `29.5.3`
+- Portainer: `2.42.0`
+- Uptime: about 2 weeks, 5 days, 23 hours
+- Root filesystem: 150G total, 49G used, 96G free, 34% used.
+- Memory: 15 GiB total, about 11 GiB available.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-134-generic`
+- Docker Engine: `29.6.1`
+- Portainer: `2.43.0`
+- Root filesystem: 150G total, 49G used, 96G free, 34% used.
+- Memory: 15 GiB total, about 13 GiB available after reboot.
+
+Checks:
+
+- SSH checked: OK. `ssh hetzner-cloud-1` worked through the configured alias.
+- Firewall checked: OK. `ufw` remains active with inbound `22/tcp`,
+  `443/tcp`, and `443/udp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail are active.
+- System health checked: OK. `systemctl --failed` reported 0 failed units.
+- SSH hardening checked: OK. Password authentication remains disabled,
+  public-key authentication remains enabled, and `MaxAuthTries` remains 3.
+- Docker Swarm checked: OK. Single node remains `Ready`, `Active`, and
+  `Leader`.
+- Docker services checked: OK. All Swarm services reported `1/1` after the Docker package restart, host reboot, and image updates.
+- Container health checked: OK. No unhealthy containers were reported.
+- Portainer checked: OK. `portainer_portainer` and `portainer_agent` are
+  running on `2.43.0`.
+- Public app smoke tests checked: OK. Local Traefik host-header checks returned
+  `200` for `bitwarden.format.lu`, `floc.lu`, `portainer.format.lu`,
+  `pma.format.lu`, and `duplicati-fc1.format.lu`; `chargy.format.lu`
+  returned the expected `302` login redirect.
+- Apt upgrades checked: OK. No package upgrades remained after maintenance.
+- Apt upgrade applied: Yes. Applied Docker Engine `29.6.1`,
+  `containerd.io` `2.2.5`, Docker Buildx `0.35.0`, Docker Compose plugin
+  `5.3.0`, `iproute2`, `kpartx`, `multipath-tools`, and `qemu-guest-agent`.
+- Reboot requirement checked: OK. Rebooted into `6.8.0-134-generic`; no
+  reboot marker remained afterward.
+- Stack updates applied: Yes. Portainer moved to `2.43.0`, Traefik moved to
+  `3.6.22`, and Vaultwarden stack image metadata was reconciled to `1.36.0`.
+- Backups checked: OK. Fresh Portainer archive
+  `/data/backups/portainer/portainer-data-20260704-155126.tar.gz` was created
+  before the Portainer update. Daily MariaDB dumps were current through
+  `2026-07-03`.
+
+Notes:
+
+- Docker package maintenance briefly left several overlay-network services
+  rejecting tasks with `vxlan interface: file exists`; the required reboot
+  cleared the condition.
+- Vaultwarden briefly returned `404` immediately after reboot while Traefik was
+  resyncing provider state; repeated checks returned `200` after the service
+  became healthy.
+- Traefik showed the familiar startup-only missing middleware lines during the
+  replacement task; a fresh post-convergence error sample was quiet.
+- Traefik update again hit the known single-node host-mode `443` replacement
+  wait before converging cleanly.
+- Live Chargy Redis service image tags currently show `redis:7.4-alpine3.21`
+  while the app runbooks still mention `redis:7.4.8-alpine3.21`; reconcile
+  during the next Redis/app-specific pass.
+- `docker system df` was not pruned during this round.
+
+Follow-up:
+
+- Continue avoiding Docker prune/cleanup unless bind mounts, volumes, and
+  active service image references have been reviewed.
+- Keep Redis 8 and custom `esst/*` application refreshes as separate planned
+  work.
+
 ## 2026-06-14 - Mid-Month Host Maintenance
 
 Date: 2026-06-14

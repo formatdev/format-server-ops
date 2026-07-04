@@ -4,6 +4,31 @@ Use this log for Portainer checks during the combined Hetzner platform maintenan
 
 Do not record Portainer passwords, API tokens, backup passwords, registry credentials, or other secrets here.
 
+## 2026-07-04 - STS Upgrade
+
+Date: 2026-07-04 17:51 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `portainer/portainer-ce:2.42.0`, `portainer/agent:2.42.0`
+
+Stack version after: `portainer/portainer-ce:2.43.0`, `portainer/agent:2.43.0`
+
+Checks:
+
+- Backup checked: OK. Created `/data/backups/portainer/portainer-data-20260704-155126.tar.gz` before the update.
+- Portainer server health checked: OK. `portainer_portainer` is `1/1`.
+- Portainer agent health checked: OK. `portainer_agent` is `1/1`.
+- Running images checked: OK. Server and agent both run `2.43.0`.
+- Stack image metadata checked: OK. `com.docker.stack.image` matches `2.43.0` for both server and agent.
+- Latest Portainer release checked: OK. `2.43.0 STS` and `2.39.4 LTS` were current upstream releases observed during this run.
+- Server logs reviewed: OK. Portainer backed up its database, migrated from `2.42.0` to `2.43.0`, and started cleanly.
+- Agent logs reviewed: OK. No agent convergence issue observed after update.
+- Traefik route checked: OK. Local host-header route for `portainer.format.lu` returned `200`.
+- Update applied: Yes.
+- Notes: The recurring `encryption key file not present` informational startup lines remain unchanged from previous runs.
+- Follow-up: Continue to prefer LTS unless an STS update is deliberately chosen.
+
 ## 2026-06-14 - STS Upgrade
 
 Date: 2026-06-14 18:15 CEST
