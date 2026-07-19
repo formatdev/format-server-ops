@@ -3,11 +3,11 @@
 Runbook for maintaining the Hetzner VPS that hosts Wazuh for the Format
 environment.
 
-Last updated: 2026-07-04
+Last updated: 2026-07-19
 
 ## Current Verified State
 
-Last verified: 2026-07-04. See
+Last verified: 2026-07-19. See
 [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/maintenance-log.md)
 for the inspection details.
 
@@ -17,7 +17,7 @@ for the inspection details.
 - Public IPv4: `116.203.114.188`
 - Public IPv6: `2a01:4f8:1c1c:9a62::1/64`
 - OS: Ubuntu 24.04.4 LTS
-- Running kernel: `6.8.0-134-generic`
+- Running kernel: `6.8.0-136-generic`
 - Primary workload: Wazuh 4.14.6, package/systemd deployment
 - Active services: `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`,
   `filebeat`
@@ -26,10 +26,10 @@ for the inspection details.
 - Portainer: not present by current deployment evidence
 - Wazuh indexer data: `/var/lib/wazuh-indexer`, bind-mounted from
   `/mnt/HC_Volume_104575658/wazuh-indexer`
-- Reboot state: no reboot required after 2026-07-04 maintenance
-- Remaining apt upgrades as of 2026-07-04: none
+- Reboot state: no reboot required after 2026-07-19 maintenance
+- Remaining apt upgrades as of 2026-07-19: none
 - Agent state: canonical Mac agent `043 MBP-PCZ` active after removing stale
-  local OpenVPN host routes and restarting the local agent through launchd
+  local OpenVPN host routes again
 
 ## Host Files
 

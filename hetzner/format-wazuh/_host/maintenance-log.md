@@ -6,6 +6,89 @@ Wazuh health checks, and reboot decisions for `format-wazuh`.
 Do not record passwords, API tokens, backup passwords, registry credentials,
 certificate private keys, enrollment secrets, or other secrets here.
 
+## 2026-07-19 - Mid-Month Maintenance Round
+
+Date: 2026-07-19
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-134-generic`
+- Installed kernel package: `linux-image-virtual=6.8.0-136.136`
+- Wazuh packages: `wazuh-manager`, `wazuh-indexer`, and
+  `wazuh-dashboard` at `4.14.6-1`
+- `filebeat` package: `7.10.2-2`
+- Uptime: about 14 days, 15 hours.
+- Root filesystem: 75G total, 54G used, 18G free, 75% used.
+- Wazuh data volume: 79G total, 50G used, 25G free, 68% used.
+- Memory: 7.6 GiB total, about 3.4 GiB available, 1.5 GiB swap used.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-136-generic`
+- Wazuh packages unchanged at `4.14.6-1`
+- `filebeat` package unchanged at `7.10.2-2`
+- Root filesystem: 75G total, 54G used, 19G free, 75% used.
+- Wazuh data volume: 79G total, 50G used, 25G free, 67% used.
+- Memory after warm-up: 7.6 GiB total, about 2.9 GiB available, about 9.8 MiB
+  swap used.
+
+Checks:
+
+- SSH checked: OK. `ssh format-wazuh` worked through the configured alias
+  before and after reboot.
+- Local route checked: OK after cleanup. Removed stale local OpenVPN host
+  routes for `188.245.43.92` and `116.203.114.188`; both routed through `en0`
+  at final verification.
+- Firewall checked: OK. `ufw` remains active with inbound `443/tcp`,
+  `1514/tcp`, `1515/tcp`, and rate-limited `22/tcp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail are active.
+- System health checked: OK. `systemctl --failed` reported 0 failed units.
+- SSH hardening checked: OK. Password authentication remains disabled,
+  public-key authentication remains enabled, and `MaxAuthTries` remains 3.
+- Wazuh deployment model checked: OK. Still package/systemd-managed; Docker,
+  Compose, Swarm, and Portainer remain absent.
+- Wazuh health checked: OK. `wazuh-manager`, `wazuh-indexer`,
+  `wazuh-dashboard`, and `filebeat` are active after reboot. Final local
+  checks returned `401` from `https://127.0.0.1:55000/`, `401` from
+  `https://127.0.0.1:9200/`, and `302` from `https://127.0.0.1/`.
+- Agent list checked: OK. `043 MBP-PCZ` remained `Active`, and the local Mac
+  Wazuh agent processes were running.
+- Agent endpoint checked: OK. `wazuh-agent.format.lu` accepted TCP connections
+  on `1514` and `1515` after stale local routes were removed.
+- Apt upgrade applied: Yes. Ran `apt-get update`, `apt-get upgrade`, and
+  `apt-get full-upgrade`.
+- Remaining apt upgrades checked: OK. No package upgrades remained after
+  maintenance.
+- Reboot requirement checked: OK. Rebooted into `6.8.0-136-generic`; no
+  reboot marker remained afterward.
+
+Package changes:
+
+- `apport` and related Python packages `2.28.2-0ubuntu0.1`
+- `plymouth` packages `24.004.60-1ubuntu7.2`
+- `linux-image-virtual` `6.8.0-136.136`
+
+Notes:
+
+- Wazuh application packages did not change in this pass.
+- The dashboard returned temporary HTTP `503` for several minutes after reboot
+  while the indexer and dashboard finished warming up. It later returned the
+  normal HTTP `302`.
+- Wazuh disk use is still worth watching: root stayed around 75%, and the Wazuh
+  data volume is now around 67%.
+- The local OpenVPN host routes returned again and had to be removed again
+  before final checks.
+
+Follow-up:
+
+- Keep watching Wazuh disk growth before it crosses the comfort line.
+- Watch for OpenVPN recreating stale Hetzner host routes; this has now caused
+  Wazuh verification or agent connectivity trouble repeatedly.
+
 ## 2026-07-04 - Maintenance Round
 
 Date: 2026-07-04
