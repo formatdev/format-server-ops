@@ -4,6 +4,33 @@ Use this log for Traefik checks during the combined Hetzner platform maintenance
 
 Do not record Cloudflare tokens, dashboard credentials, ACME account private keys, or other secrets here.
 
+## 2026-07-19 - Traefik 3.7 Line Upgrade
+
+Date: 2026-07-19 09:50 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `traefik:3.6.23`
+
+Stack version after: `traefik:3.7.8`
+
+Checks:
+
+- Container health checked: OK. `traefik_traefik` is `1/1`.
+- Running image checked: OK. Live service uses `traefik:3.7.8`.
+- Stack image metadata checked: OK. `com.docker.stack.image` reports `traefik:3.7.8`.
+- Latest Traefik release checked: OK. GitHub latest release observed during this run is `v3.7.8`.
+- Migration notes reviewed: OK. The live static args use the Swarm provider, entrypoints, ACME DNS challenge, API disabled, and access-log options; no required local config change was identified before the image update.
+- Provider health checked: OK. Swarm provider remained active on the `proxy` network.
+- Network membership checked: OK. Routed services remained attached and recovered after update.
+- Ports checked: OK. HTTPS remained published on `443/tcp` and `443/udp`.
+- Logs reviewed: OK. Startup showed the familiar temporary missing middleware lines, but the fresh post-convergence error/deprecation sample was quiet.
+- Routed app smoke tests checked: OK. Local host-header probes for representative routes returned expected responses.
+- Dashboard/API policy checked: OK. The dashboard remains intentionally disabled.
+- Update applied: Yes.
+- Notes: The single-node host-mode `443` replacement wait occurred again during update and then converged cleanly.
+- Follow-up: Continue normal patch tracking on the supported `3.7.x` line.
+
 ## 2026-07-19 - Traefik Patch Upgrade
 
 Date: 2026-07-19 09:43 CEST
