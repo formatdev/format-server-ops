@@ -296,6 +296,30 @@ Notes:
 - Pending file rename indicates a planned reboot is useful, but no reboot was performed.
 - WinRM drift recurred again and was restored only at the service level.
 
+## 2026-07-19 - Twice-Monthly Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `win-admin` and `winad-admin` checked: both returned `admin`; domain SSH returned `format\administrateur`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\BDC.format.lu`.
+- `sshd` and `Netlogon` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Reboot flags checked: CBS `True`, Windows Update `True`, `PendingFileRenameOperations` `True`.
+- Recent hotfixes checked: `KB5101650` and `KB5120102` installed on `2026-07-18`.
+- Visible Windows updates check started and returned at least `5` visible updates; confirmed visible items included:
+  - Windows Malicious Software Removal Tool x64 v5.143 `KB890830`
+  - Broadcom driver update `9.17.11.3`
+  - Microsoft AudioProcessingObject driver update `1.0.4.7057`
+
+Notes:
+
+- Admin is reachable and domain trust is healthy.
+- Admin has July updates partially/mostly installed and now has CBS and Windows Update reboot flags set.
+- Visible update enumeration hung after printing three of five update titles, so the exact remaining two visible items were not captured.
+- No driver/update install or reboot was performed by Codex.
+
 ## Maintenance Template
 
 Date:

@@ -322,6 +322,32 @@ Notes:
 - EMS/domain authorization remains blocked from the SSH session, matching the prior June finding.
 - No queue, certificate, transport, mailbox, firewall, GPO, reboot, or update action was performed.
 
+## 2026-07-19 - Twice-Monthly Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `win-exchange3` and `winad-exchange3` checked: both returned `Exchange3`; domain SSH returned `format\administrateur`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `nltest /sc_verify:format.lu` and `nltest /dsgetdc:format.lu` also succeeded against `\\PDC.format.lu`.
+- `sshd`, `Netlogon`, `MSExchangeADTopology`, `MSExchangeIS`, and `MSExchangeTransport` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- EMS queue/certificate checks over domain SSH still failed with `ADInvalidCredentialException` for `FORMAT\Administrateur`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Recent hotfixes checked: latest visible installed security updates remained `KB5094128` and `KB5094147` from `2026-06-13`.
+- Visible Windows updates checked: `3`:
+  - Windows Malicious Software Removal Tool x64 v5.143 `KB890830`
+  - .NET cumulative update `KB5102206`
+  - OS cumulative update `KB5099540`
+
+Notes:
+
+- Exchange3 is reachable and core Exchange services are running.
+- Unlike 2026-07-04, the explicit secure-channel check returned healthy in this pass.
+- EMS/domain authorization remains blocked from the SSH session, matching the prior token issue.
+- July Windows/.NET updates are visible but were not installed by Codex.
+
 ## Maintenance Template
 
 Date:

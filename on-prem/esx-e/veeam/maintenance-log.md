@@ -805,3 +805,71 @@ Next safest target:
 
 - No patching action is waiting as of `2026-07-04`.
 - The main item worth watching is repository free space on `E:`, which has dropped further to about `1.53 TB` free.
+
+## 2026-07-19 - Mid-July Read-Only Maintenance
+
+Performed a read-only maintenance sweep over key-only SSH from the maintainer Mac. No updates were installed, no reboot was triggered during this check, and no Veeam configuration, repository, firewall, or credential changes were made.
+
+Access and identity:
+
+- Check time: `2026-07-19 17:46:22`.
+- Host responded as `VEEAM`.
+- Current identity remained `VEEAM\Administrator`.
+- Host remained standalone: `PartOfDomain=False`, `Domain=WORKGROUP`.
+
+Current host state:
+
+- OS remained Microsoft Windows Server 2022 Standard, version `10.0.20348`.
+- Last boot observed: `2026-06-17 21:51:44`.
+- Reboot flags:
+  - CBS reboot pending: `False`
+  - Windows Update reboot required: `False`
+  - Pending file rename operations: `True`
+
+Storage and service state:
+
+- `C:` used `76899786752`, free `51579080704`.
+- `E:` used `29252629757952`, free `1533628710912`.
+- SQL and remote-admin services remained at baseline:
+  - `sshd`: `RUNNING`
+  - `WinRM`: `RUNNING`
+  - `MSSQL$VEEAMSQL2016`: `RUNNING`
+  - `SQLAgent$VEEAMSQL2016`: `STOPPED`, matching baseline
+  - `SQLTELEMETRY$VEEAMSQL2016`: `RUNNING`
+- Sampled Veeam services were healthy:
+  - `VeeamBackupSvc`: `RUNNING`
+  - `VeeamBackupRESTSvc`: `RUNNING`
+  - `VeeamBrokerSvc`: `RUNNING`
+  - `VeeamTransportSvc`: `RUNNING`
+  - `VeeamWebSvc`: `RUNNING`
+
+Update and version state:
+
+- Built-in Windows Update COM search returned `PendingUpdateCount=5`.
+- Pending updates sampled during this check:
+  - `PowerShell LTS v7.4.17 (x64)`
+  - `Security Update for SQL Server 2016 Service Pack 3 CU (KB5102339)`
+  - `Windows Malicious Software Removal Tool x64 - v5.143 (KB890830)`
+  - `2026-07 Cumulative Update for .NET Framework 3.5, 4.8 and 4.8.1 for Microsoft server operating system version 21H2 for x64 (KB5102206)`
+  - `2026-07 Cumulative Update for Microsoft server operating system version 21H2 for x64-based Systems (KB5099540)`
+- `Veeam.Backup.Service.exe` still reported product version `13.0.2.29`.
+
+Pending rename follow-up:
+
+- The queue simplified again compared with 2026-07-04.
+- Current sampled queue content was limited to:
+  - `C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.241.15`
+- Interpretation: this still looks like lightweight updater housekeeping rather than incomplete Windows servicing.
+
+Warnings and log signals:
+
+- `Svc.VeeamBackup.log` continued to show the same warning-result trio on `2026-07-19`:
+  - `Backup Copy Job to NAS4\Backup Job to ESXE`
+  - `Backup Job to ESXE`
+  - `Replication`
+- Continue treating those warnings as explained by backup-destination free space dropping below the `10%` warning threshold and SMTP/email warning behavior unless later evidence changes.
+
+Next safest target:
+
+- The next maintenance target is now the July 2026 Windows update cycle, followed by the usual reboot-and-recovery verification.
+- Repository free space on `E:` remains worth watching; it was about `1.40 TB` free during this check.

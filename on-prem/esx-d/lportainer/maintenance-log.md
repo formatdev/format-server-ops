@@ -276,6 +276,21 @@ Notes:
 - No Docker, package, stack, prune, reboot, or host action was performed.
 - Follow up from vCenter/console or another LAN host to confirm whether the VM is powered on and network-connected.
 
+## 2026-07-19 - Twice-Monthly Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Network reachability checked: `192.168.1.9` did not respond to ping from the maintainer Mac.
+- SSH checked: `lportainer` failed with `Network is unreachable`.
+
+Notes:
+
+- Lportainer remains unreachable from the maintainer path.
+- No Docker, package, stack, prune, reboot, or host action was performed.
+- Follow up from vCenter/console or another LAN host to confirm whether the VM is powered on and network-connected.
+
 ## Maintenance Template
 
 Date:

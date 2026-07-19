@@ -261,6 +261,29 @@ Notes:
 - Pending file rename indicates a planned reboot is useful, but no reboot was performed.
 - WinRM drift recurred again and was restored only at the service level.
 
+## 2026-07-19 - Twice-Monthly Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `win-tim` and `winad-tim` checked: both returned `Tim`; domain SSH returned `format\administrateur`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` and `Netlogon` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Recent hotfixes checked: `KB5100998` installed on `2026-07-18`; `KB5095093` and `KB5095182` installed on `2026-07-04`.
+- Visible Windows updates checked: `3`:
+  - Windows Malicious Software Removal Tool x64 v5.143 `KB890830`
+  - Microsoft AudioProcessingObject driver update `1.0.4.7057`
+  - Windows security update `KB5101650`
+
+Notes:
+
+- TIM domain SSH and trust are healthy.
+- July updates are visible and one July update is already installed, but no update install or reboot was performed by Codex.
+- Pending file rename indicates a planned reboot is useful.
+
 ## Maintenance Template
 
 Date:

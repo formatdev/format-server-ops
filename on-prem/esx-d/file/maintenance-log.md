@@ -339,6 +339,38 @@ Notes:
 - No FILE service, share, redirected-folder, legacy `D:\Users`, firewall, GPO, cleanup, reboot, or update action was performed.
 - Follow up from vCenter/console or another LAN host to confirm whether `sshd`/WinRM are stopped, firewall scope changed, or the host is in a restricted network state.
 
+## 2026-07-19 - Twice-Monthly Inspection Round
+
+Maintainer: Codex with Peter
+
+Scope:
+
+- July maintenance inspection, discovery-first. No installs, reboots, firewall/GPO changes, or file-server data cleanup.
+
+Checks and actions:
+
+- `win-file` and `winad-file` checked: both returned `file`; domain SSH returned `format\administrateur`.
+- Domain secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\BDC.format.lu`.
+- `sshd`, `Spooler`, and `Netlogon` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Recent hotfixes checked: latest visible installed security updates remained `KB5094147` and `KB5094128` from `2026-06-13`.
+- Visible Windows updates checked: `3`, already downloaded:
+  - Windows Malicious Software Removal Tool x64 v5.143 `KB890830`
+  - .NET cumulative update `KB5102206`
+  - OS cumulative update `KB5099540`
+- Disk free space checked: C: about 48.1 GB free; D: about 317.1 GB; F: about 2003.5 GB; G: about 2010.1 GB.
+- SMB shares checked: `RedirectedFolders`, `Users`, `Public`, `MailArchives`, `Temp`, `W@P`, `Archives`, print shares, and admin shares present.
+- SMB open files checked: active handles existed under both `D:\RedirectedFolders` and `D:\Users`.
+- Legacy `D:\Users` compare checked: old `Documents` folders still exist for `Administrateur`, `pascal.martin`, and `sarah.stehly`; current redirected-folder targets also exist.
+- Desktop Markdown docs checked: `FILE-todo.md`, `FILE-health-log.md`, and `FILE-inspect.md` still present.
+
+Notes:
+
+- FILE is reachable again after the 2026-07-04 management-port outage.
+- FILE has July updates visible/downloaded and a pending file rename; no update install or reboot was performed.
+- No redirected-folder data or legacy `D:\Users` content was changed. Cleanup remains out of scope because active handles exist under both trees and the old/new compare still needs review.
+
 ## Maintenance Template
 
 Date:

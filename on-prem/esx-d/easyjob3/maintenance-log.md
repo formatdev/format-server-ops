@@ -258,6 +258,32 @@ Notes:
 - Pending file rename indicates a planned reboot is useful, but no reboot was performed.
 - WinRM drift recurred again and was restored only at the service level.
 
+## 2026-07-19 - Twice-Monthly Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `win-easyjob3` and `winad-easyjob3` checked: both returned `Easyjob3`; domain SSH returned `format\administrateur`.
+- Secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\BDC.format.lu`.
+- `sshd` and `Netlogon` checked: `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Recent hotfixes checked: latest visible installed security updates remained `KB5094137` and `KB5094125` from `2026-06-13`.
+- Visible Windows updates checked: `4`:
+  - SQL Server 2019 RTM CU security update `KB5102335`
+  - Windows Malicious Software Removal Tool x64 v5.143 `KB890830`
+  - Windows security update `KB5099536`
+  - .NET security update `KB5100998`
+- SQL integrated-auth checks succeeded over domain SSH for running named instances `APSAL`, `CLOUDDEMAT`, `DATAGATE`, `EASYJOB6`, `PLANNINGPME`, and `PNT`.
+- All checked SQL instances reported SQL Server 2019 `15.0.4470.1`, `RTM-CU32-GDR`, `KB5090407`.
+
+Notes:
+
+- EASYJOB3 domain SSH, trust, and SQL integrated-auth checks are healthy.
+- July Windows/.NET/SQL updates are visible but were not installed by Codex.
+- Pending file rename indicates a planned reboot is useful.
+
 ## Maintenance Template
 
 Date:

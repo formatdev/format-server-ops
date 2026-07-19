@@ -260,6 +260,31 @@ Notes:
 - No PDC service, DNS, SYSVOL, replication, firewall, GPO, reboot, or update action was performed.
 - Follow up from vCenter/console or another LAN host to confirm whether `sshd`/WinRM are stopped, firewall scope changed, or the DC is in a restricted network state.
 
+## 2026-07-19 - Twice-Monthly Inspection Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- `win-pdc` and `winad-pdc` checked: both returned `PDC`; domain SSH returned `format\administrateur`.
+- Domain controller services checked: `DFSR`, `DNS`, `Netlogon`, `NTDS`, `W32Time`, and `sshd` were `Running`/`Automatic`.
+- `WinRM` checked: found `Stopped`/`Disabled`; restored to `Running`/`Automatic`.
+- Replication checked: `repadmin /replsummary` reported `0 / 5` failures in both directions while still reporting operational error `1326 - BDC.format.lu`.
+- `dcdiag /q` checked: still failed `Replications` with `DsBindWithSpnEx()` error `5`, access denied, against `BDC`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `True`.
+- Recent hotfixes checked: latest visible installed security updates remained `KB5094147` and `KB5094128` from `2026-06-13`.
+- Visible Windows updates checked: `3`:
+  - Windows Malicious Software Removal Tool x64 v5.143 `KB890830`
+  - .NET cumulative update `KB5102206`
+  - OS cumulative update `KB5099540`
+
+Notes:
+
+- PDC is reachable again after the 2026-07-04 management-port outage.
+- PDC is operational but the known BDC-side access/replication-diagnostic noise remains.
+- July Windows/.NET updates are visible but were not installed by Codex.
+- Pending file rename indicates a planned reboot is useful.
+
 ## Maintenance Template
 
 Date:
