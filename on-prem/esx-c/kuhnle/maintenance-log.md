@@ -631,3 +631,122 @@ Result:
 - No update or reboot action was taken during this inspection.
 - The remaining pending rename queue appears tied to EdgeUpdate/TeamViewer
   cleanup and can be cleared in a future reboot window.
+
+## 2026-07-19 - Twice-Monthly Maintenance And July Updates
+
+Scope:
+
+- Performed ESX-C twice-monthly maintenance for `Kuhnle`.
+- Ran Windows Update installation as `NT AUTHORITY\\SYSTEM` using the Windows
+  Update COM API from temporary scheduled task
+  `FormatOps-WU-Install-20260719`.
+- No VMware, GPO, firewall, SSH, WinRM, snapshot, migration, power, or data
+  changes were made.
+- No reboot command was issued from this thread; `Kuhnle` rebooted during the
+  servicing window after updates were installed.
+
+Pre-update findings:
+
+- `Kuhnle` responded on SSH as `kuhnle\\administrateur`.
+- Last boot before updates was observed as `2026-07-04 21:38:27`
+  Europe/Luxembourg time.
+- Domain remained `format.lu`; domain role remained member server.
+- `sshd` was `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Domain secure channel tested healthy against `\\PDC.format.lu`.
+- Current free space before installation:
+  - `C:` about `22.5 GB`
+  - `D:` about `36.4 GB`
+- Windows Update reported three applicable updates:
+  - Windows Malicious Software Removal Tool x64 v5.143 (`KB890830`)
+  - 2026-07 cumulative update for .NET Framework 3.5, 4.8, and 4.8.1
+    (`KB5102206`)
+  - 2026-07 cumulative update for Microsoft server operating system version
+    21H2 for x64-based systems (`KB5099540`)
+
+Update result:
+
+- Installer log was left on the server at:
+  `C:\\ProgramData\\FormatOps\\Logs\\windows-update-20260719-kuhnle.log`
+- Download result: `2` (succeeded), `HResult=0`.
+- Install result: `2` (succeeded), `RebootRequired=True`, `HResult=0`.
+- Per-update results for `KB890830`, `KB5102206`, and `KB5099540` were all
+  `Result=2`, `HResult=0`.
+- Post-servicing hotfix inventory shows July 2026 updates installed on
+  `2026-07-19`:
+  - `KB5099540`
+  - `KB5101010`
+  - `KB5120210`
+
+Post-checks:
+
+- Post-update boot time observed: `2026-07-19 10:05:50`
+  Europe/Luxembourg time.
+- Windows Update search returned `Count=0`.
+- Reboot-required indicators were clear after the observed reboot:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=False`
+- `sshd` remained `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Time sync was current from `PDC.format.lu`.
+- `nltest /dsgetdc:format.lu` discovered `\\BDC.format.lu` successfully, but
+  `Test-ComputerSecureChannel` returned `False` and
+  `nltest /sc_query:format.lu` reported `ERROR_NO_LOGON_SERVERS` immediately
+  after the observed reboot.
+- Recent System log review after the update/reboot showed boot-time Kerberos,
+  time-service, DCOM, and service-control errors; no corrective action was
+  taken in this thread.
+- Current free space after servicing:
+  - `C:` about `17.9 GB` of `49.4 GB`
+  - `D:` about `33.9 GB` of `50.0 GB`
+
+Cleanup:
+
+- Removed temporary scheduled task `FormatOps-WU-Install-20260719`.
+- Removed temporary scripts:
+  - `C:\\ProgramData\\FormatOps\\esxc_wu_task_20260719.ps1`
+  - `C:\\ProgramData\\FormatOps\\WU-Install-20260719.ps1`
+
+Result:
+
+- July Windows updates installed successfully and Windows Update now reports no
+  applicable software updates.
+- Reboot-required and pending-rename indicators are clear.
+- Follow up on the post-reboot secure-channel inconsistency before making any
+  domain/GPO/remote-admin changes on `Kuhnle`.
+
+## 2026-07-19 - Post-Maintenance Clean Follow-Up
+
+Scope:
+
+- Rechecked `Kuhnle` after the July maintenance round had time to settle.
+- Performed discovery-only checks for update visibility, reboot-required
+  indicators, pending rename state, SSH/WinRM service state, and domain secure
+  channel.
+- No reboot, VMware, GPO, firewall, SSH, WinRM, update, snapshot, migration,
+  power, or data changes were made.
+
+Findings:
+
+- `Kuhnle` responded on SSH.
+- Current boot time observed: `2026-07-19 11:16:11` Europe/Luxembourg time.
+- Windows Update search returned `Count=0`.
+- Reboot-required indicators are clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=False`
+- `sshd` was `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Domain secure channel recovered successfully:
+  - `Test-ComputerSecureChannel -Server PDC.format.lu=True`
+  - `nltest /sc_query:format.lu` returned `NERR_Success` against
+    `\\PDC.format.lu`
+  - DC locator returned `\\PDC.format.lu`
+
+Result:
+
+- `Kuhnle` is clean from the checked Windows Update, reboot-required,
+  pending-rename, SSH service, and domain secure-channel perspective.
+- The earlier immediate post-reboot `ERROR_NO_LOGON_SERVERS` condition is no
+  longer present.

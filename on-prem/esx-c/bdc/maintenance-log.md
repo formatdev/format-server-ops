@@ -629,3 +629,114 @@ Result:
 - No update or reboot action was taken during this inspection.
 - The remaining pending rename queue appears tied to EdgeUpdate cleanup and can
   be cleared in a future reboot window.
+
+## 2026-07-19 - Twice-Monthly Maintenance And July Updates
+
+Scope:
+
+- Performed ESX-C twice-monthly maintenance for `BDC`.
+- Ran Windows Update installation as `NT AUTHORITY\\SYSTEM` using the Windows
+  Update COM API from temporary scheduled task
+  `FormatOps-WU-Install-20260719`.
+- No VMware, AD, DNS, DHCP, time sync, replication, SYSVOL, GPO, firewall,
+  SSH, WinRM, snapshot, migration, power, or data changes were made.
+- No reboot command was issued from this thread; `BDC` rebooted during the
+  servicing window after updates were installed.
+
+Pre-update findings:
+
+- `BDC` responded on SSH as `format\\administrateur`.
+- Last boot before updates was observed as `2026-07-04 21:38:21`
+  Europe/Luxembourg time.
+- Domain role remained backup domain controller for `format.lu`.
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `sshd`, and `W32Time` were
+  `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- `repadmin /replsummary` showed `0` failures in the returned summary view for
+  `PDC` source / `BDC` destination.
+- `C:` free space was about `68.9 GB`.
+- Windows Update reported one applicable update:
+  - 2026-07 cumulative update for Microsoft server operating system version
+    21H2 for x64-based systems (`KB5099540`)
+
+Update result:
+
+- Installer log was left on the server at:
+  `C:\\ProgramData\\FormatOps\\Logs\\windows-update-20260719-bdc.log`
+- Download result: `2` (succeeded), `HResult=0`.
+- Install result: `2` (succeeded), `RebootRequired=True`, `HResult=0`.
+- Per-update result for `KB5099540`: `Result=2`, `HResult=0`.
+- Post-servicing hotfix inventory shows July 2026 updates installed on
+  `2026-07-19`:
+  - `KB5099540`
+  - `KB5101010`
+  - `KB5120210`
+
+Post-checks:
+
+- Post-update boot time observed: `2026-07-19 10:04:51`
+  Europe/Luxembourg time.
+- Windows Update search returned `Count=0`.
+- Reboot-required indicators were clear after the observed reboot:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+- `PendingFileRenameOperations=True`; current sample entries are print-driver
+  rename pairs under `C:\\Windows\\System32\\spool\\drivers\\x64\\3\\...`.
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `sshd`, and `W32Time` remained
+  `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- `repadmin /replsummary` showed `0` failures in the returned summary view for
+  `PDC` source / `BDC` destination, with largest delta about 2 minutes.
+- Time sync remained healthy from `PDC.format.lu`.
+- Recent System log review after the update/reboot showed boot-time service,
+  Schannel, and time-service errors; no corrective action was taken in this
+  thread.
+- `C:` free space after servicing was about `60.8 GB` of `89.4 GB`.
+
+Cleanup:
+
+- Removed temporary scheduled task `FormatOps-WU-Install-20260719`.
+- Removed temporary scripts:
+  - `C:\\ProgramData\\FormatOps\\esxc_wu_task_20260719.ps1`
+  - `C:\\ProgramData\\FormatOps\\WU-Install-20260719.ps1`
+
+Result:
+
+- July Windows updates installed successfully and Windows Update now reports no
+  applicable software updates.
+- `BDC` is reachable and healthy from the checked DC-service, replication
+  summary, time sync, and Windows Update visibility perspective.
+- Track the remaining print-driver `PendingFileRenameOperations` queue during
+  the next reboot window.
+
+## 2026-07-19 - Post-Maintenance Clean Follow-Up
+
+Scope:
+
+- Rechecked `BDC` after the July maintenance round had time to settle.
+- Performed discovery-only checks for update visibility, reboot-required
+  indicators, pending rename state, domain-controller services, and replication
+  summary.
+- No reboot, VMware, AD, DNS, DHCP, time sync, replication, SYSVOL, GPO,
+  firewall, SSH, WinRM, update, snapshot, migration, power, or data changes
+  were made.
+
+Findings:
+
+- `BDC` responded on SSH.
+- Current boot time observed: `2026-07-19 11:16:04` Europe/Luxembourg time.
+- Windows Update search returned `Count=0`.
+- Reboot-required indicators are clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=False`
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `sshd`, and `W32Time` were
+  `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- `repadmin /replsummary` showed `0` failures in the returned summary view for
+  `PDC` source / `BDC` destination, with largest delta about 27 minutes.
+
+Result:
+
+- `BDC` is clean from the checked Windows Update, reboot-required,
+  pending-rename, DC-service, and replication-summary perspective.

@@ -570,3 +570,118 @@ Result:
 - No update or reboot action was taken during this inspection.
 - The remaining pending rename queue appears tied to EdgeUpdate/TeamViewer
   cleanup and can be cleared in a future reboot window.
+
+## 2026-07-19 - Twice-Monthly Maintenance And July Updates
+
+Scope:
+
+- Performed ESX-C twice-monthly maintenance for `LMR`.
+- Ran Windows Update installation as `NT AUTHORITY\\SYSTEM` using the Windows
+  Update COM API from temporary scheduled task
+  `FormatOps-WU-Install-20260719`.
+- No reboot was performed from this thread.
+- No VMware, GPO, firewall, SSH, WinRM, snapshot, migration, power, or data
+  changes were made.
+
+Pre-update findings:
+
+- `LMR` responded on SSH as `lmr\\administrateur`.
+- Last boot before updates was observed as `2026-07-04 21:38:28`
+  Europe/Luxembourg time.
+- Domain remained `format.lu`; domain role remained member server.
+- `sshd` was `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Domain secure channel tested healthy against `\\PDC.format.lu`.
+- Current free space before installation:
+  - `C:` about `24.8 GB`
+  - `D:` about `961.4 GB`
+- Windows Update reported four applicable updates:
+  - Security Update for SQL Server 2019 RTM GDR (`KB5102336`)
+  - Windows Malicious Software Removal Tool x64 v5.143 (`KB890830`)
+  - 2026-07 cumulative update for .NET Framework 3.5, 4.8, and 4.8.1
+    (`KB5102206`)
+  - 2026-07 cumulative update for Microsoft server operating system version
+    21H2 for x64-based systems (`KB5099540`)
+
+Update result:
+
+- Installer log was left on the server at:
+  `C:\\ProgramData\\FormatOps\\Logs\\windows-update-20260719-lmr.log`
+- Download result: `2` (succeeded), `HResult=0`.
+- Install result: `2` (succeeded), `RebootRequired=True`, `HResult=0`.
+- Per-update results for `KB5102336`, `KB890830`, `KB5102206`, and
+  `KB5099540` were all `Result=2`, `HResult=0`.
+- Post-servicing hotfix inventory shows July 2026 updates installed on
+  `2026-07-19`:
+  - `KB5099540`
+  - `KB5101010`
+  - `KB5120210`
+
+Post-checks:
+
+- `LMR` remained reachable over SSH after installation.
+- Windows Update search returned `Count=0`.
+- Reboot-required indicators remain set because `LMR` has not rebooted since
+  the update install:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=True`
+  - `Component Based Servicing\\RebootPending=True`
+  - `PendingFileRenameOperations=False`
+- Domain secure channel remained healthy against `\\PDC.format.lu`.
+- `sshd` remained `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Recent System log review showed two recent warning/error items in the checked
+  window: service-control event `7031` and virtual TPM event `1803`; no
+  corrective action was taken in this thread.
+- Current free space after servicing:
+  - `C:` about `19.0 GB` of `119.4 GB`
+  - `D:` about `895.3 GB` of `1024 GB`
+
+Cleanup:
+
+- Removed temporary scheduled task `FormatOps-WU-Install-20260719`.
+- Removed temporary scripts:
+  - `C:\\ProgramData\\FormatOps\\esxc_wu_task_20260719.ps1`
+  - `C:\\ProgramData\\FormatOps\\WU-Install-20260719.ps1`
+
+Result:
+
+- July Windows updates installed successfully and Windows Update now reports no
+  applicable software updates.
+- `LMR` still needs an explicit reboot window to complete the July update
+  cycle and clear Windows Update/CBS reboot-required state.
+- After reboot, verify SSH reachability, domain secure channel, SQL/application
+  service state if applicable, event logs, disk state, and reboot-required
+  indicators.
+
+## 2026-07-19 - Post-Maintenance Clean Follow-Up
+
+Scope:
+
+- Rechecked `LMR` after the July maintenance round had time to settle.
+- Performed discovery-only checks for update visibility, reboot-required
+  indicators, pending rename state, SSH/WinRM service state, and domain secure
+  channel.
+- No reboot, VMware, GPO, firewall, SSH, WinRM, update, snapshot, migration,
+  power, or data changes were made.
+
+Findings:
+
+- `LMR` responded on SSH.
+- Current boot time observed: `2026-07-19 11:16:11` Europe/Luxembourg time.
+- Windows Update search returned `Count=0`.
+- Reboot-required indicators are now clear:
+  - `WindowsUpdate\\Auto Update\\RebootRequired=False`
+  - `Component Based Servicing\\RebootPending=False`
+  - `PendingFileRenameOperations=False`
+- `sshd` was `Running`/`Automatic`.
+- `WinRM` remained `Stopped`/`Disabled`; no change was made.
+- Domain secure channel tested healthy:
+  - `Test-ComputerSecureChannel -Server PDC.format.lu=True`
+  - `nltest /sc_query:format.lu` returned `NERR_Success` against
+    `\\PDC.format.lu`
+
+Result:
+
+- `LMR` is clean from the checked Windows Update, reboot-required,
+  pending-rename, SSH service, and domain secure-channel perspective.
+- The earlier July update reboot-required state is now cleared.
