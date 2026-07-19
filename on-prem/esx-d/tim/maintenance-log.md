@@ -284,6 +284,42 @@ Notes:
 - July updates are visible and one July update is already installed, but no update install or reboot was performed by Codex.
 - Pending file rename indicates a planned reboot is useful.
 
+## 2026-07-19 - Remote Update Install Attempt Blocked
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Attempted to start a no-reboot Windows Update install remotely.
+- Creating a SYSTEM scheduled task over domain SSH failed with `Access is denied`.
+- Retried through local break-glass SSH; the update task action path was still rejected with `Access is denied`.
+
+Notes:
+
+- No additional updates were installed and no reboot was performed by Codex.
+- July updates remain visible and require an interactive elevated session or another approved elevation path.
+
+## 2026-07-19 - Post-Manual Update Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- `win-tim` break-glass SSH checked: OK, returned `tim\administrateur`.
+- `winad-tim` domain SSH checked: failed with `Permission denied (publickey,keyboard-interactive)`.
+- Domain secure channel checked from the local SSH context: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` and `Netlogon` checked: `Running`/`Automatic`.
+- `WinRM` checked: `Stopped`/`Disabled` again after reboot/policy refresh.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` still present for a Windows temp file.
+- Recent hotfixes checked: `KB5121767` installed on `2026-07-19`; `KB5120102` and `KB5100998` installed on `2026-07-18`.
+- Visible Windows updates checked: `0`.
+
+Notes:
+
+- Tim is update-clean, with no CBS or Windows Update reboot flag.
+- Domain trust is healthy, but domain-admin SSH is still denied; local break-glass SSH works.
+- WinRM disablement recurred after reboot/policy refresh.
+
 ## Maintenance Template
 
 Date:

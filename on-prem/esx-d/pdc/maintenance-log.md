@@ -285,6 +285,42 @@ Notes:
 - July Windows/.NET updates are visible but were not installed by Codex.
 - Pending file rename indicates a planned reboot is useful.
 
+## 2026-07-19 - Remote Update Install Attempt Blocked
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Attempted to start a no-reboot Windows Update install remotely.
+- Creating a SYSTEM scheduled task over domain SSH failed with `Access is denied`.
+- Retried through local break-glass SSH; the update task action path was still rejected with `Access is denied`.
+
+Notes:
+
+- No updates were installed and no reboot was performed by Codex.
+- July Windows/.NET updates remain visible and require an interactive elevated session or another approved elevation path.
+
+## 2026-07-19 - Post-Manual Update Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- `winad-pdc` domain SSH checked: OK, returned `format\administrateur`.
+- DC services checked: `DFSR`, `DNS`, `Netlogon`, `NTDS`, `W32Time`, and `sshd` are `Running`/`Automatic`.
+- `WinRM` checked: `Stopped`/`Disabled` again after reboot/policy refresh.
+- `repadmin /replsummary` checked: `0 / 5` failures both as source and destination, with largest delta about 28 minutes.
+- `dcdiag /q` checked: still reports DFSR event warnings and a BDC bind/access failure during the Replications test.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Recent hotfixes checked: `KB5120210`, `KB5099540`, and `KB5101010` installed on `2026-07-19`.
+- Visible Windows updates checked: `0`.
+
+Notes:
+
+- PDC is update-clean and does not currently require a reboot.
+- Live replication summary is clean, but `dcdiag` still has BDC-related diagnostic noise that should be reviewed from both DCs when BDC access is available.
+- WinRM disablement recurred after reboot/policy refresh.
+
 ## Maintenance Template
 
 Date:

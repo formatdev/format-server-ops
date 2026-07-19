@@ -320,6 +320,79 @@ Notes:
 - Visible update enumeration hung after printing three of five update titles, so the exact remaining two visible items were not captured.
 - No driver/update install or reboot was performed by Codex.
 
+## 2026-07-19 - Remote Update Install Attempt Blocked
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Attempted to start a no-reboot Windows Update install remotely.
+- Creating a SYSTEM scheduled task over domain SSH failed with `Access is denied`.
+- Retried through local break-glass SSH; the update task action path was still rejected with `Access is denied`.
+
+Notes:
+
+- No additional updates were installed and no reboot was performed by Codex.
+- Admin already has CBS and Windows Update reboot flags set from prior July update activity; reboot remains required.
+
+## 2026-07-19 - Post-Manual Update Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- `winad-admin` domain SSH checked: OK, returned `format\administrateur`.
+- Domain secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\BDC.format.lu`.
+- `sshd` and `Netlogon` checked: `Running`/`Automatic`.
+- `WinRM` checked: `Stopped`/`Disabled` again after reboot/policy refresh.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` still present for a temporary user-profile file.
+- Recent hotfixes checked: `KB5121767` and `KB5100998` installed on `2026-07-19`; `KB5120102` installed on `2026-07-18`.
+- Visible Windows updates checked: `1`, Broadcom driver update `9.17.11.3`.
+
+Notes:
+
+- Admin is mostly update-clean, but one driver update remains visible.
+- The remaining pending-file-rename item appears to be a temporary file cleanup, not a Windows Update reboot flag.
+- WinRM disablement recurred after reboot/policy refresh.
+
+## 2026-07-19 - Broadcom Driver Install Attempt Blocked
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Attempted to install the remaining visible Admin update, Broadcom driver update `9.17.11.3`, without rebooting.
+- Domain SSH path selected the update successfully but Windows Update refused the download/install step with `0x80070005 E_ACCESSDENIED`.
+- Local break-glass SSH path produced the same `0x80070005 E_ACCESSDENIED` result.
+
+Notes:
+
+- The Broadcom driver update remains visible on Admin.
+- Install likely needs an interactive elevated Windows Update session or another approved local elevation path.
+- No reboot was performed.
+
+## 2026-07-19 - Broadcom Driver Manual Install Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Peter installed the remaining Broadcom driver update manually and rebooted Admin.
+- `win-admin` break-glass SSH checked after reboot: OK, returned `admin\administrateur`.
+- `winad-admin` domain SSH checked after reboot: OK, returned `format\administrateur`.
+- Visible Windows updates checked after the manual install/reboot: `0`.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- `sshd` and `Netlogon` checked: `Running`/`Automatic`.
+- `WinRM` checked: `Stopped`/`Disabled`, expected by GPO.
+- Domain controller discovery checked: `nltest /dsgetdc:format.lu` found `\\PDC.format.lu`.
+- Secure-channel verification checked: `nltest /sc_verify:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- AD connectivity checked from Admin to PDC: TCP `88`, `389`, and `445` succeeded.
+
+Notes:
+
+- Admin is update-clean and has no current reboot flags.
+- `Test-ComputerSecureChannel -Server PDC.format.lu` still returned `False` even while `nltest /sc_verify` succeeded; track as the known split secure-channel diagnostic pattern unless logons, GPO, or SMB access start failing.
+
 ## Maintenance Template
 
 Date:

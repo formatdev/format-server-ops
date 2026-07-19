@@ -2,7 +2,7 @@
 
 Runbooks for the on-prem VMware host shown as `192.168.5.203` in vCenter.
 
-Last updated: 2026-04-18
+Last updated: 2026-07-19
 
 ## Current VM Inventory
 
@@ -47,8 +47,8 @@ The current target pattern for Windows member servers is:
   - `AllowGroups format\sshadmins` plus any intentionally retained local break-glass group
 - `sshd` service: `Automatic`, `Running`, restart-on-failure configured
 - WER dumps for `sshd.exe`: `C:\ProgramData\ssh\dumps`
-- WinRM service: `Automatic`, `Running`
-- WinRM HTTP listener: `5985`
+- WinRM service: intentionally disabled by GPO as of 2026-07-19; do not treat `Stopped`/`Disabled` as drift unless the policy changes.
+- Historical WinRM HTTP listener: `5985`
 - scoped inbound firewall for SSH `22` and WinRM `5985`:
   - `192.168.1.73`
   - `192.168.113.2`
@@ -57,4 +57,3 @@ The current target pattern for Windows member servers is:
 
 - [new-thread-prompt.md](new-thread-prompt.md): prompt for starting a dedicated ESX-D maintenance thread
 - one subfolder per VM with `README.md` and `maintenance-log.md`
-

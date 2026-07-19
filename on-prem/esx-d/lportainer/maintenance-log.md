@@ -291,6 +291,30 @@ Notes:
 - No Docker, package, stack, prune, reboot, or host action was performed.
 - Follow up from vCenter/console or another LAN host to confirm whether the VM is powered on and network-connected.
 
+## 2026-07-19 - Post-Manual Update Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Network reachability checked: `192.168.1.9` did not respond to ping from the maintainer Mac.
+- SSH checked: `lportainer` failed with `Network is unreachable`.
+
+Notes:
+
+- Lportainer could not be validated from this maintenance path.
+- No Docker, Portainer, stack, package, prune, reboot, or host action was performed.
+- Follow up from vCenter/console or another LAN host to confirm whether the VM is powered on and network-connected before marking the Linux/Portainer side clean.
+
+## 2026-07-19 - Operator Clarification
+
+Maintainer: Codex with Peter
+
+Notes:
+
+- Peter confirmed Lportainer was intentionally left powered off.
+- Do not treat the current SSH/network failure from the maintainer path as a fault while the VM remains intentionally off.
+
 ## Maintenance Template
 
 Date:

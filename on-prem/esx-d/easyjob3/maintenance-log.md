@@ -284,6 +284,43 @@ Notes:
 - July Windows/.NET/SQL updates are visible but were not installed by Codex.
 - Pending file rename indicates a planned reboot is useful.
 
+## 2026-07-19 - Remote Update Install Attempt Blocked
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Attempted to start a no-reboot Windows Update install remotely.
+- Creating a SYSTEM scheduled task over domain SSH failed with `Access is denied`.
+- Retried through local break-glass SSH; the update task action path was still rejected with `Access is denied`.
+
+Notes:
+
+- No updates were installed and no reboot was performed by Codex.
+- July Windows/.NET/SQL updates remain visible and require an interactive elevated session or another approved elevation path.
+
+## 2026-07-19 - Post-Manual Update Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- `win-easyjob3` break-glass SSH checked: OK, returned `easyjob3\administrateur`.
+- `winad-easyjob3` domain SSH checked: failed with `Permission denied (publickey,keyboard-interactive)`.
+- Domain secure channel checked from the local SSH context: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd` and `Netlogon` checked: `Running`/`Automatic`.
+- `WinRM` checked: `Stopped`/`Disabled` again after reboot/policy refresh.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Recent hotfixes checked: `KB5101372`, `KB5099536`, and `KB5100998` installed on `2026-07-19`.
+- Visible Windows updates checked: `0`.
+- SQL Server services checked: active instances `APSAL`, `CLOUDDEMAT`, `DATAGATE`, `EASYJOB6`, `PLANNINGPME`, and `PNT` are `Running`/`Automatic`; `SQLBrowser` is `Running`/`Automatic`; `TIDEPRO` and default `MSSQLSERVER` remain disabled.
+
+Notes:
+
+- EASYJOB3 is update-clean and does not currently require a reboot.
+- SQL service state is healthy, but SQL integrated-auth version queries could not be re-run because domain SSH is denied and the local administrator account is not authorized inside SQL.
+- WinRM disablement recurred after reboot/policy refresh.
+
 ## Maintenance Template
 
 Date:

@@ -371,6 +371,50 @@ Notes:
 - FILE has July updates visible/downloaded and a pending file rename; no update install or reboot was performed.
 - No redirected-folder data or legacy `D:\Users` content was changed. Cleanup remains out of scope because active handles exist under both trees and the old/new compare still needs review.
 
+## 2026-07-19 - Remote Update Install Attempt Blocked
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Attempted to start a no-reboot Windows Update install remotely.
+- Creating a SYSTEM scheduled task over domain SSH failed with `Access is denied`.
+- Direct Windows Update COM install over SSH could search and queue updates, but creating the downloader/installer failed with `0x80070005 E_ACCESSDENIED`.
+- Local break-glass SSH could create a harmless short SYSTEM task, but task actions invoking the staged PowerShell update script were rejected with `Access is denied`.
+- Temporary test artifacts were removed from `C:\ProgramData\Codex`.
+
+Notes:
+
+- No updates were installed and no reboot was performed by Codex.
+- July updates remain visible/downloaded and require an interactive elevated session or another approved elevation path.
+
+## 2026-07-19 - Post-Manual Update Validation
+
+Maintainer: Codex with Peter
+
+Scope:
+
+- Recheck FILE after Peter completed manual updates, cleanup, reboots, and ESX-D host restart.
+
+Checks:
+
+- `winad-file` domain SSH checked: OK, returned `format\administrateur`.
+- Domain secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\PDC.format.lu`.
+- `sshd`, `Spooler`, and `Netlogon` checked: `Running`/`Automatic`.
+- `WinRM` checked: `Stopped`/`Disabled` again after reboot/policy refresh.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Recent hotfixes checked: `KB5099540`, `KB5120210`, and `KB5101010` installed on `2026-07-19`.
+- Visible Windows updates checked: `0`.
+- SMB shares checked: expected shares still present, including `RedirectedFolders`, `Users`, `Public`, `MailArchives`, `Temp`, `W@P`, and `Archives`.
+- SMB open files checked: active handles still exist under both `D:\RedirectedFolders` and `D:\Users`.
+- Desktop Markdown docs checked: `FILE-todo.md`, `FILE-health-log.md`, and `FILE-inspect.md` still present.
+
+Notes:
+
+- FILE is update-clean and does not currently require a reboot.
+- No redirected-folder data, legacy `D:\Users` data, SMB shares, firewall rules, or GPOs were changed.
+- WinRM disablement appears to be recurring after reboot/policy refresh and should be handled as a GPO/baseline follow-up, not as an individual server issue.
+
 ## Maintenance Template
 
 Date:

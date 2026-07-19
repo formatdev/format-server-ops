@@ -348,6 +348,44 @@ Notes:
 - EMS/domain authorization remains blocked from the SSH session, matching the prior token issue.
 - July Windows/.NET updates are visible but were not installed by Codex.
 
+## 2026-07-19 - Remote Update Install Attempt Blocked
+
+Maintainer: Codex with Peter
+
+Actions:
+
+- Attempted to start a no-reboot Windows Update install remotely.
+- Creating a SYSTEM scheduled task over domain SSH failed with `Access is denied`.
+- Retried through local break-glass SSH; the update task action path was still rejected with `Access is denied`.
+
+Notes:
+
+- No updates were installed and no reboot was performed by Codex.
+- July Windows/.NET updates remain visible and require an interactive elevated session or another approved elevation path.
+- EMS/domain authorization is still blocked from the SSH session.
+
+## 2026-07-19 - Post-Manual Update Validation
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- `winad-exchange3` domain SSH checked: OK, returned `format\administrateur`.
+- Domain secure channel checked: `Test-ComputerSecureChannel -Server PDC.format.lu` returned `True`; `nltest /sc_query:format.lu` returned `NERR_Success` against `\\BDC.format.lu`.
+- `sshd`, `Netlogon`, `MSExchangeADTopology`, `MSExchangeIS`, and `MSExchangeTransport` checked: `Running`/`Automatic`.
+- `WinRM` checked: `Stopped`/`Disabled` again after reboot/policy refresh.
+- Reboot flags checked: CBS `False`, Windows Update `False`, `PendingFileRenameOperations` `False`.
+- Recent hotfixes checked: `KB5099540`, `KB5120210`, and `KB5101010` installed on `2026-07-19`.
+- Visible Windows updates checked: `0`.
+- Certificate store checked: `CN=exchange.format.lu` certificate present with expiry `2026-09-26 11:58:31`.
+
+Notes:
+
+- Exchange3 is update-clean and does not currently require a reboot.
+- Core Exchange services are running.
+- Full Exchange Management Shell queue/certificate service checks remain best validated from an interactive Exchange shell because SSH-launched EMS has previously hit credential/token issues.
+- WinRM disablement recurred after reboot/policy refresh.
+
 ## Maintenance Template
 
 Date:
