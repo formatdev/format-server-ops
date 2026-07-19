@@ -6,6 +6,63 @@ Docker Engine maintenance, and reboot decisions for `format-cloud-1`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-07-19 - Mid-Month Maintenance Round
+
+Date: 2026-07-19
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-134-generic`
+- Docker Engine: `29.6.1`
+- Portainer: `2.43.0`
+- Uptime: about 2 weeks, 15 hours, 49 minutes.
+- Root filesystem: 150G total, 50G used, 95G free, 35% used.
+- Memory: 15 GiB total, about 11 GiB available.
+- Swarm was healthy before maintenance; all services were `1/1`.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-136-generic`
+- Docker Engine: `29.6.2`
+- Portainer: `2.43.0`
+- Root filesystem remained about 35% used.
+- Memory after reboot: 15 GiB total, about 13 GiB available.
+
+Checks:
+
+- SSH checked: OK. `ssh hetzner-cloud-1` worked through the configured alias before and after reboot.
+- Firewall checked: OK. `ufw` remains active with inbound `22/tcp`, `443/tcp`, and `443/udp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail are active.
+- System health checked: OK. `systemctl --failed` reported 0 failed units after maintenance.
+- SSH hardening checked: OK. Password authentication remains disabled, public-key authentication remains enabled, and `MaxAuthTries` remains 3.
+- Docker Swarm checked: OK. Single node is `Ready`, `Active`, and `Leader` on Engine `29.6.2`.
+- Docker services checked: OK. All Swarm services reported `1/1` after package maintenance, reboot, and image updates.
+- Container health checked: OK. No unhealthy containers were reported.
+- Backups checked: OK. Daily MariaDB dump and Portainer archive cadence were current through `2026-07-18`.
+- Apt upgrade applied: Yes. Applied Docker Engine `29.6.2`, `containerd.io` `2.2.6`, Docker Compose plugin `5.3.1`, `fwupd`, `apport`, `plymouth`, and related packages.
+- Apt upgrades checked: OK. No package upgrades remained after maintenance.
+- Reboot requirement checked: OK. Rebooted into `6.8.0-136-generic`; no reboot marker remained afterward.
+- Stack updates applied: Yes. Traefik moved to `3.6.23`, and Duplicati moved to digest `sha256:01f8cb81ad7d548b7ceec61d696bb5d27d8057fee0ddee37c2b8a0ff1f1729f7`.
+- Stack image metadata checked: OK. Key `com.docker.stack.image` labels matched live images after updates.
+- Routed app smoke tests checked: OK. Local Traefik host-header checks returned `200` for `bitwarden.format.lu`, `floc.lu`, `portainer.format.lu`, `pma.format.lu`, and `duplicati-fc1.format.lu`; `chargy.format.lu` returned the expected `302` login redirect.
+
+Notes:
+
+- The first apt command continued in its SSH session after a second apt attempt saw the dpkg lock; it completed normally while updating initramfs.
+- Docker package maintenance briefly recycled several tasks. Vaultwarden again needed extra health-check time after the Docker restart and host reboot; its route returned to `200`.
+- Traefik update again hit the known single-node host-mode `443` replacement wait before converging cleanly.
+- Traefik `3.6.x` has a newer patch, but the `3.6` line is no longer the actively supported feature line; keep a planned `3.7.x` migration on the roadmap instead of treating it as a blind patch bump.
+- Redis 8 and custom `esst/*` application refreshes were not included in this host maintenance pass.
+
+Follow-up:
+
+- Plan a separate Traefik `3.7.x` review/migration.
+- Continue avoiding Docker prune/cleanup unless bind mounts, volumes, and active service image references have been reviewed.
+
 ## 2026-07-04 - Inspection And Maintenance Round
 
 Date: 2026-07-04

@@ -3,7 +3,7 @@
 This folder documents the `duplicati-fc1` backup service hosted through
 Portainer on the Hetzner host `format-cloud-1`.
 
-Last verified: 2026-06-14.
+Last verified: 2026-07-19.
 
 Duplicati is part of the backup layer. Treat updates and configuration changes
 carefully, because backup metadata, destination credentials, and restore ability
@@ -26,9 +26,9 @@ off-server backups with a daily MariaDB dump included in the backup set.
 - Backup destination: Synology SFTP, user `FormatBU`
 - Synology destination path: `/FORMATBF/duplicati/format-cloud-1`
 - WatchGuard SFTP forwarding: [watchguard-sftp.md](./watchguard-sftp.md)
-- Current live image: `duplicati/duplicati@sha256:50555cd2cf1cd140ee240996cc3b94afb0254d07f6bccc5495561530a6c3d6ab`
-- Current observed digest: `sha256:50555cd2cf1cd140ee240996cc3b94afb0254d07f6bccc5495561530a6c3d6ab`
-- Latest stable release checked: `2.3.0.1_stable_2026-04-24`
+- Current live image: `duplicati/duplicati@sha256:01f8cb81ad7d548b7ceec61d696bb5d27d8057fee0ddee37c2b8a0ff1f1729f7`
+- Current observed digest: `sha256:01f8cb81ad7d548b7ceec61d696bb5d27d8057fee0ddee37c2b8a0ff1f1729f7`
+- Latest stable release checked: `2.3.0.4_stable_2026-07-09`
 - Backend container port: `8200`
 
 Sensitive values are intentionally not stored in this repository. Keep them in
