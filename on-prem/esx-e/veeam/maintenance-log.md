@@ -873,3 +873,146 @@ Next safest target:
 
 - The next maintenance target is now the July 2026 Windows update cycle, followed by the usual reboot-and-recovery verification.
 - Repository free space on `E:` remains worth watching; it was about `1.40 TB` free during this check.
+
+## 2026-07-19 - July 2026 Windows Update Cycle Completed
+
+With operator approval, installed the pending July 2026 updates on the standalone Veeam server over key-only SSH using a temporary scheduled task running as `SYSTEM`. No Veeam configuration, repository settings, firewall rules, or credential changes were made.
+
+Pre-install notes:
+
+- Host remained standalone: `PartOfDomain=False`, `Domain=WORKGROUP`.
+- Update discovery at the start of the maintenance window found `5` pending updates:
+  - `PowerShell LTS v7.4.17 (x64)`
+  - `Security Update for SQL Server 2016 Service Pack 3 CU (KB5102339)`
+  - `Windows Malicious Software Removal Tool x64 - v5.143 (KB890830)`
+  - `2026-07 Cumulative Update for .NET Framework 3.5, 4.8 and 4.8.1 for Microsoft server operating system version 21H2 for x64 (KB5102206)`
+  - `2026-07 Cumulative Update for Microsoft server operating system version 21H2 for x64-based Systems (KB5099540)`
+- Recent Veeam job-state sampling still showed only the known warning-result trio, not active running sessions.
+
+Install path:
+
+- Wrote `C:\ProgramData\format-server-ops\windows-update-2026-07-19.ps1`.
+- Launched it through scheduled task `FormatServerOps-WindowsUpdate-Jul2026` as `SYSTEM`.
+- Windows Update event logs confirmed successful install progression:
+  - `PowerShell LTS v7.4.17 (x64)`
+  - `KB5102339`
+  - `KB890830`
+  - `KB5102206`
+  - `KB5099540`
+
+Observed servicing behavior:
+
+- SQL services bounced during the SQL security update, then recovered before reboot.
+- `SQL Server CEIP service (VEEAMSQL2016)` logged one transient `7031` unexpected termination during servicing and then returned to `RUNNING`.
+- Windows set:
+  - `CBS reboot pending=True`
+  - `Windows Update reboot required=True`
+- `PendingFileRenameOperations` was also present pre-reboot.
+
+Reboot sequence:
+
+- An initial `shutdown.exe /r` request was accepted and logged under `User32 1074` at `2026-07-19 10:05:26` but took a long time to actually commit while Windows finalized servicing.
+- A later `Restart-Computer -Force` attempt reported that a shutdown was already in progress.
+- Observed availability checks showed the host drop and return during the reboot window, with the final post-update boot settling at `2026-07-19 10:14:03`.
+
+Post-reboot verification:
+
+- Check time: `2026-07-19 10:16:42`.
+- Last boot observed: `2026-07-19 10:14:03`.
+- Reboot flags cleared:
+  - `CBS reboot pending=False`
+  - `Windows Update reboot required=False`
+  - `PendingFileRenameOperations=False`
+- Built-in Windows Update COM search returned `PendingUpdateCount=0`.
+- Post-update Windows Update event history showed successful installs for all five updates, including final success events for:
+  - `PowerShell LTS v7.4.17 (x64)` at `2026-07-19 10:15:39`
+  - `KB5102339` at `2026-07-19 10:15:40`
+  - `KB890830` at `2026-07-19 10:15:41`
+  - `KB5102206` at `2026-07-19 10:15:41`
+  - `KB5099540` at `2026-07-19 10:15:43`
+- Version state after reboot:
+  - PowerShell 7: `7.4.17`
+  - SQL Server `.\VEEAMSQL2016`: `13.0.7095.1`, `SP3`
+  - Veeam Backup & Replication service executable: `13.0.2.29`
+- Remote-admin baseline recovered:
+  - `sshd`: `RUNNING`
+  - `WinRM`: `RUNNING`
+- SQL baseline recovered:
+  - `MSSQL$VEEAMSQL2016`: `RUNNING`
+  - `SQLAgent$VEEAMSQL2016`: `STOPPED`, matching baseline
+  - `SQLTELEMETRY$VEEAMSQL2016`: `RUNNING`
+- Veeam service recovery showed the normal short post-boot delay and then recovered:
+  - `VeeamBackupSvc`: `RUNNING`
+  - `VeeamBackupRESTSvc`: `RUNNING`
+  - `VeeamBrokerSvc`: `RUNNING`
+  - `VeeamTransportSvc`: `RUNNING`
+  - `VeeamWebSvc`: `RUNNING`
+- Disk state after updates:
+  - `C:` used `81424248832`, free `47054618624`
+  - `E:` used `29335708499968`, free `1450549968896`
+
+Cleanup:
+
+- Removed temporary scheduled task `FormatServerOps-WindowsUpdate-Jul2026`.
+
+Interpretation:
+
+- The July 2026 Windows update cycle completed successfully.
+- The host returned with no remaining pending updates and no remaining reboot-pending flags.
+
+## 2026-07-19 - Verification Reboot Cleared Runtime Rename Queue
+
+After the completed July 2026 update cycle, a later same-day sanity check found:
+
+- `PendingUpdateCount=0`
+- `CBS reboot pending=False`
+- `Windows Update reboot required=False`
+- `PendingFileRenameOperations=True`
+
+Read-only inspection of the queue showed it was dominated by:
+
+- `C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.28\...`
+- `C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.28\...`
+- one `C:\Config.Msi\*.rbf` entry
+
+Interpretation at that point:
+
+- Windows patching was complete, but a large .NET runtime replacement queue remained.
+
+With operator approval, rebooted the host again to see whether that queue would clear.
+
+Reboot sequence:
+
+- Reboot command accepted at `2026-07-19 19:19`.
+- Host dropped from SSH at about `2026-07-19 19:19:32`.
+- Host returned on SSH shortly after and settled with final observed boot time `2026-07-19 19:19:37`.
+
+Immediate post-boot observations:
+
+- Remote admin and SQL services returned first.
+- Core Veeam application services (`VeeamBackupSvc`, `VeeamBackupRESTSvc`, `VeeamBrokerSvc`, `VeeamWebSvc`) took longer than SQL to recover, which matched fresh Application log entries showing Veeam locking the new `.NET 8.0.29` runtime files during startup.
+
+Final verification after the delayed Veeam recovery:
+
+- Check time: `2026-07-19 19:13:08` for the pre-reboot sanity pass, then `2026-07-19 19:21:04` after reboot flags re-check.
+- Last boot observed after the verification reboot: `2026-07-19 19:19:37`.
+- `PendingUpdateCount=0`
+- `CBS reboot pending=False`
+- `Windows Update reboot required=False`
+- `PendingFileRenameOperations=False`
+- Core services healthy:
+  - `sshd`: `RUNNING`
+  - `WinRM`: `RUNNING`
+  - `MSSQL$VEEAMSQL2016`: `RUNNING`
+  - `SQLAgent$VEEAMSQL2016`: `STOPPED`, matching baseline
+  - `SQLTELEMETRY$VEEAMSQL2016`: `RUNNING`
+  - `VeeamBackupSvc`: `RUNNING`
+  - `VeeamBackupRESTSvc`: `RUNNING`
+  - `VeeamBrokerSvc`: `RUNNING`
+  - `VeeamWebSvc`: `RUNNING`
+  - `VeeamTransportSvc`: `RUNNING`
+
+Interpretation:
+
+- The verification reboot cleared the post-update .NET runtime rename queue.
+- The host is now clean from both a Windows Update perspective and a pending-rename perspective.

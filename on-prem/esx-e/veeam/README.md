@@ -15,7 +15,7 @@ Last updated: 2026-07-19
 - Role: Veeam backup server
 - OS: Microsoft Windows Server 2022 Standard, build `20348`
 - VM platform: VMware virtual machine
-- Last boot observed during mid-July maintenance: `2026-06-17 21:51:44`
+- Last boot observed after the July 2026 update cycle: `2026-07-19 10:14:03`
 
 ## Critical Role Notes
 
@@ -70,8 +70,8 @@ Current remote-admin findings:
 
 Current storage findings:
 
-- `C:` NTFS, healthy, about 51.6 GB free of 128.5 GB during 2026-07-19 maintenance
-- `E:` `VeeamHDD`, ReFS, healthy, about 1.40 TB free of 30.8 TB during 2026-07-19 maintenance
+- `C:` NTFS, healthy, about 47.1 GB free of 128.5 GB after the July 2026 update cycle
+- `E:` `VeeamHDD`, ReFS, healthy, about 1.45 TB free of 30.8 TB after the July 2026 update cycle
 
 Current Windows Update findings:
 
@@ -83,8 +83,11 @@ Current Windows Update findings:
 - Mid-June check on `2026-06-14` found no pending Windows updates, no CBS/Windows Update reboot flags, and `PendingFileRenameOperations=True` again after a same-day reboot; the current queue sampled only `C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.239.19`.
 - Early-July check on `2026-07-04` again found `0` pending Windows updates and no CBS/Windows Update reboot flags; `PendingFileRenameOperations` remained present but was now sampled as one `EdgeUpdate` path plus four `C:\Config.Msi\*.rbf` entries and two `C:\WINDOWS\Temp\DEL*.tmp` entries.
 - Mid-July check on `2026-07-19` found `5` pending updates with no current CBS/Windows Update reboot flag: `PowerShell LTS v7.4.17 (x64)`, SQL Server 2016 SP3 CU security update `KB5102339`, `KB890830` v5.143, `.NET` cumulative update `KB5102206`, and Windows Server cumulative update `KB5099540`.
-- SQL Server instance `.\VEEAMSQL2016` reported `13.0.7085.1`, `SP3`, `CU1`.
+- The July 2026 update cycle completed on `2026-07-19`; after reboot there were no remaining pending updates, CBS/Windows Update reboot flags were clear, and `PendingFileRenameOperations` was clear again.
+- A later verification reboot on `2026-07-19` again returned with no remaining pending updates, no reboot-pending flags, and `PendingFileRenameOperations` clear after the temporary `.NET 8.0.28`/`.NET 8.0.29` runtime rename queue drained.
+- SQL Server instance `.\VEEAMSQL2016` now reports `13.0.7095.1`, `SP3`.
 - Veeam Backup & Replication service executable now reports version `13.0.2.29`, indicating the later Veeam upgrade completed.
+- PowerShell 7 now reports `7.4.17`.
 - Veeam services returned to `Running` after the normal post-boot delay; `SQLAgent$VEEAMSQL2016` remained stopped/disabled as before.
 
 Current Veeam warning interpretation:
