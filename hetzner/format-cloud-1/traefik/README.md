@@ -10,7 +10,7 @@ Traefik is the public ingress layer for this host. Treat changes carefully becau
 - server: `hetzner-cloud-1`
 - Docker service: `traefik_traefik`
 - previous dashboard hostname in labels: `traefik.format.lu`
-- current live image: `traefik:3.7.8`
+- current live image: `traefik:3.7.10`
 - live replica state during documentation: `1/1`
 - shared Docker network: `proxy`
 - published ports: `443/tcp` and `443/udp`

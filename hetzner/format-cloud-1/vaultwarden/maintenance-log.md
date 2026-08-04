@@ -4,6 +4,28 @@ Use this log for the combined Vaultwarden maintenance run on the 15th and the la
 
 Do not record real admin passwords, invite links, backup credentials, or unredacted hashes here.
 
+## 2026-08-04 - Vaultwarden Upgrade To 1.37.1
+
+Date: 2026-08-04 17:16 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `ghcr.io/dani-garcia/vaultwarden:1.36.0`
+
+Stack version after: `ghcr.io/dani-garcia/vaultwarden:1.37.1`
+
+Checks:
+
+- Container health checked: OK. `vaultwarden_server` is `1/1`.
+- Vaultwarden release checked: OK. Latest GitHub release observed during this run is `1.37.1`.
+- Release notes reviewed: OK. `1.37.1` is the patch release required for newer Bitwarden clients and includes invite-flow fixes.
+- Container logs reviewed: OK. Vaultwarden `1.37.1` launched normally and accepted websocket connections.
+- Traefik routing checked: OK. Local host-header route for `bitwarden.format.lu` returned `200`.
+- Stack image metadata checked: OK. `com.docker.stack.image` reports `ghcr.io/dani-garcia/vaultwarden:1.37.1`.
+- Update applied: Already applied before this verification pass.
+- Notes: The existing warnings about selected environment variables being overridden by `config.json` remain unchanged from previous runs.
+- Follow-up: Direct origin exposure and UI-level backup/restore verification remain broader platform follow-ups.
+
 ## 2026-07-04 - Metadata And Route Check
 
 Date: 2026-07-04 17:54 CEST

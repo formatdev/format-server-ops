@@ -6,6 +6,62 @@ Docker Engine maintenance, and reboot decisions for `format-cloud-1`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-08-04 - Package Maintenance, Reboot, And Stack Updates
+
+Date: 2026-08-04 17:16 CEST
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-136-generic`
+- Docker Engine: `29.6.2`
+- Portainer: `2.43.0`
+- Uptime: about 2 weeks, 2 days, 7 hours, 21 minutes.
+- Root filesystem: 150G total, 51G used, 94G free, 36% used.
+- Memory: 15 GiB total, about 11 GiB available.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-136-generic`
+- Docker Engine: `29.7.1`
+- Portainer: `2.44.0`
+- Root filesystem: 150G total, 51G used, 93G free, 36% used.
+- Memory after reboot: 15 GiB total, about 13 GiB available.
+
+Checks:
+
+- SSH checked: OK. `ssh hetzner-cloud-1` resolves to `188.245.43.92` and worked through the configured alias.
+- Firewall checked: OK. `ufw` remains active with inbound `22/tcp`, `443/tcp`, and `443/udp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail are active; one source was banned at inspection time.
+- System health checked: OK. `systemctl --failed` reported 0 failed units.
+- Docker Swarm checked: OK. Swarm remains active with local node control available.
+- Docker services checked: OK. All Swarm services reported `1/1` after package maintenance, reboot, and image updates.
+- Container health checked: OK. No unhealthy containers were reported.
+- Backups checked: OK. MariaDB dumps were current through `/data/backups/mysql/mariadb-all-databases-2026-08-03-200001.sql.gz`; a fresh Portainer archive was created at `/data/backups/portainer/portainer-data-20260804-151452.tar.gz`.
+- Routed app smoke tests checked: OK. Local Traefik host-header checks returned `200` for `bitwarden.format.lu`, `floc.lu`, `portainer.format.lu`, `pma.format.lu`, and `duplicati-fc1.format.lu`; `chargy.format.lu` returned the expected `302`.
+- Public hostname checks checked: Cloudflare Access/WAF returned HTTP `403` externally for sampled protected hostnames, while local Traefik routing was healthy.
+- Apt upgrade applied: Yes. Upgraded `docker-ce`, `docker-ce-cli`, and `docker-ce-rootless-extras` to `29.7.1`, `docker-buildx-plugin` to `0.36.0`, `docker-compose-plugin` to `5.4.0`, `libssl3t64` and `openssl` to `3.0.13-0ubuntu3.12`, `tzdata` to `2026c-0ubuntu0.24.04.1`, and `distro-info-data` to `0.72-0ubuntu0.24.04.1`.
+- Pending apt upgrades checked: OK. No package upgrades remained after maintenance.
+- Upgrade simulation checked: OK. `apt-get -s upgrade` and `apt-get -s full-upgrade` both reported 9 upgraded, 0 newly installed, 0 removed, and 0 not upgraded.
+- Reboot requirement checked: OK. Reboot completed and no reboot marker remained afterward.
+- Stack updates applied: Yes. Portainer server and agent moved to `2.44.0`, Traefik moved to `3.7.10`, and Vaultwarden was verified running `1.37.1`.
+- Stack image metadata checked: OK. Portainer, Traefik, and Vaultwarden `com.docker.stack.image` labels matched the live images after updates.
+- Logs reviewed: OK. Portainer migrated its database from `2.43.0` to `2.44.0` and started cleanly. Portainer agent kept its known multi-network warning. Traefik had the familiar startup-only missing middleware lines, and the fresh post-convergence filtered sample was quiet. Vaultwarden `1.37.1` launched and accepted websocket connections.
+
+Notes:
+
+- No Docker prune, stack redeploy, volume cleanup, or data deletion was performed.
+- Docker's package restart briefly left several Swarm tasks at `0/1` with stale VXLAN `file exists` errors. The already-required host reboot cleared the interfaces, and all services converged to `1/1` afterward.
+- Vaultwarden needed additional health-check warm-up after reboot before reaching `1/1`.
+- The single-node host-mode `443` replacement wait occurred during the Traefik update and then converged cleanly.
+
+Follow-up:
+
+- Continue the normal monthly inspection cadence.
+
 ## 2026-07-19 - Mid-Month Maintenance Round
 
 Date: 2026-07-19
