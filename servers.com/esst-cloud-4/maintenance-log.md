@@ -405,6 +405,45 @@ Checks:
 - Notes: Immediately after the manager reboot, `esst-cloud-3` briefly showed `Unknown` before returning to `Ready`. All monitored production services and the four Duplicati services converged cleanly after the cluster settled. `traefik_delay-start` still shows its old failed one-shot task history; it remains separate from host patching.
 - Follow-up: No immediate host-level follow-up required for `esst-cloud-4`.
 
+## 2026-08-08 - August Host Upgrade And Reboot
+
+Date: 2026-08-08
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-134-generic`
+- Docker Engine: `29.6.1`
+- Docker Swarm state: active manager, `Leader`
+- Root filesystem: `/dev/vda1` 37% used
+- Reboot-required marker was already present and listed `linux-image-6.8.0-136-generic`, `linux-image-6.8.0-137-generic`, `linux-base`, and `libc6`.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-137-generic`
+- Docker Engine: `29.7.2`
+- Docker Swarm state: active manager, returned as `Leader`
+- Root filesystem: `/dev/vda1` 37% used
+
+Checks:
+
+- SSH checked: OK. `cloud-user` key login still worked before and after the reboot.
+- Firewall checked: Not rechecked during this run.
+- Fail2ban checked: Not rechecked during this run.
+- System health checked: OK. Upgrade and reboot completed cleanly.
+- Disk checked: OK. Root filesystem remained healthy at about 37% used with about 58G free.
+- Memory checked: Not rechecked separately after reboot during this run.
+- Docker checked: OK. Docker upgraded to `29.7.2`. The manager returned as Swarm `Leader`, all four nodes reconverged as `Ready`, `portainer_agent` returned to `4/4`, `portainer_portainer` returned to `1/1`, `traefik_traefik` returned to `1/1`, and the four Duplicati services plus Vaultwarden all converged cleanly.
+- Public port exposure checked: Not rechecked during this run.
+- Apt upgrade applied: Yes. Upgraded `apport`, `apport-core-dump-handler`, `containerd.io`, Docker CE/CLI, `docker-buildx-plugin`, `docker-compose-plugin`, `libplymouth5`, `plymouth`, `plymouth-theme-ubuntu-text`, `python3-apport`, and `python3-problem-report`.
+- Remaining apt upgrades checked: `fwupd` remained held back.
+- Reboot requirement checked: Reboot required before maintenance due to the pending `6.8.0-136` and `6.8.0-137` kernels. Controlled reboot completed and the flag cleared.
+- Notes: Immediately after the manager reboot, `esst-cloud-2` and `esst-cloud-3` briefly showed `Unknown` and `portainer_portainer`, `traefik_traefik`, and `duplicati-ec4_duplicati_ec4` had not reconverged yet. A short wait was enough for the cluster to recover naturally. `traefik_delay-start` is now `1/1`.
+- Follow-up: No immediate host-level follow-up required for `esst-cloud-4`.
+
 ## Maintenance Template
 
 Date:
