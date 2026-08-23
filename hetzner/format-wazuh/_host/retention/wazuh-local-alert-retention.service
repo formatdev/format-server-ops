@@ -1,0 +1,13 @@
+[Unit]
+Description=Remove Wazuh local alert files older than 30 days
+Documentation=https://documentation.wazuh.com/current/user-manual/manager/event-logging.html
+ConditionPathIsDirectory=/var/ossec/logs/alerts
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/wazuh-local-alert-retention
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/ossec/logs/alerts

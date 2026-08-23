@@ -1,0 +1,23 @@
+#!/bin/sh
+
+set -eu
+
+alert_root=/var/ossec/logs/alerts
+
+if [ ! -d "$alert_root" ]; then
+  echo "Wazuh alert directory does not exist: $alert_root" >&2
+  exit 1
+fi
+
+# Dated alert files live under YEAR/MONTH. Current alerts.log and alerts.json
+# are directly below alert_root and are deliberately outside this search.
+find "$alert_root" -mindepth 3 -maxdepth 3 -type f \
+  \( -name 'ossec-alerts-*.log' \
+  -o -name 'ossec-alerts-*.json' \
+  -o -name 'ossec-alerts-*.log.gz' \
+  -o -name 'ossec-alerts-*.json.gz' \
+  -o -name 'ossec-alerts-*.log.sum' \
+  -o -name 'ossec-alerts-*.json.sum' \) \
+  -mtime +30 -print -delete
+
+find "$alert_root" -mindepth 1 -type d -empty -print -delete

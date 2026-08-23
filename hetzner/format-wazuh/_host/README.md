@@ -3,11 +3,11 @@
 Runbook for maintaining the Hetzner VPS that hosts Wazuh for the Format
 environment.
 
-Last updated: 2026-07-19
+Last updated: 2026-08-23
 
 ## Current Verified State
 
-Last verified: 2026-07-19. See
+Last verified: 2026-08-23. See
 [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/maintenance-log.md)
 for the inspection details.
 
@@ -17,8 +17,8 @@ for the inspection details.
 - Public IPv4: `116.203.114.188`
 - Public IPv6: `2a01:4f8:1c1c:9a62::1/64`
 - OS: Ubuntu 24.04.4 LTS
-- Running kernel: `6.8.0-136-generic`
-- Primary workload: Wazuh 4.14.6, package/systemd deployment
+- Running kernel: `6.8.0-138-generic`
+- Primary workload: Wazuh 4.14.7, package/systemd deployment
 - Active services: `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`,
   `filebeat`
 - Recommended agent endpoint: `wazuh-agent.format.lu`
@@ -26,15 +26,26 @@ for the inspection details.
 - Portainer: not present by current deployment evidence
 - Wazuh indexer data: `/var/lib/wazuh-indexer`, bind-mounted from
   `/mnt/HC_Volume_104575658/wazuh-indexer`
-- Reboot state: no reboot required after 2026-07-19 maintenance
-- Remaining apt upgrades as of 2026-07-19: none
-- Agent state: canonical Mac agent `043 MBP-PCZ` active after removing stale
-  local OpenVPN host routes again
+- Reboot state: reboot completed on 2026-08-23; no reboot marker remains
+- Remaining apt upgrades as of 2026-08-23: phased `open-vm-tools` update only
+- Searchable alert retention: 90 days through ISM policy
+  `wazuh-alert-retention-90d`
+- Local rotated alert retention: 30 days through
+  `wazuh-local-alert-retention.timer`
+- Internal Wazuh log retention: 31 days through the existing
+  `monitord.keep_log_days` setting
+- Storage after initial retention enforcement: root 60% used and indexer data
+  volume 37% used
+- Agent state: canonical Mac agent `043 MBP-PCZ` active; the OpenVPN Connect
+  profile persistently ignores the pushed route for `116.203.114.188` and
+  routes that host through `net_gateway`, while the other pushed cloud route
+  remains on the VPN
 
 ## Host Files
 
 - [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/maintenance-log.md): host-level maintenance history
 - [new-thread-prompt.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/new-thread-prompt.md): prompt for opening a dedicated maintenance thread
+- [retention/README.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/retention/README.md): tracked index and local alert retention configuration
 
 ## Safety Rules
 

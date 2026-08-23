@@ -6,6 +6,122 @@ Wazuh health checks, and reboot decisions for `format-wazuh`.
 Do not record passwords, API tokens, backup passwords, registry credentials,
 certificate private keys, enrollment secrets, or other secrets here.
 
+## 2026-08-23 - OS Maintenance, Reboot, And Agent Route Repair
+
+Date: 2026-08-23 15:45 CEST
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-136-generic`
+- Wazuh packages: `wazuh-manager`, `wazuh-indexer`, and `wazuh-dashboard` at `4.14.7-1`
+- `filebeat` package: `7.10.2-2`
+- Uptime: about 18 days, 22 hours, 19 minutes.
+- Root filesystem: 75G total, 61G used, 12G free, 85% used.
+- Wazuh data volume: 79G total, 61G used, 15G free, 82% used.
+- Memory: 7.6 GiB total, about 3.4 GiB available, 1.4 GiB swap used.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-138-generic`
+- Wazuh packages unchanged at `4.14.7-1`
+- `filebeat` package unchanged at `7.10.2-2`
+- Root filesystem after retention enforcement: 75G total, 43G used, 30G free, 60% used.
+- Wazuh data volume after retention enforcement: 79G total, 28G used, 48G free, 37% used.
+- Memory after reboot and warm-up: 7.6 GiB total, about 2.8 GiB available, 14 MiB swap used.
+
+Checks:
+
+- SSH checked: OK. The `format-wazuh` alias still resolves to `116.203.114.188` and worked before and after reboot.
+- Firewall checked: OK. `ufw` remains active with inbound `443/tcp`, `1514/tcp`, `1515/tcp`, and rate-limited `22/tcp`.
+- Fail2ban checked: OK. The `sshd` jail is active; one source was banned at inspection time.
+- System health checked: OK. No failed systemd units were reported before or after maintenance.
+- Wazuh deployment model checked: OK. Wazuh remains package/systemd-managed; Docker is absent.
+- Wazuh services checked: OK. `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`, and `filebeat` are active.
+- Wazuh endpoints checked: OK. Final local checks returned `302` from the dashboard, `401` from the API, and `401` from the indexer.
+- Indexer health checked: OK. The single-node cluster recovered to expected yellow with all 692 primary shards active and 31 replica shards unassigned.
+- Searchable alert retention applied: Created ISM policy `wazuh-alert-retention-90d` with a `wazuh-alerts-*` template, attached it to all 195 existing alert indices, and verified the newest retained index is managed.
+- Initial index retention enforced: Deleted the exact 104 daily alert indices dated 2026-02-10 through 2026-05-24. The remaining 91 indices run from 2026-05-25 through 2026-08-23 and are all managed by the 90-day policy.
+- Local alert retention applied: Installed and enabled `wazuh-local-alert-retention.timer`, scheduled daily around 03:35 UTC with randomized delay. Its first successful run removed 694 dated alert and checksum files older than 30 days, reclaiming 18.36 GiB.
+- Local alert safety checked: OK. Live `alerts.log` and `alerts.json` remained present, the oldest retained dated file is from 2026-07-24, and the local alert tree now uses about 4.6 GiB.
+- Internal and queue retention checked: OK. `monitord.keep_log_days=31` remains unchanged, and `/var/ossec/queue` remained untouched at about 16 GiB.
+- Agent checked: OK after route repair. `043 MBP-PCZ` returned to `Active` after the Mac route for `116.203.114.188` was changed from OpenVPN interface `utun7` to the local Wi-Fi gateway.
+- Persistent VPN route checked: OK. The OpenVPN Connect profile now ignores only the server-pushed route for `116.203.114.188` and adds that host through `net_gateway`. After a full VPN disconnect and reconnect, the Wazuh host used gateway `10.115.56.1` on `en0`, while `188.245.43.92` remained routed through `192.168.113.1` on `utun7`. TCP ports `1514` and `1515` remained reachable and agent `043 MBP-PCZ` was `Active` on the manager.
+- Listening ports checked: OK. SSH `22`, dashboard `443`, agent traffic `1514`, enrollment `1515`, local API `55000`, and local indexer `9200`/`9300` remain as expected.
+- Apt upgrade applied: Yes. Applied 19 routine OS and security updates covering Apport, console setup, Kerberos libraries, QEMU guest agent, Snap, Vim, Wget, and related packages. Wazuh itself was already current and was not upgraded.
+- Pending apt upgrades checked: One phased `open-vm-tools` update remains. It was not forced outside Ubuntu's rollout phase.
+- Reboot requirement checked: OK. Rebooted into `6.8.0-138-generic`; no reboot marker remained.
+
+Notes:
+
+- The pre-existing unused ISM policy `60` had no template and managed zero indices. It was removed after the new policy was attached and verified.
+- The 9.6G historical archive at `/root/wazuh-backup-2025-08-03.tar.gz` remains untouched.
+- The Mac route exception is persistent in the OpenVPN Connect profile using `pull-filter ignore` for the Wazuh host route plus an explicit `net_gateway` route. A timestamped local backup of the original profile was retained before editing.
+- Deletion was limited to the 104 previewed alert indices older than 90 days and dated local alert/checksum files older than 30 days. No queue data, current logs, configuration, certificate, enrollment key, or backup archive was deleted.
+
+Follow-up:
+
+- Monitor the ISM policy and local retention timer during future maintenance rounds.
+- Recheck the Wazuh route and agent status if the OpenVPN profile is replaced or re-imported in the future.
+- Decide separately whether the 9.6G historical archive should remain on the host.
+
+## 2026-08-04 - Wazuh Upgrade And Reboot
+
+Date: 2026-08-04
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-136-generic`
+- Wazuh packages: `wazuh-manager`, `wazuh-indexer`, and `wazuh-dashboard` at `4.14.6-1`
+- `filebeat` package: `7.10.2-2`
+- Uptime: about 2 weeks, 2 days, 7 hours, 21 minutes.
+- Root filesystem: 75G total, 59G used, 13G free, 83% used.
+- Wazuh data volume: 79G total, 56G used, 19G free, 76% used.
+- Memory: 7.6 GiB total, about 3.4 GiB available, 1.2 GiB swap used.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-136-generic`
+- Wazuh packages: `wazuh-manager`, `wazuh-indexer`, and `wazuh-dashboard` at `4.14.7-1`
+- `filebeat` package: `7.10.2-2`
+- Root filesystem after package-cache cleanup: 75G total, 57G used, 16G free, 79% used.
+- Wazuh data volume: 79G total, 55G used, 20G free, 74% used.
+- Memory after reboot and warm-up: 7.6 GiB total, about 3.1 GiB available, negligible swap used.
+
+Checks:
+
+- SSH checked: OK. `ssh format-wazuh` resolves to `116.203.114.188` and worked through the configured alias.
+- Firewall checked: OK. `ufw` remains active with inbound `443/tcp`, `1514/tcp`, `1515/tcp`, and rate-limited `22/tcp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail are active; three sources were banned at inspection time.
+- System health checked: OK. `systemctl --failed` reported 0 failed units.
+- Wazuh deployment model checked: OK. Still package/systemd-managed; Docker remains absent.
+- Wazuh health checked: OK. `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`, and `filebeat` are active. Local checks returned `302` from `https://127.0.0.1/`, `401` from `https://127.0.0.1:55000/`, and `401` from `https://127.0.0.1:9200/`.
+- Agent list checked: OK. `agent_control -lc` listed the local manager and enrolled active agents, including `043 MBP-PCZ`.
+- Public/listening ports checked: OK. Listening ports remain SSH `22`, Wazuh enrollment `1515`, Wazuh agent events `1514`, dashboard `443`, Wazuh API local `127.0.0.1:55000`, and indexer local `127.0.0.1:9200`/`9300`.
+- Apt upgrade applied: Yes. Upgraded `wazuh-manager`, `wazuh-indexer`, and `wazuh-dashboard` to `4.14.7-1`, `libssl3t64` and `openssl` to `3.0.13-0ubuntu3.12`, `tzdata` to `2026c-0ubuntu0.24.04.1`, and `distro-info-data` to `0.72-0ubuntu0.24.04.1`.
+- Pending apt upgrades checked: OK. No package upgrades remained after maintenance.
+- Upgrade simulation checked: OK. `apt-get -s upgrade` and `apt-get -s full-upgrade` both reported 7 upgraded, 0 newly installed, 0 removed, and 0 not upgraded.
+- Reboot requirement checked: OK. Reboot completed and no reboot marker remained afterward.
+
+Notes:
+
+- No Wazuh indices, configuration, certificates, logs, or backup archives were deleted.
+- During post-reboot warm-up the indexer was red while primary shards recovered in batches of four. Allocation diagnostics reported temporary recovery throttling with in-sync shard stores. The cluster recovered to yellow with all 630 primary shards active, 30 replica shards unassigned as expected for this single-node indexer, and the dashboard returned to HTTP `302`.
+- Clearing downloaded apt package installers after the successful upgrade reduced root usage from a transient 90% to 79%.
+- A historical 10G archive remains at `/root/wazuh-backup-2025-08-03.tar.gz`; it was identified but left untouched.
+
+Follow-up:
+
+- Continue monitoring Wazuh index growth and retention; the data volume is 74% used.
+- Decide separately whether the 10G historical archive in `/root` should be retained or moved off-host.
+
 ## 2026-07-19 - Mid-Month Maintenance Round
 
 Date: 2026-07-19
