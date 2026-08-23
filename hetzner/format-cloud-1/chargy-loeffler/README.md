@@ -10,7 +10,7 @@ This runbook documents the `chargy-loeffler` custom app stack hosted through Por
 - public hostname: `chargy.loeffler.lu`
 - live app image: `esst/chargy:latest`
 - observed app digest: `sha256:49b95d2bcf606935eb0a60fe9d05acd8eaaabcac8c92e36dd705643e4324d16a`
-- Redis image: `redis:7.4.8-alpine3.21`
+- Redis image: `redis:7.4.11-alpine3.21`
 - backend port: `80`
 - reverse proxy: Traefik on external Docker network `proxy`
 - Redis volume: `chargy-loeffler_redis:/data`

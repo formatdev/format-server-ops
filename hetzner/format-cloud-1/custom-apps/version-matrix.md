@@ -1,6 +1,6 @@
 # Custom App Version Matrix
 
-Observed on `2026-04-18` from `hetzner-cloud-1`.
+Observed on `2026-08-23` from `hetzner-cloud-1`.
 
 Do not treat mutable tags such as `latest`, `dsk-pm`, or `tim` as proof that an app is up to date. For those, compare the live image digest with the image Peter built from the latest reviewed repo commit.
 
@@ -19,8 +19,8 @@ Do not treat mutable tags such as `latest`, `dsk-pm`, or `tim` as proof that an 
 | Stack | Service | Live image | Notes |
 | --- | --- | --- | --- |
 | `next-floc` | `next-floc_db` | `mysql:8-oracle` | Check MySQL release compatibility before bumping. |
-| `chargy-loeffler` | `chargy-loeffler_redis` | `redis:7.4-alpine3.21` | Coordinate Redis bumps with app compatibility. |
-| `chargy` | `chargy_redis` | `redis:7.4-alpine3.21` | Coordinate Redis bumps with app compatibility. |
+| `chargy-loeffler` | `chargy-loeffler_redis` | `redis:7.4.11-alpine3.21` | Coordinate Redis bumps with app compatibility. |
+| `chargy` | `chargy_redis` | `redis:7.4.11-alpine3.21` | Coordinate Redis bumps with app compatibility. |
 
 ## Maintenance Rule
 

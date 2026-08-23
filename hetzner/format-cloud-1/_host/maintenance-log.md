@@ -6,6 +6,62 @@ Docker Engine maintenance, and reboot decisions for `format-cloud-1`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-08-23 - End-Of-Month Maintenance Round
+
+Date: 2026-08-23 15:40 CEST
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-136-generic`
+- Docker Engine: `29.7.1`
+- Reboot state: reboot required; marker listed `linux-image-6.8.0-137-generic`, `linux-base`, `linux-image-6.8.0-138-generic`, and `linux-base`.
+- Uptime: about 2 weeks, 4 days, 22 hours, 26 minutes.
+- Swarm was healthy before maintenance; all services were `1/1`.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-138-generic`
+- Docker Engine: `29.7.2`
+- Docker Compose plugin: `5.5.0`
+- Root filesystem: 150G total, 55G used, 90G free, 38% used.
+- Memory after reboot: 15 GiB total, about 12 GiB available.
+- Reboot marker: none present.
+- Pending apt upgrades: none observed.
+
+Checks:
+
+- SSH checked: OK. `ssh hetzner-cloud-1` worked before and after reboot.
+- Firewall checked: OK. `ufw` remains active with inbound `22/tcp`, `443/tcp`, and `443/udp`.
+- Fail2ban checked: OK. `fail2ban` and the `sshd` jail are active; two sources were banned before maintenance.
+- System health checked: OK. `systemctl --failed` reported 0 failed units after maintenance.
+- Docker Swarm checked: OK. Single-node Swarm recovered after package maintenance and reboot.
+- Docker services checked: OK. All Swarm services reported `1/1` after package maintenance, reboot, and image updates.
+- Container health checked: OK. No unhealthy containers were reported.
+- Backups checked: OK. Portainer archives were current through `/data/backups/portainer/portainer-data-20260822-201001.tar.gz`; MariaDB dumps were current through `/data/backups/mysql/mariadb-all-databases-2026-08-22-200001.sql.gz`.
+- Apt upgrade applied: Yes. Upgraded Docker Engine to `29.7.2`, `containerd.io` to `2.3.3`, Docker Buildx to `0.36.1`, Docker Compose plugin to `5.5.0`, `linux-firmware`, `snapd`, `apport`, `qemu-guest-agent`, `open-vm-tools`, Kerberos libraries, and console/keyboard packages.
+- Pending apt upgrades checked: OK. No package upgrades remained after maintenance.
+- Reboot requirement checked: OK. Rebooted into `6.8.0-138-generic`; no reboot marker remained afterward.
+- Stack updates applied: Yes. Traefik moved to `3.7.11`, Vaultwarden moved to `1.37.2`, both Chargy Redis services moved to `redis:7.4.11-alpine3.21`, and Cloudflared `latest` refreshed from `2026.7.3` to `2026.8.2`.
+- Stack image metadata checked: OK. Traefik, Vaultwarden, Redis, and Cloudflared `com.docker.stack.image` labels matched the live images after updates.
+- Routed app smoke tests checked: OK. Local Traefik host-header checks returned `200` for `bitwarden.format.lu`, `floc.lu`, `portainer.format.lu`, `pma.format.lu`, and `duplicati-fc1.format.lu`; `chargy.format.lu` and `chargy.loeffler.lu` returned the expected `302`.
+- Logs reviewed: OK. Fresh Traefik and Cloudflared filtered log samples were quiet after convergence. Vaultwarden `1.37.2` launched normally. Redis `7.4.11` loaded existing RDB files and returned to ready.
+
+Notes:
+
+- No Docker prune, volume cleanup, database upgrade, WordPress major upgrade, MariaDB major upgrade, or MySQL `8-oracle` moving-tag refresh was performed.
+- Vaultwarden again had a post-reboot and post-update health warm-up period; `bitwarden.format.lu` briefly returned `404` while Traefik waited for a healthy backend, then returned `200`.
+- Traefik again hit the known single-node host-mode `443` replacement wait and then converged cleanly.
+- Redis still logs the known `vm.overcommit_memory` warning at startup.
+- Cloudflared shutdown errors appeared for the old task during the controlled replacement; the new `2026.8.2` task registered tunnel connections cleanly.
+
+Follow-up:
+
+- Keep Redis 8, WordPress 7.1, MariaDB 12.x, and MySQL `8-oracle` refreshes as separate planned compatibility and backup-reviewed work.
+
 ## 2026-08-04 - Package Maintenance, Reboot, And Stack Updates
 
 Date: 2026-08-04 17:16 CEST

@@ -3,7 +3,7 @@
 Runbook for maintaining the Hetzner VPS that hosts the Portainer-managed Docker
 Swarm environment.
 
-Last verified: 2026-08-04
+Last verified: 2026-08-23
 
 ## Host Facts
 
@@ -11,15 +11,15 @@ Last verified: 2026-08-04
 - Hostname: `format-cloud-1`
 - Public IP: `188.245.43.92`
 - OS: Ubuntu 24.04 LTS
-- Running kernel: `6.8.0-136-generic`
-- Docker Engine: `29.7.1`
+- Running kernel: `6.8.0-138-generic`
+- Docker Engine: `29.7.2`
 - Docker mode: single-node Docker Swarm
 - Primary public entrypoint: Traefik on HTTPS
 - Portainer stack: `portainer`
 - Portainer current version: `2.44.0`
-- Reboot state: no reboot required as of 2026-08-04 after booting
-  `6.8.0-136-generic`
-- Pending package maintenance as of 2026-08-04: none observed after package
+- Reboot state: no reboot required as of 2026-08-23 after booting
+  `6.8.0-138-generic`
+- Pending package maintenance as of 2026-08-23: none observed after package
   maintenance and reboot
 
 ## Host Files

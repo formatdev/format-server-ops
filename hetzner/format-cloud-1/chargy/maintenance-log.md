@@ -4,6 +4,26 @@ Use this log for `chargy` checks during the combined Hetzner platform maintenanc
 
 Do not record credentials, tokens, customer data, Redis dumps, or other secrets here.
 
+## 2026-08-23 - Redis Patch Update
+
+Date: 2026-08-23 15:40 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `redis:7.4.8-alpine3.21`
+
+Stack version after: `redis:7.4.11-alpine3.21`
+
+Checks:
+
+- Redis service update applied: OK. Updated `chargy_redis` to `redis:7.4.11-alpine3.21`.
+- Redis service health checked: OK. `chargy_redis` returned to `1/1`.
+- App service health checked: OK. `chargy_app` stayed `1/1` during the Redis update.
+- Redis startup logs checked: OK. Redis `7.4.11` loaded the existing RDB cleanly and returned to `Ready to accept connections`.
+- Public route checked: OK. `https://chargy.format.lu/` returned the expected `302`.
+- Notes: The host still logs the known `vm.overcommit_memory must be enabled` warning at Redis startup.
+- Follow-up: Keep `chargy` and `chargy-loeffler` Redis tags aligned, and decide later whether to enable `vm.overcommit_memory=1` at the host level.
+
 ## 2026-05-03 - Twice-Monthly Check
 
 Date: 2026-05-03 08:31 CEST
