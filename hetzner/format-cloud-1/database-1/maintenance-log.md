@@ -4,6 +4,28 @@ Use this log for shared MariaDB checks during the combined Hetzner platform main
 
 Do not record root passwords, application database passwords, SQL dumps, personal data, customer data, or other secrets here.
 
+## 2026-09-05 - MariaDB Patch Upgrade
+
+Date: 2026-09-05 09:34 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `mariadb:11.8.8`
+
+Stack version after: `mariadb:11.8.9`
+
+Checks:
+
+- Fresh dump created: OK. Created `/data/backups/mysql/mariadb-all-databases-2026-09-05-072709.sql.gz` and verified it with `gzip -t` before the update.
+- Container and public exposure checked: OK. `database-1_db` is `1/1` and remains unrouted by Traefik.
+- Running image and metadata checked: OK. The service and stack label report `mariadb:11.8.9`; the pulled image digest is `sha256:2439dcd7d14010ecd1ff7a4e1c5abe8e208c34fe35290744deeeaac3569043c3`.
+- Running version checked: OK. The container reports `11.8.9-MariaDB`.
+- Registry/current patch checked: OK. `11.8.9` was the current official `11.8` patch during this run.
+- Logs reviewed: OK. MariaDB reported that an upgrade was not required and became ready for connections; existing cgroup and io_uring fallback warnings remain non-fatal.
+- Update applied: Yes.
+- Notes: The service was one of three tasks left unscheduled by the reboot-time Swarm manager race. A forced service update restored it before the image patch was applied.
+- Follow-up: Keep the next LTS-line jump as separate compatibility-reviewed work.
+
 ## 2026-06-14 - MariaDB Patch Upgrade
 
 Date: 2026-06-14 18:16 CEST

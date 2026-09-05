@@ -4,6 +4,26 @@ Use this log for Traefik checks during the combined Hetzner platform maintenance
 
 Do not record Cloudflare tokens, dashboard credentials, ACME account private keys, or other secrets here.
 
+## 2026-09-05 - Traefik Patch Upgrade
+
+Date: 2026-09-05 09:34 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `traefik:3.7.11`
+
+Stack version after: `traefik:3.7.13`
+
+Checks:
+
+- Container and image metadata checked: OK. `traefik_traefik` is `1/1`, and the live image and stack label both report `traefik:3.7.13`.
+- Latest release checked: OK. `v3.7.13` was the current upstream release and Docker official image during this run.
+- Provider, network, ports, and dashboard policy checked: OK. Swarm routing remained on `proxy`, HTTPS remained on `443/tcp` and `443/udp`, and the dashboard remained disabled.
+- Routed app smoke tests checked: OK. All seven sampled routes returned their expected responses after dependent services recovered.
+- Logs reviewed: OK. Startup showed the familiar temporary missing-middleware lines; the fresh post-convergence error sample was quiet.
+- Update applied: Yes.
+- Notes: The expected single-node host-mode port `443` replacement wait occurred and then converged normally.
+
 ## 2026-08-23 - Traefik Patch Upgrade
 
 Date: 2026-08-23 15:40 CEST

@@ -4,6 +4,27 @@ Use this log for Portainer checks during the combined Hetzner platform maintenan
 
 Do not record Portainer passwords, API tokens, backup passwords, registry credentials, or other secrets here.
 
+## 2026-09-05 - LTS Security Upgrade
+
+Date: 2026-09-05 09:34 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `portainer/portainer-ce:2.44.0`, `portainer/agent:2.44.0`
+
+Stack version after: `portainer/portainer-ce:2.45.0`, `portainer/agent:2.45.0`
+
+Checks:
+
+- Backup checked: OK. Created `/data/backups/portainer/portainer-data-20260905-072656.tar.gz` before the update.
+- Release notes checked: OK. `2.45.0` is an LTS release and includes a critical Docker proxy authorization-bypass fix plus related security updates.
+- Portainer server and agent checked: OK. Both services converged at `1/1` on `2.45.0` with matching stack image metadata.
+- Database migration checked: OK. Portainer migrated from `2.44.0` to `2.45.0` and reported `db migrated to 2.45.0`.
+- Route checked: OK. `portainer.format.lu` returned `200`.
+- Fresh logs reviewed: OK. Server and agent started on API version `2.45.0` with no fresh errors after convergence.
+- Update applied: Yes.
+- Follow-up: Continue tracking the LTS line for this production management service.
+
 ## 2026-08-04 - STS Upgrade
 
 Date: 2026-08-04 17:16 CEST

@@ -9,9 +9,9 @@ This database backs multiple applications. Treat updates, repairs, and restarts 
 - service: shared MariaDB
 - server: `hetzner-cloud-1`
 - Docker service: `database-1_db`
-- current live image: `mariadb:11.8.8`
-- current observed digest: `sha256:78a5047d3ba33975f183f183c2464cc7f1eab13ec8667e57cc9a5821d6da7577`
-- observed MariaDB version: `11.8.8-MariaDB`
+- current live image: `mariadb:11.8.9`
+- current observed digest: `sha256:2439dcd7d14010ecd1ff7a4e1c5abe8e208c34fe35290744deeeaac3569043c3`
+- observed MariaDB version: `11.8.9-MariaDB`
 - upgrade environment: `MARIADB_AUTO_UPGRADE=1`
 - data bind mount: `/data/databases/db_1:/var/lib/mysql`
 - Traefik route: none
@@ -38,7 +38,7 @@ System schemas:
 
 ## Version Policy
 
-The current production line is `mariadb:11.8`, which is an active LTS line. On `2026-04-18`, the running server was upgraded from MariaDB `11.4.10` to `11.8.6`; on `2026-06-14`, it was patched to `11.8.8`.
+The current production line is `mariadb:11.8`, which is an active LTS line. On `2026-04-18`, the running server was upgraded from MariaDB `11.4.10` to `11.8.6`; it was patched to `11.8.8` on `2026-06-14` and to `11.8.9` on `2026-09-05`.
 
 Major LTS jumps should not be handled as routine twice-monthly patch bumps. Prefer:
 
@@ -63,6 +63,7 @@ Major LTS jumps should not be handled as routine twice-monthly patch bumps. Pref
 - On `2026-04-18`, the service was upgraded from `mariadb:11.4.10` to `mariadb:11.8.6` with `MARIADB_AUTO_UPGRADE=1`.
 - On `2026-04-18`, `mariadb-upgrade` completed successfully and the post-upgrade full table check produced no non-OK table results.
 - On `2026-06-14`, a fresh pre-upgrade dump was created at `/data/backups/mysql/mariadb-all-databases-2026-06-14-161556.sql.gz` and the service was patched from `mariadb:11.8.6` to `mariadb:11.8.8`.
+- On `2026-09-05`, a fresh pre-upgrade dump was created at `/data/backups/mysql/mariadb-all-databases-2026-09-05-072709.sql.gz`, passed gzip verification, and the service was patched to `mariadb:11.8.9`.
 
 ## Maintenance Checklist
 

@@ -4,6 +4,27 @@ Use this log for Duplicati checks during the combined Hetzner platform maintenan
 
 Do not record encryption keys, backup destination credentials, SSH private keys, Duplicati UI credentials, exported job definitions containing secrets, SQL dumps, or other secrets here.
 
+## 2026-09-05 - Duplicati Stable Upgrade
+
+Date: 2026-09-05 09:34 CEST
+
+Maintainer: Codex with Peter
+
+Stack version before: `duplicati/duplicati@sha256:01f8cb81ad7d548b7ceec61d696bb5d27d8057fee0ddee37c2b8a0ff1f1729f7`
+
+Stack version after: `duplicati/duplicati@sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218`
+
+Checks:
+
+- Latest upstream release checked: OK. `v2.4.0.0_stable_2026-09-03` superseded the previous `2.3.0.4` stable release.
+- Breaking permission change reviewed: OK. The actual application data directory `/data/Duplicati` was root-owned with mode `0700`, matching the new strict requirement.
+- Container and metadata checked: OK. The service is `1/1`, and both the live image and stack label use the tested digest `sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218`.
+- Mounted paths checked: OK. The existing named data volume and read-only host source mounts remained configured.
+- Route checked: OK. `duplicati-fc1.format.lu` returned `200` after a brief Traefik discovery delay.
+- Logs reviewed: OK. Duplicati started and listened on port `8200` without permission, configuration, migration, or database errors.
+- Update applied: Yes.
+- Follow-up: Confirm the next scheduled remote backup completes in the Duplicati UI and retain the normal restore-test cadence.
+
 ## 2026-07-19 - Duplicati Image Refresh
 
 Date: 2026-07-19 09:44 CEST

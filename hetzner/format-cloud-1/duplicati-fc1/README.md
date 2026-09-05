@@ -3,7 +3,7 @@
 This folder documents the `duplicati-fc1` backup service hosted through
 Portainer on the Hetzner host `format-cloud-1`.
 
-Last verified: 2026-07-19.
+Last verified: 2026-09-05.
 
 Duplicati is part of the backup layer. Treat updates and configuration changes
 carefully, because backup metadata, destination credentials, and restore ability
@@ -26,9 +26,9 @@ off-server backups with a daily MariaDB dump included in the backup set.
 - Backup destination: Synology SFTP, user `FormatBU`
 - Synology destination path: `/FORMATBF/duplicati/format-cloud-1`
 - WatchGuard SFTP forwarding: [watchguard-sftp.md](./watchguard-sftp.md)
-- Current live image: `duplicati/duplicati@sha256:01f8cb81ad7d548b7ceec61d696bb5d27d8057fee0ddee37c2b8a0ff1f1729f7`
-- Current observed digest: `sha256:01f8cb81ad7d548b7ceec61d696bb5d27d8057fee0ddee37c2b8a0ff1f1729f7`
-- Latest stable release checked: `2.3.0.4_stable_2026-07-09`
+- Current live image: `duplicati/duplicati@sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218`
+- Current observed digest: `sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218`
+- Latest stable release checked: `2.4.0.0_stable_2026-09-03`
 - Backend container port: `8200`
 
 Sensitive values are intentionally not stored in this repository. Keep them in
@@ -275,18 +275,26 @@ Docker service name.
 
 ## Version Notes
 
-The live image is `duplicati/duplicati:latest`. Docker Hub documents `latest`
-as the most recent stable release for the official image.
+Docker Hub documents `duplicati/duplicati:latest` as the most recent stable
+release for the official image. Production is deployed with the tested digest
+from that tag rather than the mutable tag itself.
 
 On `2026-04-18`, the live image digest matched the current Docker registry
 `latest` index, and the container changelog showed
 `2.3.0.0_stable_2026-04-14`.
+
+On `2026-09-05`, `latest` resolved to digest
+`sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218`
+for stable release `2.4.0.0_stable_2026-09-03`; that digest is pinned live.
 
 Important rollback note:
 
 - Duplicati `2.3.0.x_stable_2026-04` includes a server database schema
   update to version 11. Do not roll back to an older image without first
   checking Duplicati's database downgrade/export guidance.
+- Duplicati `2.4.0.0_stable_2026-09-03` enforces strict application data-folder
+  permissions. The live `/data/Duplicati` directory was verified as root-owned
+  with mode `0700` before upgrading.
 
 ## Restore Test
 

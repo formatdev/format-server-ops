@@ -7,7 +7,7 @@ volumes:
 
 services:
   duplicati_fc1:
-    image: duplicati/duplicati@sha256:01f8cb81ad7d548b7ceec61d696bb5d27d8057fee0ddee37c2b8a0ff1f1729f7
+    image: duplicati/duplicati@sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218
     volumes:
       - duplicati_fc1_data:/data
       - /data:/source-data

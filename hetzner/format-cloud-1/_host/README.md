@@ -3,7 +3,7 @@
 Runbook for maintaining the Hetzner VPS that hosts the Portainer-managed Docker
 Swarm environment.
 
-Last verified: 2026-08-23
+Last verified: 2026-09-05
 
 ## Host Facts
 
@@ -11,15 +11,15 @@ Last verified: 2026-08-23
 - Hostname: `format-cloud-1`
 - Public IP: `188.245.43.92`
 - OS: Ubuntu 24.04 LTS
-- Running kernel: `6.8.0-138-generic`
-- Docker Engine: `29.7.2`
+- Running kernel: `6.8.0-139-generic`
+- Docker Engine: `29.8.0`
 - Docker mode: single-node Docker Swarm
 - Primary public entrypoint: Traefik on HTTPS
 - Portainer stack: `portainer`
-- Portainer current version: `2.44.0`
-- Reboot state: no reboot required as of 2026-08-23 after booting
-  `6.8.0-138-generic`
-- Pending package maintenance as of 2026-08-23: none observed after package
+- Portainer current version: `2.45.0 LTS`
+- Reboot state: no reboot required as of 2026-09-05 after booting
+  `6.8.0-139-generic`
+- Pending package maintenance as of 2026-09-05: none observed after package
   maintenance and reboot
 
 ## Host Files
@@ -188,7 +188,7 @@ scp "hetzner-cloud-1:/data/portainer/data/backups/portainer-data-*.tar.gz" ~/Dow
 
 ## Portainer Upgrade
 
-Current host state: Portainer CE `2.44.0` for both server and agent.
+Current host state: Portainer CE `2.45.0` for both server and agent.
 
 Before upgrading:
 
@@ -203,7 +203,7 @@ Back up Portainer data first, then update server and agent to the same version.
 Example:
 
 ```sh
-VERSION="2.44.0"
+VERSION="2.45.0"
 
 docker pull "portainer/portainer-ce:${VERSION}"
 docker pull "portainer/agent:${VERSION}"

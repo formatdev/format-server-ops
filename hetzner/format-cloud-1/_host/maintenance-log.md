@@ -6,6 +6,59 @@ Docker Engine maintenance, and reboot decisions for `format-cloud-1`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-09-05 - September Maintenance Round
+
+Date: 2026-09-05 09:34 CEST
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-138-generic`
+- Docker Engine: `29.7.2`
+- Uptime: about 12 days, 17 hours, 45 minutes.
+- Swarm was healthy before maintenance; all services were `1/1`.
+
+Host after:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-139-generic`
+- Docker Engine: `29.8.0`
+- Docker Compose plugin: `5.5.1`
+- Root filesystem: 150G total, 56G used, 89G free, 39% used.
+- Memory after reboot: 15 GiB total, about 13 GiB available.
+- Reboot marker: none present.
+- Pending apt upgrades: none observed.
+
+Checks:
+
+- SSH, firewall, Fail2ban, and system health checked: OK. SSH remained key-only, UFW allowed only SSH and HTTPS, Fail2ban remained active, and no failed systemd units were reported.
+- Backups checked: OK. Daily Portainer and MariaDB backups were current through 2026-09-04. Fresh pre-upgrade backups were created at `/data/backups/portainer/portainer-data-20260905-072656.tar.gz` and `/data/backups/mysql/mariadb-all-databases-2026-09-05-072709.sql.gz`; the MariaDB dump passed gzip verification.
+- Apt full upgrade applied: Yes. Upgraded 16 packages and installed 20 new split firmware/kernel packages, including Docker Engine `29.8.0`, containerd `2.3.4`, Buildx `0.37.0`, Compose `5.5.1`, Python 3.12 updates, procps, linux-firmware, and kernel `6.8.0-139`.
+- Reboot completed: Yes. The host booted `6.8.0-139-generic`; no reboot marker or pending apt upgrades remained.
+- Docker Swarm checked: OK. All 18 services finished at `1/1`, with no unhealthy containers.
+- Stack updates applied: Portainer server and agent `2.45.0 LTS`, Traefik `3.7.13`, MariaDB `11.8.9`, Duplicati stable `2.4.0.0` pinned to digest `sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218`, and Cloudflared `2026.8.3`.
+- Duplicati permission preflight checked: OK. Its actual application data directory `/data/Duplicati` was already owned by root with mode `0700`, satisfying the new stable release's strict data-folder requirement.
+- Routed app smoke tests checked: OK. Local Traefik checks returned `200` for Bitwarden, FLOC, Portainer, phpMyAdmin, and Duplicati; both Chargy routes returned the expected `302`.
+- Fresh logs reviewed: OK. Portainer migrated from `2.44.0` to `2.45.0`; MariaDB reported no upgrade required and became ready; Duplicati listened on port 8200; fresh Traefik, Cloudflared, and upgraded-service error samples were quiet after convergence.
+
+Recovery notes:
+
+- During the reboot, Swarm stopped one Redis task, MariaDB, and MySQL while its manager was shutting down and did not automatically schedule replacements. Their data services had shut down cleanly. Forced service updates recreated exactly those three tasks, and all converged.
+- Both Chargy containers initially started before MariaDB was available, so their startup upgrade process failed and routes returned `503`. Recycling the two app services after the databases were healthy made both startup upgrades exit successfully and restored the expected `302` responses.
+- Traefik again encountered the expected single-node host-mode port `443` replacement wait before converging.
+- Duplicati briefly returned `404` while Traefik refreshed service discovery, then returned `200` on the next check.
+
+Notes:
+
+- Redis `7.4.11`, Vaultwarden `1.37.2`, and phpMyAdmin `5.2.3` remained current in their selected lines.
+- WordPress 7.1, Redis 8, MariaDB 12.x, and the MySQL `8-oracle` moving-tag refresh remain separate compatibility-reviewed work.
+- Mutable custom `esst/*` image tags could not be compared with their registries from this host because registry pulls were unavailable. Running images remained healthy and unchanged.
+- No Docker prune, production volume cleanup, autoremove, or production data
+  deletion was performed. A disposable Duplicati version-probe container and
+  its anonymous test volume were removed after validation.
+
 ## 2026-08-23 - End-Of-Month Maintenance Round
 
 Date: 2026-08-23 15:40 CEST
