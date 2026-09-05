@@ -6,6 +6,89 @@ Wazuh health checks, and reboot decisions for `format-wazuh`.
 Do not record passwords, API tokens, backup passwords, registry credentials,
 certificate private keys, enrollment secrets, or other secrets here.
 
+## 2026-09-05 - Routine Maintenance And Kernel Reboot
+
+Date: 2026-09-05 09:20 CEST
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- OS: Ubuntu 24.04.4 LTS
+- Running kernel: `6.8.0-138-generic`; installed kernel meta-package already
+  pointed to `6.8.0-139.139` and a reboot was pending.
+- Wazuh packages: `wazuh-manager`, `wazuh-indexer`, and `wazuh-dashboard` at
+  `4.14.7-1`; `filebeat` at `7.10.2-2`.
+- Uptime: about 12 days, 17 hours, 42 minutes.
+- Root filesystem: 75G total, 43G used, 30G free, 60% used.
+- Wazuh data volume: 79G total, 28G used, 47G free, 37% used.
+- Memory: 7.6 GiB total, about 3.2 GiB available, 1.0 GiB swap used.
+
+Maintenance performed:
+
+- Refreshed apt package metadata and simulated both `upgrade` and
+  `full-upgrade`; both showed the same nine upgrades with no additions,
+  removals, or held packages.
+- Upgraded Byobu, procps libraries and tools, Python 3.12 runtime packages,
+  and `open-vm-tools`. Existing package configuration was preserved.
+- Rebooted once to activate the already-installed `6.8.0-139-generic`
+  kernel and complete deferred service restarts.
+
+Host after:
+
+- Running kernel: `6.8.0-139-generic`.
+- Wazuh and Filebeat package versions unchanged.
+- Root filesystem: 75G total, 42G used, 31G free, 58% used.
+- Wazuh data volume: 79G total, 27G used, 48G free, 37% used.
+- Memory after warm-up: 7.6 GiB total, about 3.0 GiB available, no swap used.
+
+Checks:
+
+- SSH checked: OK. The `format-wazuh` alias resolved to
+  `root@116.203.114.188` and worked before and after reboot.
+- Firewall checked: OK. `ufw` remains active with inbound `443/tcp`,
+  `1514/tcp`, `1515/tcp`, and rate-limited `22/tcp` for IPv4 and IPv6.
+- Fail2ban checked: OK. The `sshd` jail is active.
+- System health checked: OK. No failed systemd units or boot-level error
+  messages were reported after reboot.
+- Wazuh deployment model checked: OK. Wazuh remains package/systemd-managed;
+  Docker, Compose, Swarm, and Portainer remain absent.
+- Wazuh services checked: OK. `wazuh-manager`, `wazuh-indexer`,
+  `wazuh-dashboard`, and `filebeat` are active.
+- Wazuh endpoints checked: OK. After normal startup recovery, the dashboard
+  returned `302`, while the API and indexer returned expected `401` responses.
+- Indexer health checked: OK. The single-node cluster is expected yellow with
+  all 381 primary shards active and 31 replica shards unassigned.
+- Agents checked: OK. All listed agents were active, including
+  `043 MBP-PCZ`.
+- Agent endpoint checked: OK. `wazuh-agent.format.lu` accepted TCP connections
+  on `1514` and `1515`; the Mac route to the server remained on `en0`.
+- Retention checked: OK. The local timer is enabled and active, its September
+  5 run succeeded, and deployed script and unit hashes match the tracked files.
+- Index retention checked: OK. All 90 alert indices, dated 2026-06-08 through
+  2026-09-05, are managed by `wazuh-alert-retention-90d`.
+- Local storage retention checked: OK. Local alerts use about 3.8G, queue data
+  uses about 15G, and neither was manually deleted during maintenance.
+- Backup archive checked: Present and untouched at
+  `/root/wazuh-backup-2025-08-03.tar.gz` (9.6G).
+- Remaining apt upgrades checked: None. A final full-upgrade simulation showed
+  zero changes.
+- Reboot requirement checked: No reboot marker remains.
+
+Notes:
+
+- The dashboard and indexer briefly returned `503` while primary shards were
+  restoring after reboot. They recovered without intervention.
+- No Wazuh index, alert file, queue data, configuration, certificate,
+  enrollment key, or backup archive was manually deleted.
+
+Follow-up:
+
+- Continue checking the 90-day index policy and daily local retention timer in
+  each maintenance round.
+- Decide separately whether the historical 9.6G archive should remain on the
+  host.
+
 ## 2026-08-23 - OS Maintenance, Reboot, And Agent Route Repair
 
 Date: 2026-08-23 15:45 CEST
