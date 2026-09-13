@@ -444,6 +444,50 @@ Checks:
 - Notes: Immediately after the manager reboot, `esst-cloud-2` and `esst-cloud-3` briefly showed `Unknown` and `portainer_portainer`, `traefik_traefik`, and `duplicati-ec4_duplicati_ec4` had not reconverged yet. A short wait was enough for the cluster to recover naturally. `traefik_delay-start` is now `1/1`.
 - Follow-up: No immediate host-level follow-up required for `esst-cloud-4`.
 
+## 2026-09-13 - September Host Maintenance
+
+- Updated last, after all three workers had rebooted and production monitoring
+  had recovered. Updated 23 packages, including Docker Engine/CLI to `29.8.0`,
+  containerd to `2.3.5`, Buildx to `0.37.1`, Compose to `5.5.1`, and Ubuntu packages.
+- Rebooted from kernel `6.8.0-137-generic` to `6.8.0-139-generic`.
+  SSH recovered, the reboot marker cleared, and no systemd units were failed.
+- Returned as Swarm `Leader`; all four nodes returned to `Ready`. Cloud-2
+  briefly showed `Unknown` while the manager recovered, then reconverged
+  naturally. Portainer agents are `4/4`; Portainer server, Traefik, all four
+  Duplicati instances and all other active application services are `1/1`.
+- Existing exceptions remain: disabled SFTP `0/0`, old Traefik delay-start
+  helper `0/1`. These were already present before maintenance.
+- Root filesystem remains 39% used, with about 56G free.
+- Direct Portainer status API and all four Duplicati backends returned HTTP 200.
+  Public website, Vaultwarden and GlitchTip returned 200; production/beta/dev
+  monitoring returned their normal 302 redirects. Portainer/Duplicati public
+  URLs return Cloudflare Access redirects; authenticated UI checks were not run.
+- Duplicati's unpinned image refreshed during container recreation. All four
+  instances report `2.4.0.0-Stable-20260903`. Last night's EC4 backup is recorded
+  as completed at 22:00:08 UTC. No restore test was performed.
+- `fwupd` and `linux-firmware` remain kept back by ordinary apt upgrade.
+- UFW is inactive and fail2ban is not installed. No firewall or access settings
+  changed; provider firewall rules were not inspected.
+- Portainer remains `2.44.0` STS, Traefik `3.6.22`, Vaultwarden `1.37.1`.
+  Available upgrades and remaining follow-ups are in the fleet maintenance report.
+
+## 2026-09-13 - Post-Restart Firewall Restoration
+
+- Ivan reported that custom firewall rules disappear after reboots. Live
+  inspection confirmed the SSH and Swarm protection chains/hooks were absent.
+- Restored the existing `/opt/esst/deployment/iptables-general.sh` and
+  `iptables-cloudflare.sh` on this Traefik host. Script contents and existing
+  allowlists were preserved. Fresh office SSH succeeded; non-allowed public
+  SSH probes timed out and the SSH DROP counter increased.
+- Before/after rules saved under `/root/firewall-backups/2026-09-13/` with
+  root-only permissions. Temporary rollback timer canceled after verification.
+- All Swarm nodes remained Ready and active services retained expected replicas.
+- Direct-origin HTTPS was blocked; Cloudflare-routed monitoring, website,
+  GlitchTip and Vaultwarden continued responding normally.
+- Firewall checks/restoration are now mandatory in the fleet maintenance
+  checklist. Automatic boot persistence remains pending. See
+  [Firewall Maintenance](../firewall-maintenance.md) for the exact policy.
+
 ## Maintenance Template
 
 Date:

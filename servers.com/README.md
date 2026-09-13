@@ -2,7 +2,7 @@
 
 Runbook root for the four servers.com VPS hosts in Luxembourg.
 
-Last updated: 2026-04-19
+Last updated: 2026-09-13
 
 ## Fleet
 
@@ -41,10 +41,14 @@ Local key files:
 ~/.ssh/esst-cloud-4
 ```
 
-The initial servers.com images use `cloud-user` for SSH access. Direct public
-SSH currently works for `esst-cloud-1`; `esst-cloud-2`, `esst-cloud-3`, and
-`esst-cloud-4` time out on TCP/22 from this workstation and from
-`esst-cloud-1` over the private network.
+The servers use `cloud-user` for SSH access. On September 13, 2026, fresh SSH
+connections worked to all four hosts from the office egress IP `217.31.68.238`.
+The custom iptables rules restrict SSH by source IP, including private-network
+SSH. Cloud-2 and cloud-3 have additional existing exceptions.
+
+See [Firewall Maintenance](firewall-maintenance.md) for the exact policy and
+the mandatory checks after every reboot or Docker restart. An inactive UFW
+does not establish whether these custom iptables rules are present.
 
 ## Baseline Maintenance Flow
 
@@ -78,6 +82,25 @@ apt upgrade
 test -f /var/run/reboot-required && cat /var/run/reboot-required
 test -f /var/run/reboot-required.pkgs && cat /var/run/reboot-required.pkgs
 ```
+
+## Required Post-Restart Firewall Check
+
+Maintenance is not complete until the custom firewall rules have been verified
+and, when missing, restored:
+
+- All four hosts: `/opt/esst/deployment/iptables-general.sh`.
+- Traefik host only (currently cloud-4): also
+  `/opt/esst/deployment/iptables-cloudflare.sh`, after Docker is running.
+- Confirm the current SSH source is allowed, snapshot the rules and prepare
+  timed rollback before applying them. Keep the existing session open and test
+  a fresh SSH connection before canceling rollback.
+- Verify the rule chains and hooks, all Swarm nodes/services, permitted office
+  SSH, blocked non-allowed SSH, Cloudflare access and blocked direct-origin HTTPS.
+- Record evidence in the host maintenance log. Check published Docker ports
+  separately; these scripts do not impose a blanket office-only firewall.
+
+No automatic boot restoration was found or installed as of September 13, 2026.
+Follow the [firewall runbook](firewall-maintenance.md) after every restart.
 
 ## Safety Rules
 

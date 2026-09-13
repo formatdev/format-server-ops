@@ -377,6 +377,47 @@ Checks:
 - Notes: `needrestart` reported that no containers needed restart after package installation.
 - Follow-up: Keep `esst-cloud-2` on the disk-watch list; it still has adequate free space, but much less headroom than the rest of the ESST fleet.
 
+## 2026-09-13 - September Host Maintenance
+
+- Waited for the scheduled noon monitoring database export/compression to
+  finish before any Docker package update or reboot. The encrypted archive
+  completed around 10:17 UTC, at 943,534,118 bytes. Its central directory is
+  readable; encrypted payload integrity and restoration were not verified.
+- Updated 23 packages, including Docker Engine/CLI to `29.8.0`, containerd
+  to `2.3.5`, Buildx to `0.37.1`, Compose to `5.5.1`, and Ubuntu packages.
+- Rebooted from kernel `6.8.0-137-generic` to `6.8.0-139-generic`.
+  SSH recovered, the reboot marker cleared, and no systemd units were failed.
+- Swarm worker returned to `Ready`. The monitoring production containers,
+  Duplicati and Portainer agent recovered. The public monitoring URL briefly
+  returned 404 during route discovery, then recovered to its normal HTTP 302
+  login redirect without an intervention.
+- Disk peaked around 94% during backup compression. Docker dangling-image
+  pruning, restricted to images older than seven days, reclaimed 1.07 GB.
+  The backup job removed its own temporary 13.9 GB SQL file normally. After
+  reboot root usage was 86%, with about 25G free.
+- Uploads occupy about 91G. Capacity/retention planning remains advisable;
+  no application data, backup archives or volumes were manually deleted.
+- Duplicati metadata records the last completed backup on September 12 at
+  20:38:51 UTC. Its unpinned image refreshed during container recreation;
+  installed version confirmed as `2.4.0.0-Stable-20260903`.
+- `fwupd` and `linux-firmware` remain kept back by ordinary apt upgrade.
+- UFW is inactive and fail2ban is not installed. No firewall or access settings
+  changed; provider firewall rules were not inspected.
+
+## 2026-09-13 - Post-Restart Firewall Restoration
+
+- Ivan reported that custom firewall rules disappear after reboots. Live
+  inspection confirmed the SSH and Swarm protection chains/hooks were absent.
+- Restored the existing `/opt/esst/deployment/iptables-general.sh`. Script contents and existing
+  allowlists were preserved. Fresh office SSH succeeded; non-allowed public
+  SSH probes timed out and the SSH DROP counter increased.
+- Before/after rules saved under `/root/firewall-backups/2026-09-13/` with
+  root-only permissions. Temporary rollback timer canceled after verification.
+- All Swarm nodes remained Ready and active services retained expected replicas.
+- Firewall checks/restoration are now mandatory in the fleet maintenance
+  checklist. Automatic boot persistence remains pending. See
+  [Firewall Maintenance](../firewall-maintenance.md) for the exact policy.
+
 ## Maintenance Template
 
 Date:

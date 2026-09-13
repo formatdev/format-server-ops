@@ -296,6 +296,35 @@ Checks:
 - Notes: `needrestart` reported that no containers needed restart after package installation.
 - Follow-up: No immediate host-level follow-up required for `esst-cloud-3`.
 
+## 2026-09-13 - September Host Maintenance
+
+- Updated 23 packages, including Docker Engine/CLI to `29.8.0`, containerd
+  to `2.3.5`, Buildx to `0.37.1`, Compose to `5.5.1`, and Ubuntu packages.
+- Rebooted from kernel `6.8.0-137-generic` to `6.8.0-139-generic`.
+  SSH recovered, the reboot marker cleared, and no systemd units were failed.
+- Swarm worker returned to `Ready`; production MariaDB, Duplicati and the
+  Portainer agent recovered. Fleet services reconverged.
+- Root filesystem: 48% before maintenance, 50% after reboot (38G available).
+- Serviced after cloud-1, before cloud-2, while cloud-2 compressed its already
+  exported production database backup. Cloud-4 remains the final host.
+- `fwupd` and `linux-firmware` remain kept back by ordinary apt upgrade.
+- UFW is inactive and fail2ban is not installed. No firewall or access settings
+  changed; provider firewall rules were not inspected.
+
+## 2026-09-13 - Post-Restart Firewall Restoration
+
+- Ivan reported that custom firewall rules disappear after reboots. Live
+  inspection confirmed the SSH and Swarm protection chains/hooks were absent.
+- Restored the existing `/opt/esst/deployment/iptables-general.sh`. Script contents and existing
+  allowlists were preserved. Fresh office SSH succeeded; non-allowed public
+  SSH probes timed out and the SSH DROP counter increased.
+- Before/after rules saved under `/root/firewall-backups/2026-09-13/` with
+  root-only permissions. Temporary rollback timer canceled after verification.
+- All Swarm nodes remained Ready and active services retained expected replicas.
+- Firewall checks/restoration are now mandatory in the fleet maintenance
+  checklist. Automatic boot persistence remains pending. See
+  [Firewall Maintenance](../firewall-maintenance.md) for the exact policy.
+
 ## Maintenance Template
 
 Date:
