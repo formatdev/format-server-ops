@@ -2,7 +2,7 @@
 
 Starter runbook for the `LMR` VM on ESX-C.
 
-Last updated: 2026-04-18
+Last updated: 2026-09-13
 
 ## Known State
 
@@ -12,9 +12,11 @@ Last updated: 2026-04-18
 - Expected local break-glass SSH alias: `win-lmr`
 - Expected domain-admin SSH alias: `winad-lmr`
 - Expected SSH identity: `~/.ssh/windows-admin_ed25519`
-- Role: unknown Windows production VM; verify before maintenance.
+- Role: production format.lu member server hosting IMOSSQL2019 and MySQL_CSF2_Master. Both database services were Running/Automatic on September 13.
 - Verified live state: confirmed domain-joined Windows member server on 2026-04-18.
-- Update state: 2026-04 OS/.NET updates and SQL Server 2019 security update installed and reboot completed on 2026-04-18; no pending updates after reboot.
+- Current maintenance: see [maintenance log](maintenance-log.md), September 13 entries.
+- September 13 patch status: four updates installed successfully, including SQL KB5122773. Reboot remains required and is held pending review of the inherited policy implicated in Kuhnle's regression; Kuhnle access recovered after a temporary test, not a durable fix. SQL/MySQL and both SSH aliases remain available; post-reboot health is not yet verified.
+- September 5 cleanup ended with a terminated task result; reclaimed space is unverified. The stopped task and profile were removed on September 13.
 
 ## Safety Rules
 

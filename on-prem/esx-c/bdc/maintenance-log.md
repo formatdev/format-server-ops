@@ -740,3 +740,359 @@ Result:
 
 - `BDC` is clean from the checked Windows Update, reboot-required,
   pending-rename, DC-service, and replication-summary perspective.
+
+## 2026-08-04 - Maintenance Attempt Blocked By Network Reachability
+
+Scope:
+
+- Started a new ESX-C maintenance pass for `BDC`.
+- Limited the pass to repository review and non-mutating network reachability
+  checks because the guest was not reachable.
+- No VMware, Windows, AD, DNS, DHCP, time sync, replication, SYSVOL, GPO,
+  firewall, SSH, WinRM, update, reboot, snapshot, migration, power, or data
+  changes were made.
+
+Findings:
+
+- Local route to `192.168.1.4` used gateway `192.168.200.254`.
+- `nc` to `192.168.1.4:22` failed with connection refused.
+- `nc` to `192.168.1.4:5985` failed with connection refused.
+- SSH via `win-bdc` failed with connection refused on port `22`.
+- ICMP returned `Communication prohibited by filter` from `10.128.128.128`,
+  then timed out.
+
+Result:
+
+- Guest-level maintenance could not proceed because network reachability to
+  `BDC` is blocked or the required tunnel/filter path is not open.
+
+Next:
+
+- Re-run discovery after the VPN/tunnel/firewall path to the ESX-C guest
+  subnet is confirmed open.
+
+## 2026-08-04 - Maintenance Retry And Pre-Change Inspection
+
+Scope:
+
+- Retried the ESX-C maintenance pass after the VPN/tunnel path was restored.
+- Performed discovery-only checks for identity, Windows Update, reboot state,
+  disks, remote-admin services and firewall scope, event health, AD DS/DNS/
+  DFSR/Netlogon/time services, SYSVOL/NETLOGON shares, and replication.
+- No update, reboot, VMware, AD, DNS, DHCP, time sync, replication, SYSVOL,
+  GPO, firewall, SSH, WinRM, snapshot, migration, power, or data change was
+  made.
+
+Findings:
+
+- SSH and the expected `winad-bdc` domain-admin alias are reachable; the
+  session identity is `format\\administrateur`.
+- Hostname is `BDC`, IP is `192.168.1.4/24`, and Windows identifies the VM as
+  a domain controller for `format.lu`.
+- Last boot remains `2026-07-19 11:16:04` Europe/Luxembourg time.
+- Windows Update search returned `Count=0`.
+- Windows Update and CBS reboot-required indicators are clear.
+- `PendingFileRenameOperations=True`; the current queue has four strings/two
+  non-empty items, both categorized as EdgeUpdate cleanup.
+- `C:` has about `66.7 GB` free of `89.4 GB`.
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `sshd`, and `W32Time` are
+  `Running`/`Automatic`.
+- `WinRM` remains `Stopped`/`Disabled`; its existing port `5985` rule is scoped
+  to `192.168.1.73` and `192.168.113.2`.
+- The active OpenSSH port `22` rule currently allows `Any` remote address.
+  This is documented as a scope finding only; firewall policy was not changed.
+- `SYSVOL` and `NETLOGON` shares are present.
+- Time synchronization is healthy from `PDC.format.lu`.
+- `repadmin /showrepl BDC` showed successful inbound replication for all five
+  naming contexts. `repadmin /replsummary` showed `0/5` failures for PDC to
+  BDC, while still reporting the known operational error `1326` when querying
+  PDC. Focused `dcdiag` also hit an access-denied bind to PDC; no replication
+  change was attempted.
+- Seven-day System warning/error groups were limited to DCOM `10016`, one
+  Netlogon `5722` for computer `NUC-SST`, and one Windows Installer service
+  restart event `7031`.
+
+Result:
+
+- No applicable Windows updates are currently visible and no Windows Update or
+  CBS reboot is pending.
+- BDC is healthy from the checked service, share, time, and direct inbound
+  replication perspectives.
+- The EdgeUpdate rename queue can be observed through the next approved reboot
+  window. The broad SSH firewall scope and the existing PDC diagnostic bind
+  caveat remain documented follow-ups, not changes for this pass.
+
+## 2026-08-04 - Planned Guest Shutdown For ESX-C Host Maintenance
+
+Scope:
+
+- Shut down `BDC` at the user's request for physical ESX-C host maintenance.
+- BDC was shut down last, after Kuhnle and LMR were confirmed offline, to keep
+  domain-controller services available for as long as possible.
+- No VMware power operation, forced application termination, AD, DNS, DHCP,
+  replication, SYSVOL, GPO, firewall, SSH, WinRM, update, snapshot, migration,
+  or data change was made.
+
+Action and result:
+
+- Submitted an orderly Windows guest shutdown as local SYSTEM with planned
+  hardware-maintenance reason code `p:1:1` through temporary scheduled task
+  `FormatOps-Shutdown-20260804-BDC`.
+- The task action was configured to remove itself after submitting the shutdown
+  request.
+- SSH port `22` stopped responding after the shutdown request. This confirms
+  guest network services are offline; hypervisor power state was not queried
+  from this thread.
+
+Post-start checks:
+
+- After ESX-C host maintenance, verify BDC SSH reachability, boot time, DC
+  services, SYSVOL/NETLOGON, time synchronization, replication, Windows Update
+  and reboot flags, pending rename state, and absence of the temporary shutdown
+  task.
+
+## 2026-08-23 - Twice-Monthly Maintenance Pre-Install State
+
+Scope:
+
+- Started a new ESX-C maintenance round and completed discovery before Windows
+  servicing.
+- No reboot, VMware, AD, DNS, DHCP, replication, SYSVOL, GPO, firewall, SSH,
+  WinRM, snapshot, migration, power, or data change was made during discovery.
+
+Findings:
+
+- BDC is reachable over SSH as `format\administrateur` and booted after host
+  maintenance at `2026-08-04 20:43:17` Europe/Luxembourg time.
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `sshd`, and `W32Time` are
+  `Running`/`Automatic`; SYSVOL and NETLOGON shares are present.
+- Time is synchronized to `PDC.format.lu`.
+- Direct inbound replication is successful for all five naming contexts and
+  the summary shows `0/5` failures. The known diagnostic error `1326` while
+  retrieving PDC information remains.
+- Windows Update and CBS reboot flags are clear.
+- `PendingFileRenameOperations=True` with 18 strings, currently including
+  EdgeUpdate and security-software cleanup entries.
+- `C:` has about `66.6 GB` free of `89.4 GB`.
+- Three applicable updates are visible:
+  - Windows Malicious Software Removal Tool x64 v5.144 (`KB890830`)
+  - August 2026 cumulative .NET update (`KB5121650`)
+  - August 2026 cumulative Server 2022 update (`KB5120242`)
+- Removed three confirmed stale FormatOps tasks from May/August maintenance;
+  no FormatOps scheduled tasks remain.
+
+Blast radius:
+
+- Installation can restart Windows services and is expected to require a guest
+  reboot, briefly removing this backup domain controller and its DNS/AD
+  services. PDC remains the replication and time source. No AD/GPO/replication
+  configuration change is in scope.
+
+## 2026-08-23 - August Updates Installed And Verified
+
+Action:
+
+- Installed the three discovered updates as local SYSTEM using temporary task
+  `FormatOps-WU-Install-20260823` and the Windows Update COM API.
+- Rebooted BDC last, after the member servers, using planned update reason code
+  `p:2:17`. PDC remained available during the reboot.
+- No VMware, AD, DNS, DHCP, replication, SYSVOL, GPO, firewall, SSH, WinRM,
+  snapshot, migration, power, or data configuration change was made.
+
+Install result:
+
+- Log retained on the guest at
+  `C:\ProgramData\FormatOps\Logs\windows-update-20260823-bdc.log`.
+- Download and install result codes were `2` (succeeded).
+- `KB890830`, `KB5121650`, and `KB5120242` each returned `Result=2`,
+  `HResult=0`; Windows reported `RebootRequired=True`.
+- BDC remained offline at the network layer for about 13 minutes while Windows
+  completed the post-update boot.
+
+Post-checks:
+
+- New boot time is `2026-08-23 16:45:16` Europe/Luxembourg time.
+- Windows Update returned `Count=0`; Windows Update and CBS reboot flags are
+  clear.
+- `DNS`, `DFSR`, `Netlogon`, `NTDS`, `sshd`, and `W32Time` are
+  `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled`.
+- SYSVOL and NETLOGON shares are present.
+- Time is synchronized to PDC.
+- Direct inbound replication is successful for all five naming contexts and
+  the summary reports `0/5` failures. The known `1326` PDC diagnostic caveat
+  remains.
+- `C:` has about `63.5 GB` free.
+- `PendingFileRenameOperations=True` with 36 non-empty entries, all
+  categorized as print-driver cleanup. No second reboot was issued.
+- Post-boot event groups were limited to time-service, Schannel, and DCOM
+  events in the inspected window; no corrective change was made.
+- Temporary installer/reboot tasks and the temporary installer script were
+  removed; the audit log remains.
+
+Result:
+
+- August updates are installed and Windows Update is clean.
+- BDC is healthy from the checked service, share, time, update, and direct
+  replication perspectives.
+- Track the print-driver rename queue through the next approved reboot window.
+
+## 2026-09-05 - Twice-Monthly Maintenance Pre-Reboot State
+
+Scope:
+
+- Started the September ESX-C maintenance round with read-only discovery.
+- No Windows update, reboot, VMware, AD, DNS, DHCP, replication, SYSVOL, GPO,
+  firewall, SSH, WinRM, snapshot, migration, power, or data configuration
+  change was made during discovery.
+
+Findings:
+
+- BDC is reachable through both expected SSH aliases as
+  `format\\Administrateur`; hostname and address remain `BDC` and
+  `192.168.1.4/24`.
+- BDC remains a `format.lu` domain controller. `DNS`, `DFSR`, `Netlogon`,
+  `NTDS`, `sshd`, and `W32Time` are `Running`/`Automatic`; SYSVOL and
+  NETLOGON shares are present.
+- Focused `dcdiag` connectivity, advertising, SYSVOL, Netlogon, and service
+  tests passed. Time is synchronized to `PDC.format.lu`.
+- Replication summary reports `0/5` failures from PDC to BDC, with the known
+  operational error `1326` while querying PDC still present.
+- Windows Update search returned `Count=0`; Windows Update and CBS reboot
+  flags are clear.
+- `PendingFileRenameOperations=True` with 28 non-empty delete operations,
+  currently from ESET, EdgeUpdate, and Windows Installer temporary cleanup.
+- Current boot time is `2026-08-23 21:56:29` Europe/Luxembourg time.
+- `C:` has about `66.4 GB` free of `89.4 GB` and reports healthy.
+- `WinRM` remains `Stopped`/`Disabled`. The dedicated SSH and WinRM rules are
+  scoped to `192.168.1.73` and `192.168.113.2`, but BDC also retains an
+  enabled local OpenSSH rule allowing any remote address. No rule was changed.
+- The `SSH Admins` group (`sshadmins`) exists with one member, and `sshd_config`
+  explicitly allows `format\\sshadmins`.
+- No temporary `FormatOps-*` scheduled task remains.
+- Recent grouped System warnings/errors were primarily time-service and DCOM
+  events. Two Netlogon `5722` events refer to separate workstation trust
+  failures; no BDC service or replication failure was observed.
+
+Blast radius:
+
+- The approved reboot will temporarily remove this backup domain controller
+  and its DNS/AD services. PDC remains available and is the verified
+  replication and time source. No AD, DNS, GPO, replication, firewall, SSH,
+  or WinRM configuration change is in scope.
+
+Planned action:
+
+- Reboot BDC last, after Kuhnle and LMR have recovered, to process the pending
+  cleanup queue. Recheck updates, reboot flags, rename state, DC services,
+  SYSVOL/NETLOGON, time, replication, SSH aliases, events, and disk health.
+
+## 2026-09-05 - Reboot Deferred After Kuhnle Domain-Access Delay
+
+Result:
+
+- BDC was not rebooted because the sequential maintenance run stopped after
+  Kuhnle's domain user lookup and domain-admin SSH failed to recover within
+  the observation window.
+- BDC remains online with zero applicable Windows updates and the verified DC,
+  DNS, SYSVOL/NETLOGON, time, and inbound-replication checks healthy.
+- Its 28 pending application-cleanup delete operations remain queued for a
+  later approved reboot window. No AD, DNS, replication, firewall, SSH, WinRM,
+  or other configuration change was made.
+
+## 2026-09-05 - System Files Cleanup Pre-State
+
+Authorization and scope:
+
+- The user requested Windows Disk Cleanup with system files on all three ESX-C
+  VMs.
+- Use the established `cleanmgr` SYSTEM profile on `C:` only. Select all 27
+  cleanup categories exposed by this VM except `DownloadsFolder`; no ad hoc
+  file deletion, non-system volume cleanup, AD/DNS/SYSVOL data deletion, or
+  configuration change is in scope.
+- The selected surface includes Windows Update Cleanup, previous installations,
+  Windows ESD installation files, device-driver packages, discarded upgrade
+  files, temporary/setup/error-reporting files, caches, Defender cleanup, and
+  Recycle Bin. This can remove rollback resources exposed by Windows Disk
+  Cleanup.
+
+Pre-state and blast radius:
+
+- `C:` has about `66.39 GiB` free of `89.40 GiB` and reports healthy.
+- Windows Update and CBS reboot flags are clear. TiWorker and TrustedInstaller
+  were active after the discovery scan, so cleanup must wait until they exit.
+- DNS, DFSR, Netlogon, NTDS, `sshd`, and Windows Time are
+  `Running`/`Automatic`.
+- Cleanup can increase CPU and disk activity and invoke DISM, TiWorker, or
+  TrustedInstaller for an extended period. BDC remains domain-critical; no AD,
+  DNS, SYSVOL, replication, or GPO content is in scope, and no reboot is
+  planned. Run BDC last and stop on any DC-service degradation.
+
+## 2026-09-05 - Cleanup Launch Deferred After VPN Route Loss
+
+- BDC cleanup was not launched. The administration route to all ESX-C guests
+  fell back to Wi-Fi while Kuhnle cleanup was being monitored.
+- Restore and verify the VPN route, then repeat DC services, SYSVOL/NETLOGON,
+  time, replication, update, reboot, disk, and servicing checks before creating
+  any BDC cleanup profile or task. BDC remains last in the sequence.
+
+## 2026-09-05 - System Files Cleanup Launched; Verification Interrupted
+
+- After the VPN returned, reconfirmed DNS, DFSR, Netlogon, NTDS, `sshd`, and
+  Windows Time running, SYSVOL/NETLOGON present, and replication summary at
+  `0/5` failures with the known `1326` query caveat.
+- Waited until TiWorker and TrustedInstaller were absent in two consecutive
+  checks, then created cleanup profile `905` with all 27 discovered categories
+  except `DownloadsFolder`.
+- Started `cleanmgr /d C /sagerun:905` as local SYSTEM through scheduled task
+  `FormatOps-CleanMgr-20260905-BDC`. Free space at launch was about
+  `66.34 GiB`.
+- DNS, NTDS, and DFSR remained running during the initial cleanup observation.
+  No duplicate task was created and no process was terminated.
+- The VPN became unreachable again while cleanup was running. Completion,
+  reclaimed space, profile/task removal, reboot flags, DC services, shares,
+  time, replication, and final SSH checks remain pending verification.
+
+
+## 2026-09-13 - Maintenance Discovery And Patch Scope
+
+- Both configured SSH aliases work. Last observed boot: 2026-09-05 18:28:42 local time.
+- C: free space 65.86 GiB; fixed volumes report Healthy. Windows Update/CBS reboot markers are clear.
+- Pending rename queue has 6 non-empty strings, including security-driver backup/temporary files and MSI/Windows temporary cleanup. No manual queue or file deletion is planned.
+- DNS, DFSR, NTDS, Netlogon, SSH, and time services are Running/Automatic. SYSVOL/NETLOGON are present; focused dcdiag tests pass; all five inbound replication contexts succeeded. Time is synchronized to PDC.
+- Update scan succeeded and offers: KB890830, KB5126149, KB5122882.
+- Recent warning/error summaries retain previously observed categories; no full application transaction or backup restore was tested. Current backup success and hypervisor job state are not independently verified in this guest-only pass.
+- September 5 cleanup task is Ready with LastTaskResult 267014 (0x41306, terminated). No cleanmgr/DismHost remains. Cleanup success and reclaimed bytes cannot be established from this result.
+- Correction to prior cleanup scope: Microsoft documents that /sagerun enumerates all drives and ignores /d. The earlier C:-only assertion was incorrect; no per-drive deletion audit is available. See https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cleanmgr.
+- Retire only the stopped FormatOps-CleanMgr-20260905 task for this VM and its StateFlags0905 profile properties. Do not restart broad Disk Cleanup during this patch round.
+- Reboot BDC last, with PDC available, temporarily reducing AD/DNS redundancy. Verify DC services, shares, time, and replication afterward. Wait for existing servicing workers to exit before starting one monitored SYSTEM installer. Keep unrelated AD, GPO, firewall, SSH, WinRM, and application configuration unchanged.
+
+## 2026-09-13 - Domain Controller Kept Online
+
+- BDC patching and reboot are held after Kuhnle's post-reboot domain authentication regression. The three offered updates remain to be installed; this is not a completed patch round for BDC.
+- Repeat checks at approximately 12:35 local time passed Connectivity, Advertising, SysVolCheck, NetLogons, and Services. SYSVOL and NETLOGON are present; all five inbound replication contexts report successful last attempts, including the writable domain context at 12:34:55. Windows Time remains synchronized to PDC.
+- Removed the stopped September 5 cleanup task and its 27 StateFlags0905 properties. No new Disk Cleanup, update installer, reboot, or AD/DNS/GPO/replication change was started on BDC.
+
+## 2026-09-13 - Read-Only NTLM Event Review
+
+- Latest sampled successful domain credential validation includes EXCHANGE3 monitoring accounts and non-monitoring accounts from WORKSTATION. Event 4776 does not identify the destination service. Latest incoming blocked events show BDC$ as the local RPC-host process identity, not the remote user's identity.
+- No policy/logging changes were made. Personal account names and detailed logs were kept out of the repository. See the [sanitized NTLM activity review](../../kerberos-ntlm-gpo-audit-2026-09-13.md#latest-ntlm-event-inspection) for timestamps, scope, and retention limits.
+
+## 2026-09-13 - Authorized ADMIN NTLM Exception Removal
+
+- User reports the Kyocera copier was corrected for Kerberos on September 11
+  after its firmware update, and authorizes removing ADMIN's domain exception.
+  The copier change itself has not been independently transaction-tested.
+- Removed only `admin.format.lu` from Default Domain Policy on PDC after a
+  protected guest-local GPO backup. Other entries and settings, permissions,
+  links, and OU placement were preserved. ADMIN's separate incoming-NTLM Allow
+  policy is unchanged. No BDC reboot, service restart, or forced refresh.
+- At 14:09:47 CEST, BDC reports the updated five-entry policy and computer
+  AD/SYSVOL versions 388/388, user 17/17. Core DC/SSH services are running,
+  SYSVOL/NETLOGON are present, and no replication failures are reported.
+- At 14:12:28, normal background application removed ADMIN from BDC's
+  effective exception list. No exact ADMIN match appeared in the inspected
+  post-change NTLM Operational events. This short window is not an application
+  compatibility guarantee; copier scan and normal ADMIN/RDP access remain to
+  be tested by the user.
+- Full scope, backup reference, rollback, and PDC verification are tracked in
+  the [domain audit change record](../../kerberos-ntlm-gpo-audit-2026-09-13.md#admin-exception-removal).

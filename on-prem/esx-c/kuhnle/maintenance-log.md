@@ -750,3 +750,547 @@ Result:
   pending-rename, SSH service, and domain secure-channel perspective.
 - The earlier immediate post-reboot `ERROR_NO_LOGON_SERVERS` condition is no
   longer present.
+
+## 2026-08-04 - Maintenance Attempt Blocked By Network Reachability
+
+Scope:
+
+- Started a new ESX-C maintenance pass for `Kuhnle`.
+- Limited the pass to repository review and non-mutating network reachability
+  checks because the guest was not reachable.
+- No VMware, Windows, GPO, firewall, SSH, WinRM, update, reboot, snapshot,
+  migration, power, or data changes were made.
+
+Findings:
+
+- `nc` to `192.168.1.14:22` failed with connection refused.
+- `nc` to `192.168.1.14:5985` failed with connection refused.
+- SSH via `win-kuhnle` failed with connection refused on port `22`.
+- ICMP returned `Communication prohibited by filter` from `10.128.128.128`,
+  then timed out.
+
+Result:
+
+- Guest-level maintenance could not proceed because network reachability to
+  `Kuhnle` is blocked or the required tunnel/filter path is not open.
+
+Next:
+
+- Re-run discovery after the VPN/tunnel/firewall path to the ESX-C guest
+  subnet is confirmed open.
+
+## 2026-08-04 - Maintenance Retry And Pre-Change Inspection
+
+Scope:
+
+- Retried the ESX-C maintenance pass after the VPN/tunnel path was restored.
+- Performed discovery-only checks for identity, role/domain state, Windows
+  Update, reboot state, disks, SSH/WinRM, firewall scope, event health, DNS,
+  time, Netlogon, AD port reachability, and domain secure channel.
+- No update, reboot, VMware, domain, GPO, firewall, SSH, WinRM, snapshot,
+  migration, power, or data change was made.
+
+Findings:
+
+- Local `win-kuhnle` and domain `winad-kuhnle` SSH aliases are reachable.
+- Hostname is `KUHNLE`, IP is `192.168.1.14/24`, and the VM remains a
+  `format.lu` member server.
+- Last boot remains `2026-07-19 11:16:11` Europe/Luxembourg time.
+- Windows Update search returned `Count=0`.
+- Windows Update and CBS reboot-required indicators are clear.
+- `PendingFileRenameOperations=True`; the queue contains 30 strings, with
+  non-empty items categorized as EdgeUpdate, Windows Temp, and TeamViewer
+  cleanup.
+- Free space is about `23.9 GB` on `C:` and `33.8 GB` on `D:`.
+- `sshd` is `Running`/`Automatic`. `WinRM` remains `Stopped`/`Disabled`.
+- Existing SSH port `22` and WinRM port `5985` rules are scoped to trusted
+  sources `192.168.1.73` and `192.168.113.2`; no firewall change was made.
+- DNS servers remain PDC (`192.168.1.5`) and BDC (`192.168.1.4`). Netlogon,
+  DNS Client, and Windows Time are `Running`/`Automatic`, and time is
+  synchronized to `PDC.format.lu`.
+- PDC AD ports `88`, `135`, `389`, `445`, `464`, and `3268` are reachable and
+  DC locator successfully finds PDC.
+- The machine secure channel is not healthy: both
+  `Test-ComputerSecureChannel -Server PDC.format.lu` and
+  `nltest /sc_query:format.lu` failed, with the latter reporting
+  `ERROR_NO_LOGON_SERVERS`. Domain-admin SSH still authenticates successfully.
+- A follow-up `nltest /sc_query:format.lu` run as local SYSTEM through temporary
+  task `FormatOps-SecureChannel-Check-20260804` returned the same
+  `ERROR_NO_LOGON_SERVERS`, confirming this is not limited to the SSH logon
+  context. The temporary task and output file were removed afterward.
+- Seven-day System warning/error groups were mainly virtual TPM `1803`, plus
+  DCOM `10016` and one Windows Installer service restart event `7031`.
+
+Blast radius before any repair:
+
+- A secure-channel reset would change Kuhnle's member-computer trust state
+  against the domain and could affect domain authentication and services using
+  domain identities. No reset, Netlogon restart, domain rejoin, or GPO action
+  was attempted during this inspection.
+
+Result:
+
+- No applicable Windows updates are currently visible and no Windows Update or
+  CBS reboot is pending.
+- Kuhnle is reachable and its AD network prerequisites are healthy, but the
+  machine secure channel requires a separate approved remediation or an
+  approved reboot/recheck window before this round can be called fully clean.
+
+## 2026-08-04 - Planned Guest Shutdown For ESX-C Host Maintenance
+
+Scope:
+
+- Shut down `Kuhnle` at the user's request for physical ESX-C host maintenance.
+- No VMware power operation, forced application termination, domain/GPO,
+  firewall, SSH, WinRM, update, snapshot, migration, or data change was made.
+
+Action and result:
+
+- Direct shutdown from the SSH token was rejected and did not change guest
+  state.
+- Submitted an orderly Windows guest shutdown as local SYSTEM with planned
+  hardware-maintenance reason code `p:1:1` through temporary scheduled task
+  `FormatOps-Shutdown-20260804-Kuhnle`.
+- The task action was configured to remove itself after submitting the shutdown
+  request.
+- SSH port `22` stopped responding after the shutdown request. This confirms
+  guest network services are offline; hypervisor power state was not queried
+  from this thread.
+
+Post-start checks:
+
+- After ESX-C host maintenance, verify SSH reachability, boot time, Windows
+  Update and reboot flags, pending rename state, domain secure channel, time,
+  disks, services/events, and absence of the temporary shutdown task.
+
+## 2026-08-23 - Twice-Monthly Maintenance Pre-Install State
+
+Scope:
+
+- Started a new ESX-C maintenance round and completed discovery before Windows
+  servicing.
+- No reboot, VMware, domain/GPO, firewall, SSH, WinRM, snapshot, migration,
+  power, or data change was made during discovery.
+
+Findings:
+
+- Kuhnle is reachable over local SSH and booted after host maintenance at
+  `2026-08-04 20:43:23` Europe/Luxembourg time.
+- The `format.lu` secure channel has recovered: PowerShell returned `True`
+  and `nltest` returned `NERR_Success` against BDC.
+- `sshd`, `Netlogon`, and `W32Time` are `Running`/`Automatic`;
+  WinRM remains `Stopped`/`Disabled`.
+- Windows Update and CBS reboot flags are clear.
+- `PendingFileRenameOperations=True` with 38 strings, mainly EdgeUpdate and
+  related temporary cleanup.
+- Free space is about `24.2 GB` on `C:` and `33.8 GB` on `D:`.
+- Three applicable updates are visible: `KB890830`, `KB5121650`, and
+  `KB5120242`.
+- Removed the confirmed stale August shutdown task; no FormatOps scheduled
+  tasks remain.
+
+Blast radius:
+
+- Installation can restart Windows/application services and is expected to
+  require a guest reboot, temporarily interrupting Kuhnle workloads and domain
+  access. No domain trust, GPO, firewall, SSH, or WinRM configuration change is
+  in scope.
+
+## 2026-08-23 - August Updates Installed And Verified
+
+Action:
+
+- Installed the three discovered updates as local SYSTEM using temporary task
+  `FormatOps-WU-Install-20260823` and the Windows Update COM API.
+- Performed one planned update reboot with reason code `p:2:17`.
+- No VMware, domain trust, GPO, firewall, SSH, WinRM, snapshot, migration,
+  power, or data configuration change was made.
+
+Install result:
+
+- Log retained on the guest at
+  `C:\ProgramData\FormatOps\Logs\windows-update-20260823-kuhnle.log`.
+- Download and install result codes were `2` (succeeded).
+- `KB890830`, `KB5121650`, and `KB5120242` each returned `Result=2`,
+  `HResult=0`; Windows reported `RebootRequired=True`.
+- Servicing completed at `2026-08-23 15:57:22`.
+
+Post-checks:
+
+- New boot time is `2026-08-23 16:01:12` Europe/Luxembourg time.
+- Windows Update returned `Count=0`; Windows Update and CBS reboot flags are
+  clear.
+- `PendingFileRenameOperations=False`.
+- Free space is about `21.1 GB` on `C:` and `33.8 GB` on `D:`.
+- `sshd`, `Netlogon`, and `W32Time` are `Running`/`Automatic`;
+  WinRM remains `Stopped`/`Disabled`.
+- The secure channel and `nltest` temporarily reported
+  `ERROR_NO_LOGON_SERVERS` after reboot, then recovered naturally against
+  PDC without a trust reset or Netlogon restart.
+- Local `win-kuhnle` and domain `winad-kuhnle` SSH aliases both work after
+  the recovery window.
+- Post-boot event groups were time-service, DCOM, Kerberos, and virtual-TPM
+  events in the inspected window; no corrective change was made.
+- Temporary installer/reboot tasks and the temporary installer script were
+  removed; the audit log remains.
+
+Result:
+
+- August updates are installed and Windows Update is clean.
+- Kuhnle is healthy from the checked update, reboot, rename, service, disk,
+  secure-channel, and SSH-access perspectives.
+
+## 2026-09-05 - Twice-Monthly Maintenance Pre-Reboot State
+
+Scope:
+
+- Started the September ESX-C maintenance round with read-only discovery.
+- No Windows update, reboot, VMware, domain trust, GPO, firewall, SSH, WinRM,
+  snapshot, migration, power, or data configuration change was made during
+  discovery.
+
+Findings:
+
+- Local `win-kuhnle` and domain `winad-kuhnle` aliases are reachable and map
+  to `192.168.1.14`; the respective identities are local and
+  `format\\Administrateur`.
+- Kuhnle remains a `format.lu` member server. Its secure channel is healthy,
+  and DC locator finds PDC.
+- `sshd`, `Netlogon`, and `W32Time` are `Running`/`Automatic`; WinRM remains
+  `Stopped`/`Disabled`.
+- `sshd_config` allows local administrators and `format\\sshadmins`. The
+  enabled SSH and WinRM firewall rules remain scoped to `192.168.1.73` and
+  `192.168.113.2`.
+- Windows Update search returned `Count=0`; Windows Update and CBS reboot
+  flags are clear.
+- `PendingFileRenameOperations=True` with 41 non-empty delete operations,
+  currently from ESET, TeamViewer, EdgeUpdate, PowerShell execution, and
+  Windows Installer temporary cleanup.
+- Current boot time is `2026-08-23 21:55:15` Europe/Luxembourg time.
+- `C:` has about `23.8 GB` free of `49.4 GB`; `D:` has about `33.8 GB` free
+  of `50.0 GB`. Both report healthy.
+- No temporary `FormatOps-*` scheduled task remains.
+- Recent grouped System warnings/errors were mainly virtual-TPM, time-service,
+  and DCOM events; no current secure-channel or core-service failure was found.
+
+Blast radius:
+
+- The approved reboot will briefly interrupt Kuhnle production workloads and
+  domain access. No domain trust, GPO, firewall, SSH, or WinRM configuration
+  change is in scope.
+
+Planned action:
+
+- Reboot Kuhnle first to process the pending cleanup queue. Recheck updates,
+  reboot flags, rename state, services, secure channel, both SSH aliases,
+  events, and disk health before proceeding to LMR.
+
+## 2026-09-05 - Cleanup Reboot Completed; Domain SSH Pending
+
+Action:
+
+- Submitted one planned guest reboot as local SYSTEM through self-removing
+  scheduled task `FormatOps-Reboot-20260905-Kuhnle`.
+- No Windows update, VMware, domain trust, GPO, firewall, SSH, WinRM,
+  snapshot, migration, power, or data configuration change was made.
+
+Post-checks:
+
+- New boot time is `2026-09-05 09:25:09` Europe/Luxembourg time.
+- Windows Update remains at `Count=0`; Windows Update and CBS reboot flags are
+  clear.
+- The 41 pending delete operations were processed. The registry value now
+  contains only one empty string, with no actionable source or destination.
+- `sshd`, `Netlogon`, and `W32Time` are `Running`/`Automatic`; local
+  `win-kuhnle` break-glass SSH works.
+- `C:` has about `23.9 GB` free and `D:` has about `33.8 GB` free; both report
+  healthy.
+- No temporary `FormatOps-*` scheduled task remains.
+- DNS and tested AD ports to both PDC and BDC are reachable. DC locator finds
+  PDC, and time is synchronized to BDC.
+- The machine secure channel initially remained unhealthy with
+  `ERROR_NO_LOGON_SERVERS`, then recovered naturally without a trust reset or
+  Netlogon restart. Final checks returned `Test-ComputerSecureChannel=True`
+  and `NERR_Success` against PDC.
+- Domain user lookup still returns RPC error `1722`, and domain
+  `winad-kuhnle` SSH fails because OpenSSH cannot resolve the domain account.
+  No SSH configuration or key change was made.
+- Boot-time Kerberos events report that domain-controller certificate
+  revocation could not be checked because the revocation server was offline.
+- Kuhnle's AD computer account is enabled. BDC showed no new Netlogon rejection
+  event for Kuhnle during the inspected post-reboot window.
+
+Result:
+
+- The cleanup reboot, core health checks, and domain secure channel succeeded,
+  but Kuhnle is not fully clear because domain user lookup and domain-admin
+  SSH have not recovered. Local break-glass SSH remains available.
+- The ESX-C reboot sequence was stopped. Do not reset the secure channel,
+  restart Netlogon, rejoin the domain, or change certificate/GPO settings until
+  the remediation scope and application impact are separately approved.
+
+## 2026-09-05 - Domain Access Remediation Pre-State
+
+Authorization and scope:
+
+- The user approved continuing the Kuhnle remediation and, once Kuhnle is
+  fully healthy, the sequential LMR and BDC maintenance reboots.
+- Read-only rechecks still showed working local break-glass SSH, a successful
+  `nltest` secure-channel query, RPC error `1722` during domain user lookup,
+  and unavailable `winad-kuhnle` SSH.
+- Direct SID translation for `format\\Administrateur` reported that the
+  workstation trust relationship failed, confirming the state was not limited
+  to OpenSSH.
+- No running Kuhnle service uses a `format\\...` service identity, and
+  Netlogon has no dependent services.
+
+Blast radius and first action:
+
+- Restarting Netlogon can briefly interrupt new domain authentication and
+  domain account lookup on Kuhnle. Local break-glass SSH remains available.
+- Restart Netlogon only, without changing the machine password, resetting the
+  secure channel, rejoining the domain, changing GPO, or changing SSH/firewall
+  configuration. Revalidate trust, SID lookup, and both SSH aliases before any
+  stronger action or any other VM reboot.
+
+## 2026-09-05 - Netlogon Restart Result And Secure-Channel Reset Scope
+
+Result of first action:
+
+- Netlogon restarted successfully and returned to `Running`/`Automatic`.
+- The restart did not restore SID translation, domain user lookup, or
+  `winad-kuhnle`; RPC error `1722` and the trust-relationship error remained.
+- Local break-glass SSH, DC discovery, time synchronization, and the
+  `nltest` channel query remained available.
+
+Next action and blast radius:
+
+- Reset Kuhnle's secure channel specifically against PDC. This renews the
+  member-computer authentication channel and can briefly invalidate cached
+  domain authentication on Kuhnle; no running service uses a domain service
+  identity.
+- This action does not rejoin the machine, change its OU, alter GPO, change
+  DNS/firewall/SSH configuration, or modify other computers.
+- If the reset fails or local SSH becomes unhealthy, stop the ESX-C sequence.
+  PDC and BDC remain online, and local `win-kuhnle` is the containment path;
+  do not attempt a domain rejoin without a separate rollback plan.
+
+## 2026-09-05 - Secure-Channel Reset Result And Machine-Password Scope
+
+Result of channel reset:
+
+- `nltest /sc_reset` against PDC returned `NERR_Success`, but SID translation,
+  domain user lookup, and `winad-kuhnle` remained unavailable.
+- This confirms DC reachability but does not reconcile the member-computer
+  trust secret used by Windows account lookup.
+
+Next action and blast radius:
+
+- Renew Kuhnle's machine-account password against `format.lu` using the local
+  computer context. This changes the shared trust secret for Kuhnle's existing
+  AD computer account; it does not rejoin or move the computer, change user
+  passwords, alter GPO, or change SSH/firewall configuration.
+- If renewal fails, retain local `win-kuhnle`, leave LMR and BDC online, and
+  stop before any domain rejoin or computer-account reset. Validate SID lookup,
+  secure channel, and both SSH aliases before continuing.
+
+## 2026-09-05 - Machine-Password Renewal Result And Reboot Scope
+
+Result:
+
+- `nltest /sc_change_pwd:format.lu` returned `NERR_Success`.
+- A subsequent Netlogon restart completed cleanly, but SID translation, domain
+  user lookup, and `winad-kuhnle` still returned the same trust/RPC errors.
+
+Next action and blast radius:
+
+- Perform one additional Kuhnle guest reboot so LSA and Netlogon reload the
+  renewed machine trust secret. This causes another brief Kuhnle production
+  interruption; PDC and BDC remain online and local break-glass SSH is the
+  recovery path.
+- If domain SID translation and `winad-kuhnle` do not recover after this boot,
+  stop without rejoining the domain or changing the AD computer object, and do
+  not reboot LMR or BDC.
+
+## 2026-09-05 - Trust Remediation Final Result
+
+Action and verification:
+
+- Performed the second controlled Kuhnle reboot through self-removing SYSTEM
+  task `FormatOps-Reboot-20260905-Kuhnle-2`.
+- New boot time is `2026-09-05 09:59:27` Europe/Luxembourg time.
+- BDC shows Kuhnle's AD computer-account password updated at the expected
+  repair time. Subsequent inbound domain-partition replication from PDC to BDC
+  completed successfully.
+- Observed 16 additional postboot checks. Local `win-kuhnle` remained healthy,
+  `Test-ComputerSecureChannel=True`, and `nltest /sc_query` returned
+  `NERR_Success`.
+- SID translation continued to report a failed workstation trust relationship,
+  domain user lookup continued to return RPC error `1722`, and
+  `winad-kuhnle` continued to fail because OpenSSH could not resolve the domain
+  user.
+- Windows Update remains at `Count=0`; Windows Update and CBS reboot flags are
+  clear, no non-empty pending rename operation remains, and `sshd`, Netlogon,
+  and Windows Time are `Running`/`Automatic`.
+- No temporary `FormatOps-*` scheduled task remains.
+
+Result:
+
+- Kuhnle is healthy through local break-glass access and from the checked
+  update, reboot, disk, and core-service perspectives, but domain account
+  resolution and domain-admin SSH remain blocked.
+- The repair sequence stops here. A domain rejoin, AD computer-object reset,
+  GPO/certificate change, or broader domain repair requires a separate plan
+  with application validation and rollback steps.
+- LMR and BDC were not rebooted; their pending application-cleanup operations
+  remain queued for a later maintenance window.
+
+## 2026-09-05 - System Files Cleanup Pre-State
+
+Authorization and scope:
+
+- The user requested Windows Disk Cleanup with system files on all three ESX-C
+  VMs.
+- Use the established `cleanmgr` SYSTEM profile on `C:` only. Select all 27
+  cleanup categories exposed by this VM except `DownloadsFolder`; no ad hoc
+  file deletion, non-system volume cleanup, application-data deletion, or
+  configuration change is in scope.
+- The selected surface includes Windows Update Cleanup, previous installations,
+  Windows ESD installation files, device-driver packages, discarded upgrade
+  files, temporary/setup/error-reporting files, caches, Defender cleanup, and
+  Recycle Bin. This can remove rollback resources exposed by Windows Disk
+  Cleanup.
+
+Pre-state and blast radius:
+
+- `C:` has about `24.00 GiB` free of `49.37 GiB` and reports healthy.
+- Windows Update and CBS reboot flags are clear. No `cleanmgr`, DISM host,
+  Windows Update worker, or temporary cleanup task is active.
+- `sshd`, Netlogon, and Windows Time are `Running`/`Automatic`; local
+  break-glass SSH remains the required access path while domain-admin SSH is
+  unresolved.
+- Cleanup can increase CPU and disk activity and invoke DISM, TiWorker, or
+  TrustedInstaller for an extended period. It is not expected to reboot the VM;
+  stop the sequence if an unexpected reboot or service failure occurs.
+
+## 2026-09-05 - System Files Cleanup Launched; Verification Interrupted
+
+Action:
+
+- Created cleanup profile `905` and selected all 27 discovered `VolumeCaches`
+  categories except `DownloadsFolder`.
+- Started `cleanmgr /d C /sagerun:905` as local SYSTEM through scheduled task
+  `FormatOps-CleanMgr-20260905-Kuhnle`.
+- Free space at launch was about `23.98 GiB`.
+
+Observed state:
+
+- One expected cleanup chain remained active during observation: `cleanmgr`,
+  `DismHost`, TiWorker, and TrustedInstaller. No duplicate cleanup was started
+  and none of these processes was terminated.
+- Free space remained about `24.01 GiB` while the system-files servicing phase
+  was running.
+- Remote checks then failed simultaneously for Kuhnle, LMR, and BDC. The local
+  route to all three addresses had fallen back to Wi-Fi gateway `10.10.10.1`
+  instead of the VPN tunnel, so this is recorded as loss of the administration
+  path rather than evidence of a Kuhnle reboot or failure.
+
+Pending verification:
+
+- After the VPN route is restored, inspect the existing task and cleanup
+  processes before doing anything else. Do not relaunch cleanup while the
+  original task or servicing workers remain active.
+- Verify completion, free space, reboot flags, services, local SSH, and the
+  existing Kuhnle domain-access issue; then remove task
+  `FormatOps-CleanMgr-20260905-Kuhnle` and all `StateFlags0905` properties.
+
+## 2026-09-05 - Cleanup Retry Verification Interrupted By VPN Loss
+
+- After the VPN returned, the original task and its single expected cleanup
+  chain were still running; no duplicate task was created and no process was
+  terminated.
+- Kuhnle remained on the same boot, with clear Windows Update/CBS reboot flags,
+  healthy `C:`, and `sshd`, Netlogon, and Windows Time running.
+- The VPN became unreachable again during fleet monitoring. Cleanup completion,
+  final free space, profile/task removal, and post-cleanup domain-access checks
+  remain pending.
+
+
+## 2026-09-13 - Maintenance Discovery And Patch Scope
+
+- Both configured SSH aliases work. Last observed boot: 2026-09-05 18:28:48 local time.
+- C: free space 22.56 GiB; fixed volumes report Healthy. Windows Update/CBS reboot markers are clear.
+- Pending rename queue has 9 non-empty strings, including security-driver backup/temporary files and MSI/Windows temporary cleanup. No manual queue or file deletion is planned.
+- SQLBase_SERVER1 is Running/Automatic; Gupta SQLBase Server1 is Stopped/Manual. Domain trust, SID lookup, and both SSH aliases now pass. No domain rejoin is warranted by these checks.
+- Update scan succeeded and offers: KB890830, KB5126149, KB5122882.
+- Recent warning/error summaries retain previously observed categories; no full application transaction or backup restore was tested. Current backup success and hypervisor job state are not independently verified in this guest-only pass.
+- September 5 cleanup task is Ready with LastTaskResult 267014 (0x41306, terminated). No cleanmgr/DismHost remains. Cleanup success and reclaimed bytes cannot be established from this result.
+- Correction to prior cleanup scope: Microsoft documents that /sagerun enumerates all drives and ignores /d. The earlier C:-only assertion was incorrect; no per-drive deletion audit is available. See https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cleanmgr.
+- Retire only the stopped FormatOps-CleanMgr-20260905 task for this VM and its StateFlags0905 profile properties. Do not restart broad Disk Cleanup during this patch round.
+- A reboot briefly interrupts SQLBase and Kuhnle production access. Wait for existing servicing workers to exit before starting one monitored SYSTEM installer. Keep unrelated AD, GPO, firewall, SSH, WinRM, and application configuration unchanged.
+
+## 2026-09-13 - Updates Installed; Domain Access Regressed After Reboot
+
+- The single SYSTEM installer completed at 12:28:17 local time. KB890830, KB5126149, and KB5122882 each returned ResultCode 2 / HResult 0; the task ended Ready / result 0 and requested a reboot.
+- Controlled reboot verified by new boot time 12:32:36. Subsequent update search succeeded (ResultCode 2), with zero applicable software updates. Windows Update/CBS reboot flags and PendingFileRenameOperations are clear.
+- SQLBase_SERVER1, sshd, Netlogon, and Windows Time are Running/Automatic. WinRM remains Stopped/Disabled; its configuration was not changed. Fixed volumes report Healthy; at 12:37 C: had 19.71 GiB free and D: 33.82 GiB.
+- Secure-channel checks against both BDC and PDC fail, domain account translation fails, and winad-kuhnle rejects authentication. win-kuhnle remains available. nltest reports ERROR_NO_LOGON_SERVERS (1311), despite DC discovery returning BDC and successful TCP connections to both DCs on 88, 135, 389, and 445. These checks do not establish a root cause or prove all required RPC traffic is healthy.
+- Windows Time is synchronized to BDC. No System warning/error events were returned in the initial post-boot query. No end-to-end production application or backup test was performed.
+- Hold further guest restarts and BDC patching while this regression remains unresolved. LMR's already-running installer is allowed to finish; do not interrupt native servicing.
+- No Netlogon restart, secure-channel reset, machine-password change, domain rejoin, AD/GPO edit, or firewall/remote-access change was made in this round.
+- Removed the stopped September 5 cleanup task and its 27 StateFlags0905 properties. No new broad Disk Cleanup was started; prior reclaimed space remains unverified.
+- Application warning/error summary since boot contains one SPBaseMgrService event 13; no full event payload or sensitive logs were copied into the repository.
+- Removed this round's completed update/reboot tasks and transferred installer script after verifying task result 0. The per-guest Windows Update audit log remains under C:\ProgramData\FormatOps\Logs.
+- Final recheck at 12:43:46, eleven minutes after boot: trust and account lookup still fail; SQLBase/local SSH remain available, reboot and rename markers remain clear, and C: has 19.61 GiB free. The recovery gate remains unresolved.
+
+## 2026-09-13 - Scoped Domain-Access Investigation
+
+- User approved proceeding with Kuhnle. At 12:47, local access and SQLBase are available but domain SSH, secure-channel validation, and domain-account lookup still fail. No new reboot is pending.
+- First diagnostic action: run the same non-mutating trust/account-lookup queries once under local SYSTEM, independently of the SSH logon token, using a temporary scheduled task. Only status codes and known infrastructure names are written to a guest-local diagnostic log; no secrets, ticket contents, or customer data are collected.
+- Task/script creation is the only initial guest modification. No service restart, machine-password reset, AD/GPO change, firewall edit, or domain rejoin is included. SQLBase runs as LocalSystem; Netlogon reports no dependent services. Keep local win-kuhnle available throughout.
+- SYSTEM checks reproduced the failure against both DCs. Normal SYSTEM Kerberos ticket requests for ldap/BDC.format.lu and ldap/PDC.format.lu subsequently returned exit 0; no tickets were purged or exported. BDC's four observed dynamic LSASS/RPC listener ports were TCP-reachable from Kuhnle. No matching recent BDC Netlogon rejection was found; this is not proof that every authentication path is healthy.
+- Next scoped action: one nltest secure-channel reconnection to BDC, using Kuhnle's existing machine identity. This can interrupt new domain authentication on Kuhnle but does not intentionally rotate the machine password or change AD membership, policies, or SSH. No running format-domain service identity was found, and Netlogon has no dependent services. Verify trust, lookup, and both aliases before stronger action.
+- At 12:51:33 the reconnection returned NERR_Success, but subsequent trust validation failed and the channel query reverted to 1311. Domain user lookup returns RPC error 1722. No password reset is justified by this transient success alone.
+- Diagnostic scope extension: temporarily enable local Netlogon debug logging for one bounded reconnection/lookup attempt, then disable it and restore the originally absent DBFlag value. This adds small local logging overhead and repeats the same transient channel reconnection; no reboot, service restart, security-policy relaxation, password reset, or domain rejoin. Keep raw native logs on the guest and record only sanitized status/method summaries in the repository.
+
+### Findings And Proposed Next Step
+
+- The short trace shows session establishment succeeding with both controllers, followed by authentication-data requests resetting the connection to STATUS_NO_LOGON_SERVERS (0xc000005e). This does not demonstrate a mismatched machine password. Debug logging was disabled and the originally absent DBFlag restored and verified.
+- Kuhnle has EnableAuthEpResolution=1 under HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Rpc. Computer RSoP identifies Default Domain Policy as the winning source. BDC has RestrictReceivingNTLMTraffic=2 and RestrictNTLMInDomain=5. DNS resolves both controller names to their expected IPv4 addresses.
+- At 12:54:52, SYSTEM RPC endpoint-mapper tests to BDC: Kerberos succeeds (exit 0), NTLM fails with access denied (exit 5). An unauthenticated endpoint-mapper connectivity test also succeeds. These tests do not change server security settings or prove application transactions work.
+- Microsoft documents that EnableAuthEpResolution uses NTLM for endpoint-mapper queries and is incompatible with denying incoming NTLM. Microsoft recommends retaining NTLM restrictions when choosing between these settings: https://learn.microsoft.com/en-us/windows-server/security/rpc-interface-restrict. This is a strong candidate cause, not yet confirmed by a controlled configuration test.
+- A read-only LMR comparison finds the same EnableAuthEpResolution=1 value. Do not change Default Domain Policy or assume this is limited to Kuhnle. Its current computer container is OU=_Edge-Servers with NTLM,OU=_Servers,OU=_Computers,DC=format,DC=lu; neither the computer nor its OU membership was changed.
+- Proposed approval-gated test: change only Kuhnle's effective Enable RPC Endpoint Mapper Client Authentication setting to Disabled (EnableAuthEpResolution=0), preserving incoming/outgoing NTLM restrictions, endpoint authorization, and firewall scope, then perform one planned Kuhnle reboot. This permits unauthenticated endpoint discovery; authentication/authorization for the actual RPC services must remain intact. The policy requires reboot to take effect.
+- Do not present a local registry override as durable: Default Domain Policy can overwrite it. Any lasting GPO exception must apply only to KUHNLE$ and be separately documented with its link/filter and rollback. Do not edit the shared default policy. If the test fails, restore the original effective value 1 and reboot to restore runtime behavior; this can require a second production interruption.
+- Approval is required before that policy change. No new GPO, policy override, password reset, domain rejoin, service restart, or reboot was performed during this investigation. LMR and BDC maintenance remain held.
+- The diagnostic task completed with result 0 and was removed along with its transferred script. Native diagnostic logs remain on Kuhnle; no raw trace, credentials, or ticket contents were committed to the repository.
+- Final checks at approximately 12:57: secure-channel validation recovered to True and nltest returned NERR_Success against BDC, but account lookup and winad-kuhnle still fail. SQLBase, Netlogon, and local SSH remain running. The cause of this partial recovery is not established; it does not close the domain-access issue or remove the policy-test approval gate.
+
+## 2026-09-13 - Approved Temporary RPC Policy Test
+
+- User approved the proposed Kuhnle-only temporary override and reboot. At 13:17:56 local time, EnableAuthEpResolution is still DWORD 1; domain lookup/SSH fail while secure-channel validation passes. SQLBase and local SSH run normally; there are no active cleanup/update installers, temporary FormatOps tasks, or pending reboot/rename markers. Boot remains 12:32:36; healthy volumes have C: 19.66 GiB and D: 33.82 GiB free.
+- Change only HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Rpc\EnableAuthEpResolution from 1 to 0, retain the original value in a guest-local audit record, and restart Kuhnle through one SYSTEM task. Expected impact: brief loss of Kuhnle production/SQLBase access. Preserve local break-glass SSH; do not reboot another guest or alter shared GPOs, NTLM restrictions, firewall, SSH, WinRM, AD objects, or passwords.
+- On recovery, verify new boot, actual registry value (including possible GPO overwrite), SQLBase, both SSH aliases, secure channel, account lookup, reboot markers, disks, and event summaries. No policy-refresh suppression or recurring enforcement task is authorized. If the setting is overwritten, report the test limitation rather than fighting Group Policy. Rollback value is DWORD 1; a failed test may require restoring it and a further reboot as previously documented.
+
+### Initial Test Result
+
+- Recorded the original DWORD 1 in C:\ProgramData\FormatOps\Logs\kuhnle-rpc-policy-test-20260913.json, set only EnableAuthEpResolution to 0, verified 0, and requested the approved reboot using FormatOps-Kuhnle-RPC-Test-Reboot-20260913.
+- New boot verified at 13:19:12. By 13:19:39 secure-channel validation and domain-account lookup pass. Both win-kuhnle and winad-kuhnle subsequently succeed. SQLBase_SERVER1, sshd, Netlogon, and Windows Time are Running/Automatic; WinRM remains Stopped/Disabled.
+- The first post-boot registry read already shows EnableAuthEpResolution=1 again. Computer Group Policy startup completion is recorded at approximately 13:19:28. This is consistent with policy reapplication; no policy suppression or repeated override was attempted. Recovery followed the temporary test/reboot, but the RPC runtime's loaded value was not directly measured. The policy conflict remains a strong candidate rather than a conclusively isolated root cause, and recovery across another reboot is unverified.
+- Fresh Windows Update search succeeds (ResultCode 2) with zero offered software updates. Windows Update/CBS reboot markers and the rename queue are clear. C: has 19.99 GiB free and D: 33.82 GiB; both volumes report Healthy.
+- Post-boot warning/error groups contain Windows Time events 1/4, DCOM 10016, and SPBaseMgrService 13. Windows Time subsequently synchronizes successfully to BDC. No application transaction or backup/restore test was performed, and these event summaries are not an assertion that every log is clean.
+- No lasting GPO exception was created. Shared domain policies, NTLM restrictions, AD membership/passwords, firewall, SSH, and WinRM configuration were not changed. A durable Kuhnle-only policy correction requires separate approval and documented filtering/rollback; do not modify Default Domain Policy as part of this temporary test.
+- Repeat verification at 13:21:47: both SSH aliases, account lookup, secure channel (BDC/NERR_Success), and SQLBase still pass. No reboot/rename markers remain. C: is healthy with 19.91 GiB free; D: remains 33.82 GiB. The configured RPC value is still the original 1. Kuhnle's and BDC's inspected NTLM restriction values are unchanged.
+- Verified the reboot task's result 0 and removed that completed task; no FormatOps task remains. The guest-local original-value audit record is retained. No second reboot or further registry override was performed because access recovered and the configured value had already returned to its original state. This does not establish the RPC runtime's current cached setting or guarantee persistence across another boot.
+
+## 2026-09-13 - PDC/BDC GPO Audit Follow-Up
+
+- User requested a read-only check against Kerberos-first, NTLM-for-edge-servers-only intent. Direct PDC and BDC reports agree, and all 17 GPO AD/SYSVOL version sets match. No policy, service, registry, or AD change was made during the audit.
+- Default Domain Policy is domain-linked, enforced, and highest priority. Its EnableAuthEpResolution=1 cannot be overridden by a normal child-OU exception. This corrects the earlier assumption that a simple Kuhnle-only child policy would suffice.
+- KUHNLE and FILE belong to the NTLM edge OU but are missing from the domain NTLM server-exception list. NTLM Allow also applies to a workstation OU; ADMIN is an exception outside the edge OU. Do not blindly add/remove exceptions before confirming intended roles and application needs.
+- Full findings, effective settings, additional conflicting GPO values, and the approval-gated correction order are in [the domain authentication policy audit](../../kerberos-ntlm-gpo-audit-2026-09-13.md). No permanent fix was applied.
+
+## 2026-09-13 - Read-Only NTLM Event Review
+
+- Latest local credential-validation records correlate with this audit's public-key SSH sessions. Do not interpret them as proof that SSH authenticated using network NTLM. The latest retained NTLM Operational event is an audit-only 8002 at September 12 15:26:53, with local caller KUHNLE$/PID 4; no remote user is identified.
+- The Security log only extends back to September 13 10:39:21, preventing correlation with that prior-day event. No policy/logging changes were made. See the [sanitized activity review](../../kerberos-ntlm-gpo-audit-2026-09-13.md#latest-ntlm-event-inspection).

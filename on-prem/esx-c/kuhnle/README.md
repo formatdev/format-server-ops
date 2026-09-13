@@ -2,7 +2,7 @@
 
 Starter runbook for the `Kuhnle` VM on ESX-C.
 
-Last updated: 2026-05-03
+Last updated: 2026-09-13
 
 ## Known State
 
@@ -12,10 +12,13 @@ Last updated: 2026-05-03
 - Expected local break-glass SSH alias: `win-kuhnle`
 - Expected domain-admin SSH alias: `winad-kuhnle`
 - Expected SSH identity: `~/.ssh/windows-admin_ed25519`
-- Role: unknown Windows production VM; verify before maintenance.
+- Role: production Windows member server for format.lu; SQLBase_SERVER1 is Running/Automatic.
 - Verified live state: confirmed domain-joined Windows member server on 2026-04-18.
-- Update state: the 2026-04 pending-update finding from 2026-04-18 is stale; by 2026-05-03, `KB5082142` was installed and the Windows Update operational log was repeatedly reporting `0 updates found`.
-- Cleanup state: operator later ran Windows system-file cleanup and recovered about `4.3 GB` before the planned ESX-C host-maintenance shutdown.
+- Current maintenance: see [maintenance log](maintenance-log.md), September 13 entries.
+- Domain access: both SSH aliases, secure-channel validation, and account lookup recovered after the approved temporary RPC-policy test and 13:19:12 reboot on September 13. SQLBase is running, no updates are offered, and reboot/rename markers are clear. Recovery across another reboot is not yet established.
+- Investigation: a likely RPC endpoint-mapper/NTLM policy conflict is documented in the September 13 log. The test set EnableAuthEpResolution=0 before reboot, but its configured value was already back to 1 after startup. No durable exception or shared-policy edit was made; NTLM blocking remains unchanged. A lasting Kuhnle-only correction needs separate approval.
+- Subsequent [PDC/BDC policy audit](../../kerberos-ntlm-gpo-audit-2026-09-13.md) found Default Domain Policy enforced, an edge/domain-exception mismatch, and other conflicting settings. A normal child-OU exception cannot override the RPC setting; use the audit's correction plan instead of assuming a simple local exception will persist.
+- September 5 cleanup ended with a terminated task result; reclaimed space is unverified. The stopped task and profile were removed on September 13.
 
 ## Safety Rules
 

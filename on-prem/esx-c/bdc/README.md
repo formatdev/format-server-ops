@@ -2,7 +2,7 @@
 
 Starter runbook for the `BDC` VM on ESX-C.
 
-Last updated: 2026-04-18
+Last updated: 2026-09-13
 
 ## Known State
 
@@ -12,9 +12,11 @@ Last updated: 2026-04-18
 - Expected local break-glass SSH alias: `win-bdc`
 - Expected domain-admin SSH alias: `winad-bdc`
 - Expected SSH identity: `~/.ssh/windows-admin_ed25519`
-- Role: likely backup domain controller for `format.lu`; verify before any maintenance.
+- Role: confirmed backup domain controller and DNS server for `format.lu`; domain-critical.
 - Verified live state: confirmed backup domain controller for `format.lu` on 2026-04-18.
-- Update state: 2026-04 updates installed and reboot completed on 2026-04-18; no pending updates after reboot.
+- Current maintenance: see [maintenance log](maintenance-log.md), September 13 entries.
+- September 13 patch status: three updates offered; installation/reboot held after Kuhnle's post-reboot domain-access regression. Kuhnle access recovered after a temporary test, but a durable policy correction is still pending. BDC remains online with focused DC checks passing.
+- September 5 cleanup ended with a terminated task result; reclaimed space is unverified. The stopped task and profile were removed on September 13.
 
 ## Safety Rules
 
