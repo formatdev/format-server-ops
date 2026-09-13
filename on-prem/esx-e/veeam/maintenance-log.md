@@ -1016,3 +1016,437 @@ Interpretation:
 
 - The verification reboot cleared the post-update .NET runtime rename queue.
 - The host is now clean from both a Windows Update perspective and a pending-rename perspective.
+
+## 2026-08-04 - Early-August Read-Only Maintenance
+
+Performed a discovery-first maintenance sweep over key-only SSH. No updates were installed, no cleanup or reboot was started, and no Veeam configuration, repository, firewall, credential, or backup data changes were made.
+
+Access and identity:
+
+- Check time: `2026-08-04 18:35:43`.
+- Host responded as `VEEAM` under `VEEAM\Administrator`.
+- Host remained standalone: `PartOfDomain=False`, `Domain=WORKGROUP`.
+- Last boot remained `2026-07-19 19:19:37`.
+
+Service and storage state:
+
+- `sshd`, `WinRM`, `MSSQL$VEEAMSQL2016`, `SQLTELEMETRY$VEEAMSQL2016`, and sampled core Veeam services were running.
+- `SQLAgent$VEEAMSQL2016` remained stopped and disabled, matching baseline.
+- `C:` NTFS was healthy with `55820738560` bytes free of `128478867456`.
+- `E:` `VeeamHDD` ReFS was healthy with `1162373693440` bytes free of `30786258468864`, or `3.78%` free.
+- Both VMware virtual NVMe disks reported `Online` and `Healthy`; both mounted filesystems reported `Healthy` and `OK`.
+
+Veeam state:
+
+- `Veeam.Backup.Service.exe` remained version `13.0.2.29`.
+- The latest `CURRENT JOBS` state in `Svc.VeeamBackup.log` showed the three configured jobs in `Stopped` state with `Warning` results:
+  - `Backup Copy Job to NAS4\Backup Job to ESXE`
+  - `Backup Job to ESXE`
+  - `Replication`
+- Continue treating these warnings as explained by the known repository free-space threshold and SMTP warning behavior unless later evidence changes.
+- Installed component inventory showed the core Veeam server packages at `13.0.2.29`; the Windows Agent redistributable and VSS Hardware Provider were both `13.0.3.1220`, so the package inventory warning did not by itself establish a partial core-server upgrade.
+
+Windows servicing state:
+
+- Built-in Windows Update search returned one pending update: `PowerShell LTS v7.4.18 (x64)`; it did not currently require a reboot.
+- `CBS reboot pending=False`.
+- `Windows Update reboot required=False`.
+- `PendingFileRenameOperations=True` with 22 registry entries representing 11 Edge updater and temporary installer paths, including `AetherInstallation`; no Windows servicing paths were observed.
+- DISM component-store analysis reported `0` reclaimable packages and `Component Store Cleanup Recommended: No`.
+
+Event review:
+
+- Repeating Virtual Disk Service event `9` errors continued during short Virtual Disk service start/stop cycles, plus one event `6`/`8` pair on `2026-07-21` for a VMware virtual disk.
+- Current Windows disk and volume health remained healthy, and no NTFS, ReFS, disk, or volume failure state was found during this inspection.
+
+Next safest target:
+
+- Complete a repository capacity and retention review before optional patching or reboot work. `E:` is now at `3.78%` free, well below the known `10%` Veeam warning threshold.
+- After capacity risk is addressed, the single PowerShell update can be considered in a confirmed maintenance window, followed by a reboot only if explicitly approved and no backup session is active.
+
+Repository capacity follow-up:
+
+- Performed a read-only filesystem inventory; no backup content was opened, changed, or removed.
+- `E:\VeeamBackups` contained 560 files with about `29.51 TB` logical size.
+- `E:\VeeamBackups\Backup Job ESXE to ESX-B` accounted for about `26.74 TiB` logical size:
+  - one `.vbk` full backup
+  - 199 `.vrb` reverse-increment files
+  - one `.vbm` metadata file
+- The oldest reverse increment was dated `2025-10-09`; the newest was dated `2026-08-03`.
+- Replica and configuration-backup folders were comparatively small at about `0.098 TiB` and `0.004 TiB` logical size.
+- Compared with the post-update observation on `2026-07-19`, free space fell by about `288 GB` in 16 days. Retention behavior may make growth non-linear, so this is a trend signal rather than a time-to-full forecast.
+- Historical retention logging showed a 200-day retention design, broadly consistent with the current 199 reverse increments plus one full backup. The current v13 retention setting could not be confirmed through the PowerShell API because the non-interactive local connection failed to connect to the Veeam Identity service.
+- The Identity process and Veeam services remained running, and the Identity log showed certificate access and local-administrator validation rather than a crash. Do not infer a Veeam console outage from the non-interactive PowerShell failure alone.
+
+Capacity conclusion:
+
+- Windows cleanup cannot materially address the repository pressure; the component store has no reclaimable packages and `C:` has adequate headroom.
+- The operator should review the intended 200-point retention requirement and available repository capacity in the Veeam console.
+- Do not delete `.vbk`, `.vrb`, or `.vbm` files directly. Any retention reduction, chain maintenance, repository expansion, or data removal requires a separate reviewed Veeam change.
+
+## 2026-08-23 - Late-August Read-Only Maintenance
+
+Performed a discovery-first maintenance sweep over key-only SSH. No updates were installed, no cleanup or reboot was started, and no Veeam, repository, firewall, credential, or backup data changes were made.
+
+Access and baseline:
+
+- Check time: `2026-08-23 15:33:02`.
+- Host remained `VEEAM`, administered as local `VEEAM\Administrator` in standalone `WORKGROUP`.
+- Last boot observed: `2026-08-04 21:02:44`.
+- Event history showed an administrator-initiated power-off on `2026-08-04 20:08`, followed by the current boot; no unexpected-shutdown event was found in that sequence.
+- `sshd`, `WinRM`, SQL, and sampled core Veeam services were running.
+- `SQLAgent$VEEAMSQL2016` remained stopped and disabled, matching baseline.
+- Veeam remained version `13.0.2.29`.
+
+Storage and retention:
+
+- Both VMware virtual disks and mounted filesystems reported `Online`, `Healthy`, and `OK`.
+- `C:` had `54902333440` bytes free of `128478867456` (`42.73%`).
+- `E:` had `5116757868544` bytes free of `30786258468864` (`16.62%`).
+- Repository headroom improved substantially from `3.78%` on `2026-08-04`.
+- The primary chain contained one `.vbk`, 149 `.vrb` files, and one `.vbm` file.
+- The `2026-08-21` primary backup log explicitly reported point retention count `150` and removed the oldest `.vrb` through Veeam retention.
+- The same run completed its backup payload successfully with `10` of `10` tasks successful and no failed tasks.
+
+Job and warning state:
+
+- All three configured jobs were `Stopped` during inspection.
+- Their latest payloads completed successfully:
+  - primary backup: `10` of `10` tasks successful
+  - backup copy: `10` of `10` tasks successful
+  - replication: `10` of `10` tasks successful
+- Each final session was marked `Warning` because SMTP server `192.168.1.6:25` rejected report relay with `5.7.54`, including the external `dany@dsl.lu` recipient.
+- The primary backup was next scheduled for `2026-08-24 22:00`; replication was next scheduled for `2026-08-24 09:00`.
+
+Windows servicing state:
+
+- PowerShell 7 reported `7.6.4`; PowerShell LTS `7.4.18` also remained installed.
+- Built-in Windows Update discovery returned four pending updates:
+  - `KB890830` v5.144
+  - `.NET` cumulative update `KB5121650`
+  - `PowerShell v7.6.5 (x64)`
+  - Windows Server cumulative update `KB5120242`
+- `CBS reboot pending=False` and `Windows Update reboot required=False`.
+- `PendingFileRenameOperations=True` contained 692 raw registry entries, 346 non-empty paths.
+- Of those non-empty paths, 329 referenced .NET `8.0.29`; Windows Installer events from `2026-08-22` explicitly stated that removal of .NET `8.0.29` required a deferred restart after .NET `8.0.30` was installed.
+- The queue also included six Edge updater paths, four `Config.Msi` rollback files, and five temporary paths.
+- DISM component-store analysis reported `0` reclaimable packages and `Component Store Cleanup Recommended: No`.
+
+Event review:
+
+- Repeating Virtual Disk Service event `9` provider errors continued, but current disks and filesystems remained healthy.
+- No new disk, NTFS, ReFS, or volume health failure was found.
+
+Next safest target:
+
+- In an approved maintenance window, install the four pending Microsoft updates and perform one reboot to complete both Windows servicing and the deferred .NET `8.0.29` removal.
+- Reconfirm that no backup, copy, replication, restore, or maintenance session is active immediately before starting.
+- After reboot, verify pending updates, all reboot indicators, the rename queue, remote access, SQL, Veeam service recovery, job state, and repository free space.
+
+## 2026-08-23 - August 2026 Windows Update Cycle Completed
+
+With operator approval, installed all four pending Microsoft updates and rebooted the standalone Veeam server. No Veeam configuration, repository, firewall, credential, retention, or backup data changes were made.
+
+Pre-maintenance confirmation:
+
+- Check time: `2026-08-23 15:37:29`.
+- All three configured Veeam jobs were stopped.
+- No active restore or repository-maintenance log signal was found.
+- One long-lived `Veeam.Backup.Manager.exe` process was identified as `STARTINFRARESCAN`, not a backup or restore session.
+- `C:` and `E:` were healthy; `E:` retained about `5.12 TB` free.
+
+Update installation:
+
+- Used temporary scheduled task `FormatServerOps-WindowsUpdate-Aug2026` running as `SYSTEM`.
+- Windows Update found and successfully installed:
+  - `Windows Malicious Software Removal Tool x64 - v5.144 (KB890830)`
+  - `2026-08 Cumulative Update for .NET Framework 3.5, 4.8 and 4.8.1 (KB5121650)`
+  - `PowerShell v7.6.5 (x64)`
+  - `2026-08 Cumulative Update for Microsoft server operating system version 21H2 (KB5120242)`
+- Overall download and install result codes were `2` (`Succeeded`).
+- Each update returned result code `2` with `HResult=0`.
+- Installation completed at `2026-08-23 15:52:42` and required reboot.
+- CBS finalized `KB5120242` successfully with `HRESULT=0x00000000` and target build `20348.5499`.
+
+Reboot and recovery:
+
+- Planned reboot was requested at `2026-08-23 15:53:19` with reason `Operating System: Hot fix (Planned)` and comment `August 2026 maintenance updates`.
+- Windows finished servicing before dropping SSH, then returned with boot time `2026-08-23 15:55:37`.
+- SQL and remote-access services returned first.
+- Veeam application services followed their normal delayed-start sequence while locking the .NET `8.0.30` runtime files.
+- By `2026-08-23 15:58:54`, the full sampled Veeam service stack had recovered.
+
+Final verification:
+
+- Check time: `2026-08-23 16:00:06`.
+- OS build: `20348.5499`.
+- PowerShell 7: `7.6.5`.
+- Veeam: `13.0.2.29`.
+- Built-in Windows Update search returned `PendingUpdateCount=0`.
+- Reboot and servicing indicators were all clear:
+  - `CBSRebootPending=False`
+  - `WindowsUpdateRebootRequired=False`
+  - `PendingFileRenameOperations=False`
+- .NET `8.0.29` no longer appeared in installed runtime inventory; .NET `8.0.30` remained active.
+- Remote access and SQL were healthy:
+  - `sshd`: running
+  - `WinRM`: running
+  - `MSSQL$VEEAMSQL2016`: running
+  - `SQLTELEMETRY$VEEAMSQL2016`: running
+  - `SQLAgent$VEEAMSQL2016`: stopped and disabled, matching baseline
+- Key Veeam services were running:
+  - `VeeamBackupSvc`
+  - `VeeamBackupRESTSvc`
+  - `VeeamBrokerSvc`
+  - `VeeamCatalogSvc`
+  - `VeeamCloudSvc`
+  - `VeeamTransportSvc`
+  - `VeeamWebSvc`
+- All configured jobs remained stopped and retained their previously explained SMTP-warning result state.
+- No post-boot Veeam, SQL, service-control, disk, NTFS, ReFS, or volume error was found.
+- Storage remained healthy:
+  - `C:` free `51916849152` of `128478867456` (`40.41%`)
+  - `E:` free `5116758654976` of `30786258468864` (`16.62%`)
+
+Cleanup:
+
+- Removed temporary scheduled task `FormatServerOps-WindowsUpdate-Aug2026`.
+- Removed the temporary update script and transcript from `C:\ProgramData\format-server-ops`.
+
+Interpretation:
+
+- The August 2026 Windows update cycle completed successfully.
+- The deferred .NET runtime rename queue cleared in the same reboot.
+- No further reboot or Windows cleanup is currently required.
+
+## 2026-08-23 - System Files Cleanup
+
+With operator approval, ran Windows Disk Cleanup against `C:` on the standalone Veeam server. No Veeam configuration, repository, retention, firewall, credential, or backup data was changed.
+
+Scope and safeguards:
+
+- Confirmed all three configured Veeam jobs were stopped before cleanup.
+- Selected 20 system cleanup categories, including temporary files, error-reporting files, memory dumps, Defender cleanup, delivery-optimization files, setup logs, and thumbnail/cache content.
+- Excluded `DownloadsFolder`, `Recycle Bin`, previous installations, Windows ESD files, discarded upgrade files, driver packages, language packs, and Windows Update Cleanup to preserve user data and rollback options.
+- Used cleanup profile `8739`; its temporary registry selection flags and scheduled task `FormatServerOps-CleanMgr-Aug2026` were removed afterward.
+
+Execution outcome:
+
+- `C:` free space increased from `50998001664` bytes to `55191728128` bytes, a net gain of `4193726464` bytes, about `3.91 GiB`.
+- Two cleanup processes were briefly observed concurrently. They and their DISM/Windows servicing workers were allowed to exit naturally; none was forcibly terminated.
+- During cleanup, Windows restarted at `2026-08-23 21:49`. Event `1074` identified `C:\WINDOWS\system32\SystemSettingsAdminFlows.exe`, running as `VEEAM\Administrator`, as the initiator with reason `Other (Unplanned)` and no comment.
+- The restart cleanly stopped the event log and interrupted the scheduled-task wrapper, which consequently reported task result `267014`; no unexpected-shutdown event was recorded.
+- Post-cleanup boot time was `2026-08-23 21:50:00`.
+
+Final verification:
+
+- Cleanup profile flags remaining: `0`.
+- Temporary cleanup task present: `False`.
+- `cleanmgr`, DISM host, and Windows servicing worker processes remaining: `0`.
+- `CBSRebootPending=False`, `WindowsUpdateRebootRequired=False`, and `PendingFileRenameOperations=False`.
+- Both VMware virtual disks remained `Online` and `Healthy`; `C:` and `E:` remained `Healthy` and `OK`.
+- `E:` retained `5116758851584` bytes free; no repository content was touched.
+- All 22 expected running Veeam, SQL, SSH, and WinRM services recovered. `SQLAgent$VEEAMSQL2016` remained stopped/disabled as designed.
+- The Veeam service log at `2026-08-23 21:53:21` confirmed all three configured jobs were still `Stopped`.
+- No post-boot Veeam, SQL, disk, NTFS, ReFS, volume, or service-control error was found.
+
+Interpretation:
+
+- The system-files cleanup reclaimed about `3.91 GiB` and the server recovered cleanly from the restart that occurred during the operation.
+- No additional cleanup or reboot is currently required.
+
+## 2026-09-05 - Early-September Read-Only Maintenance
+
+Performed a discovery-first maintenance sweep over key-only SSH. No update, reboot, cleanup, Veeam configuration change, component deployment, repository change, firewall change, or backup-data change was made.
+
+Access and baseline:
+
+- Check time: `2026-09-05 09:20:37`.
+- Host remained `VEEAM`, administered as local `VEEAM\Administrator` in standalone `WORKGROUP`.
+- Last boot observed: `2026-08-26 14:54:32`.
+- SSH remained key-only with `PubkeyAuthentication yes`, `PasswordAuthentication no`, `PermitEmptyPasswords no`, and the local `Administrators` match block using `administrators_authorized_keys`.
+- The administrator key file ACL remained limited to `SYSTEM` and local `Administrators`.
+- The custom SSH firewall rule remained enabled for TCP `22` and scoped to `192.168.1.73` and `192.168.113.2`.
+
+Veeam upgrade state:
+
+- Veeam was upgraded on `2026-08-26` from the previously observed `13.0.2.29` release.
+- `Veeam.Backup.Service.exe` reported base version `13.1.0.411`.
+- Installed hot-update components and the Veeam client/server compatibility log reported `13.1.1.18`.
+- The final setup attempt logged `Hot update 1 for Veeam Backup & Replication 13.1.0.411 finished with exit code: 0` at `2026-08-26 14:44:11`.
+- Two earlier setup attempts logged an inaccessible installation package before the later successful run.
+- Two administrator-initiated restarts occurred during the upgrade window at `14:01:01` and `14:51:55`; both stopped and restarted the event log cleanly, with no unexpected-shutdown event.
+
+Service and storage state:
+
+- SSH, WinRM, SQL, and sampled core Veeam services were running.
+- `SQLAgent$VEEAMSQL2016` remained stopped and disabled, matching baseline.
+- Both VMware virtual NVMe disks were `Online` and `Healthy`; `C:` and `E:` were `Healthy` and `OK`.
+- `C:` had `42702860288` bytes free of `128478867456` (`33.24%`).
+- `E:` had `6707367378944` bytes free of `30786258468864` (`21.79%`).
+- The primary repository chain remained one `.vbk`, 149 `.vrb` files, and one `.vbm` file.
+- The newest `.vbk` was written during the `2026-09-04` primary run; no repository file was opened, modified, or deleted during inspection.
+
+Windows servicing state:
+
+- Built-in Windows Update search returned `PendingUpdateCount=0`.
+- `CBS reboot pending=False` and `Windows Update reboot required=False`.
+- `PendingFileRenameOperations=True` contained 50 non-empty paths: 25 `Config.Msi` rollback files, 24 temporary paths, and one updater path. No Veeam or Windows servicing path was observed.
+- DISM component-store analysis reported zero reclaimable packages, zero cache/temporary data, and `Component Store Cleanup Recommended: No`.
+
+Job state and new failure:
+
+- All three configured jobs were stopped at the time of inspection.
+- Latest job results were:
+  - backup copy: `Warning`
+  - primary backup: `Failed`
+  - replication: `Warning`
+- The primary run started on `2026-09-04 22:00`; its retry completed on `2026-09-05 00:43` with seven failed tasks and no transferred retry data.
+- `Exchange3`, `File`, and `VMware vCenter Server` completed successfully in the original run.
+- `Admin`, `PDC`, `Easyjob3`, `Tim`, `Kuhnle`, `Lmr`, and `BDC` failed during guest-processing startup with remote SCM/RPC, guest-agent, or Veeam Installer Service connectivity errors.
+- The failing logs referenced RPC error `1722`, unavailable installer endpoint TCP `11731`, and failed fallback deployment. This is a real backup failure, not merely the established SMTP relay warning.
+- Read-only TCP checks from Veeam found ports `135` and `445` reachable on six of the seven failed guests; TCP `11731` was not reachable on any of them. `Admin` did not respond on any of the three tested ports.
+- A closed `11731` while jobs are stopped does not by itself distinguish a stopped or stale installer service from firewall filtering, but it is consistent with the job logs and recent server upgrade.
+- The only sampled `Veeam.Backup.Manager.exe` worker was the known infrastructure-rescan operation, not a backup or restore session.
+
+Event review:
+
+- The known Virtual Disk Service event `9` provider warning recurred, while current disks and filesystems remained healthy.
+- One `ekrn.exe` application crash was logged on `2026-09-01`; the ESET service and firewall helper were running during inspection.
+- No current Veeam, SQL, NTFS, ReFS, disk, or volume failure state was found on the Veeam server itself.
+
+Next safest target:
+
+- Before the next primary run, review the Veeam managed-server/component status and guest interaction configuration in the Veeam console, beginning with a read-only infrastructure rescan result review.
+- Determine whether the seven guests require a Veeam component upgrade/redeployment or whether guest firewall/RPC policy changed after the Veeam `13.1` upgrade.
+- Any rescan that deploys components, credentials test that changes state, guest firewall change, or job retry requires separate approval and coordination with the affected guest-server runbooks.
+- Do not reboot or clean Windows now: no updates are pending, the component store has nothing reclaimable, and a reboot would not address the demonstrated guest connectivity failure.
+
+## 2026-09-05 - Veeam Guest Component Repair
+
+Maintainer: Codex with Peter
+
+Investigated the failed primary backup and failed component upgrades without changing Veeam jobs, repositories, retention, credentials, firewall policy, or backup data. The affected persistent component hosts were `Tim` (`192.168.1.12`) and `Admin` (`192.168.1.11`).
+
+Root cause and recovery:
+
+- Both guests retained Veeam Installer Service executable `13.0.1.180` after the Veeam server moved to hot-update component level `13.1.1.18`; their Installer Services were Automatic but stopped.
+- The `2026-08-26` guest logs showed the Veeam-driven update timing out while stopping `VeeamDeploySvc` (`0x0000041d`), leaving the deployment DLL at `13.1.1.18` but the service executable stale.
+- Starting the existing services restored Veeam management reachability on TCP `6160` and `6162`.
+- A first controlled replacement test on `Tim` failed because the newer service could not load its required Veeam OpenSSL FIPS provider. The old executable was restored automatically and the service returned to Running.
+- Installed the signed Veeam `OpenSSL FIPS Redistributable 3.1.2` package, version `3.1.2.2`, on both guests using the license and managed-install properties recovered from Veeam's own successful setup logs.
+- Replaced each stale Installer Service executable with Veeam's signed `13.1.1.18` package copy. The old `13.0.1.180` executable remains as a rollback file on each guest until a successful backup proves the repair.
+- Upgraded `Veeam Guest Interaction Proxy Service` on both guests and `Veeam Backup Transport` on `Tim` with the signed Veeam server packages and the exact Veeam-managed MSI parameters recorded in prior successful guest-install logs. Admin's Transport component was already current.
+
+Verification:
+
+- `Tim` and `Admin` now report signed `13.1.1.18` Installer, Transport, and Guest Interaction executables.
+- `VeeamDeploySvc`, `VeeamTransportSvc`, and `VeeamGuestInteraction` are Automatic and Running on both guests.
+- TCP `6160`, `6162`, and `6190` listen locally and are reachable from `VEEAM` on both guests.
+- No CBS or Windows Update reboot flag was introduced; no reboot was performed.
+- The signed staging packages were removed from the Mac and guest temporary directories. Veeam-owned upload payloads and repair logs were retained.
+- Veeam short-name DNS resolution for `Tim` and `Admin` was unavailable from the standalone server, but its IP-based component paths were reachable. No DNS, hosts-file, firewall, domain, or remote-admin policy was changed.
+- A scheduled `STARTHEALTHCHECKJOB` repository health check remained active during final verification. Its repository-only work did not overlap the repaired guest services, and it was not interrupted.
+
+Follow-up:
+
+- Confirm that the next primary backup completes guest processing for the seven previously failed VMs before deleting the two rollback executable copies.
+- If the next run still fails for guests without persistent components, inspect that run's exact temporary deployment/RPC errors before changing guest firewall or credential policy.
+
+## 2026-09-13 - Maintenance Inspection and Backup Recovery Verification
+
+Performed read-only discovery on Veeam around `12:04-12:07` local time. No updates, reboot, cleanup, component deployment, configuration changes, or backup-data changes were performed. Existing unrelated repository edits were preserved.
+
+Current state:
+
+- VPN route and key-only `win-veeam` access worked. Identity remained local `VEEAM\Administrator` in `WORKGROUP`.
+- Last boot: `2026-09-05 21:31:20`; Windows image build `20348.5499`. Veeam server base executable remained `13.1.0.411`, with deployment component `13.1.1.18`.
+- All enumerated automatic Veeam, SQL, SSH, and WinRM services were running. SQL Agent remained disabled/stopped.
+- Both disks were Online/Healthy. `C:` free: `42137509888` of `128478867456` bytes (`32.80%`). `E:` free: `6714809909248` of `30786258468864` bytes (`21.81%`).
+- Primary repository inventory remained one VBK, 149 VRB, and one VBM. No repository content was modified.
+- SSH retained key-only settings and the custom allowed source scope `192.168.1.73,192.168.113.2`.
+
+Backup incident verification:
+
+- Primary backup on `2026-09-11` completed at `23:22:45` with 10 successful tasks and zero failures.
+- Individual primary task logs confirmed Success for Admin, PDC, Easyjob3, Tim, Kuhnle, Lmr, and BDC, as well as Exchange3, File, and VMware vCenter Server.
+- NAS4 backup copy completed at `2026-09-12 00:45:33` with 10 successful tasks and zero failures.
+- Replication completed at `2026-09-11 16:52:40` with 10 successful tasks and zero failures.
+- All three final Warning results followed SMTP relay rejection `5.7.54` from the configured email server. The earlier guest-processing backup failure is resolved in this observed cycle; no restore test was performed.
+- Today's configuration-backup log confirmed a new configuration backup was created, followed by the same email warning.
+- All three configured jobs were Stopped in the latest state block. Only a `STARTINFRARESCAN` manager worker was observed; no backup or health-check worker was observed.
+- Rollback copies on Tim/Admin were not revisited or deleted during this Veeam-only inspection.
+
+Windows servicing and cleanup:
+
+- Windows Update search found four downloaded updates: `KB890830` v5.145, .NET cumulative update `KB5126149`, PowerShell `7.6.6`, and Windows Server cumulative update `KB5122882`.
+- CBS and Windows Update reboot flags were False. Seven non-empty pending rename paths referenced `vsepamsi` backup DLLs, Config.Msi rollback files, and driver staging files; the queue was preserved.
+- DISM analysis completed successfully: actual component store `7.71 GB`, zero cache/temporary data, zero reclaimable packages, cleanup not recommended. Last recorded component cleanup was `2026-09-08 19:56:24`.
+
+Event and time follow-ups:
+
+- TPM-WMI `1796` repeated 17 times over the sampled eight days: SBAT Secure Boot update failed because a file was not found. Secure Boot currently reports enabled; no firmware or registry repair was attempted.
+- Windows Time reported free-running/unsynchronized. The configured standalone peer is `time.windows.com,0x9`; all three diagnostic NTP probes timed out with `0x800705B4`.
+- VMware Tools synchronization reports enabled and the sampled guest UTC matched the maintainer UTC to the second. This does not prove ongoing NTP synchronization. Earlier VMware precision-clock provider events reported no precision clock device.
+- One historical SSH service termination and two iSCSI connection errors occurred on September 5. SSH and local disks are currently healthy; no current Veeam, SQL, disk, NTFS, or ReFS error appeared in the sampled event set.
+
+Next maintenance step:
+
+- Install the four downloaded updates in a maintenance window, with a fresh job/worker check and controlled reboot followed by service, storage, update, and backup-state verification. A reboot temporarily interrupts the standalone backup server and its repository services.
+- Review the NTP path and Secure Boot servicing errors separately. No component-store cleanup is currently recommended.
+
+## 2026-09-13 - Operator Updates and Time-Source Clarification
+
+The operator started Windows Update and recalled WatchGuard `192.168.1.253` as the intended NTP server. Follow-up discovery at `12:14` found:
+
+- `KB890830` installed successfully; .NET `KB5126149` and Windows cumulative update `KB5122882` had installation-start events. Windows servicing workers were active and both CBS and Windows Update reboot flags were True. Full installation completion and reboot recovery remain unverified.
+- Windows Time remained configured for `time.windows.com,0x9`, with that peer Pending and no successful Windows Time synchronization recorded.
+- VMware Tools service was Running and `VMwareToolboxCmd timesync status` reported enabled. This confirms the guest host-synchronization setting, but does not establish ESX-E's upstream NTP source.
+- Four read-only NTP samples from Veeam to `192.168.1.253` all succeeded, with offsets between `+0.0006891` and `+0.0007977` seconds. The gateway offers a reachable NTP endpoint and closely agrees with the current guest clock; it is not currently selected as the Windows peer.
+- No time configuration change, forced resynchronization, additional update installation, or reboot was initiated by Codex.
+
+## 2026-09-13 - Cross-Server Time Audit
+
+At the operator's request, expanded read-only time discovery to the on-prem domain servers and NAS4. Full matrix, source references, access limitations, and proposed corrections are recorded in [On-Prem Time Synchronization](../../time-synchronization.md).
+
+- PDC emulator role and live time source were verified: PDC uses WatchGuard `192.168.1.253`; BDC follows PDC; all seven checked domain members use `NT5DS` and successfully synchronize with PDC or BDC.
+- VMware periodic synchronization is disabled on PDC/BDC but enabled on all seven domain members and standalone Veeam. Startup/resume settings remain unverified.
+- Veeam's Windows peer remains Pending at `time.windows.com,0x9`; Windows Time reports unsynchronized. Both WatchGuard candidate `.1.253` and Veeam's actual default gateway `.90.253` answer NTP with sub-millisecond offsets from Veeam.
+- NAS4 runs chrony and is synchronized to `.90.253`. Every checked domain machine was within 4.5 ms of `.1.253` in three diagnostic samples.
+- ESX-C/D/E SSH connections were refused, the configured vCenter key was missing, and Lportainer was unreachable through the current path. Their upstream time configurations could not be established.
+- Recommended keeping the domain hierarchy and using explicit local-gateway NTP for standalone Veeam, then disabling VMware periodic synchronization where native time service is verified. No configuration changes or reboots were performed.
+
+## 2026-09-13 - Veeam Gateway Time Configured
+
+With operator approval, changed time configuration on standalone Veeam only, around `12:28-12:29` local time.
+
+- Reconfirmed local Veeam/WORKGROUP identity and reachable gateway `192.168.90.253`, with pre-change offsets below 1 ms. No active backup manager or TiWorker/TrustedInstaller process was observed; the known infrastructure-rescan worker remained present.
+- The operator's update cycle had recorded successful MSRT and PowerShell installations. Windows/.NET cumulative-update completion remained reboot-dependent; CBS reboot flag was True. No reboot was initiated.
+- Changed Windows Time manual NTP peer from `time.windows.com,0x9` to `192.168.90.253,0x8` and startup from Manual to Automatic.
+- Initial rediscovery reported that Windows Time was shutting down. Inspection found a clean service stop, exit code 0. Started the service again and repeated rediscovery successfully.
+- Windows Time events 37/35 confirmed valid NTP data and synchronization with the gateway; status reported leap indicator 0, stratum 4, and successful synchronization at `12:28:59`.
+- After native NTP synchronization was verified, disabled VMware Tools periodic synchronization on Veeam. Post-change status reported Disabled and NTP diagnostic offsets were `+0.0001507` to `+0.0001747` seconds.
+- Startup/resume synchronization settings and the registered VMware precision-clock provider were left unchanged. Other servers, domain policies, firewall rules, and Veeam jobs/repositories were not modified.
+- Reverify Windows Time source, service startup, and VMware periodic status after the operator's pending Windows update reboot.
+
+## 2026-09-13 - Published Veeam Build Check and Restart Status
+
+Read-only verification around `12:35-12:36`, following the operator's restart request:
+
+- Installed Veeam Backup & Replication product and updater plug-in report `13.1.1.18`; Core/Common DLLs agree. The server executable and base MSI entries remain `13.1.0.411`, so those alone do not describe the installed patch level.
+- [Veeam build list](https://www.veeam.com/kb2680) and [current downloads](https://www.veeam.com/products/downloads/latest-version.html?tab=current), checked today, both list `13.1.1.18` as the latest published Backup & Replication build. The Windows download is dated September 8 but retains that build number. No newer public VBR build was found; no upgrade or download was initiated.
+- Windows recorded planned restart event `1074` at `12:34:47`. At `12:36`, the last boot was still `2026-09-05 21:31:20`, with TiWorker/TrustedInstaller active and CBS, Windows Update, and pending-rename markers present. The requested restart had not yet completed; no second restart or servicing intervention was attempted.
+- All sampled Veeam services and the SQL instance were Running. Windows Time remained Automatic/Running, synchronized to `192.168.90.253,0x8` at stratum 4, with last successful sync `12:35:23`; VMware periodic synchronization remained Disabled. These are pre-reboot findings, not post-reboot verification.
+- Next check: confirm a new boot timestamp, servicing reboot markers, service recovery, and persistence of gateway time synchronization after Windows finishes the requested restart.
+
+## 2026-09-13 - Post-Reboot Verification
+
+Read-only checks at `12:45-12:47` confirmed the operator's update restart completed. No additional update installation, reboot, cleanup, or configuration change was performed.
+
+- New boot timestamp: `2026-09-13 12:38:18`; Windows build `20348.5622`.
+- Windows Update installation history reports Succeeded (`ResultCode=2`, `HResult=0`) for all four updates: MSRT `KB890830` v5.145, .NET `KB5126149`, PowerShell `7.6.6`, and Windows cumulative update `KB5122882`.
+- CBS reboot pending, Windows Update reboot required, and pending file rename indicators are all False. No fresh available-update search was performed.
+- All enumerated Veeam services, SQL instance, SSH, WinRM, and Windows Time were Automatic/Running. SQL Agent remained Disabled/Stopped, matching baseline.
+- Gateway time survived reboot: source `192.168.90.253,0x8`, stratum 4, leap indicator 0, last successful sync `12:44:54`. VMware Tools periodic synchronization remained Disabled.
+- Both mounted volumes were Healthy. `C:` had `39344189440` bytes free of `128478867456`; `E:` had `6714809843712` bytes free of `30786258468864`.
+- Service and OS recovery are verified. A new post-reboot backup/restore cycle was not run or verified during this check; the latest successful primary/copy/replication evidence remains the September 11-12 cycle recorded above.
