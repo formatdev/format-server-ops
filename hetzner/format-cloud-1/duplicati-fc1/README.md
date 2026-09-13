@@ -3,7 +3,7 @@
 This folder documents the `duplicati-fc1` backup service hosted through
 Portainer on the Hetzner host `format-cloud-1`.
 
-Last verified: 2026-09-05.
+Last verified: 2026-09-13.
 
 Duplicati is part of the backup layer. Treat updates and configuration changes
 carefully, because backup metadata, destination credentials, and restore ability

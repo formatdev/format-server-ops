@@ -6,6 +6,88 @@ Docker Engine maintenance, and reboot decisions for `format-cloud-1`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-09-13 - Package Maintenance, Reboot, And Backup Verification
+
+Date: 2026-09-13 12:08 CEST
+
+Maintainer: Codex with Peter
+
+Host state:
+
+- Before: kernel `6.8.0-139-generic`, Docker `29.8.0`, uptime about eight days;
+  all 18 services were `1/1`. A pending reboot marker listed `libc6`.
+- Applied eight package upgrades with no package additions or removals:
+  containerd `2.3.5`, Buildx `0.37.1`, base-files, motd-news-config,
+  python-apt-common, python3-apt, python3-distupgrade, and
+  ubuntu-release-upgrader-core.
+- After: Ubuntu reports `24.04.5 LTS`; kernel remains `6.8.0-139-generic`,
+  Docker remains `29.8.0`, and Compose remains `5.5.1`.
+- Controlled reboot completed. No pending apt upgrades, dpkg audit findings,
+  reboot marker, or failed systemd units remained.
+- Root filesystem: 56G used, 89G available, 39% used. About 12 GiB memory
+  available after recovery.
+
+Service and security checks:
+
+- All 18 Swarm services recovered to `1/1`. The node is Ready, Active, Leader.
+- MariaDB, MySQL, and Redis recovered automatically. Both Chargy startup
+  upgrade processes exited successfully; no forced recovery was needed.
+- Vaultwarden needed its usual health-check warm-up; its route briefly
+  returned `404`, then returned `200` once healthy.
+- Final local Traefik route checks returned `200` for Bitwarden, FLOC,
+  Portainer, phpMyAdmin, and Duplicati, and `302` for both Chargy routes.
+  These probes test origin routing, not authenticated user workflows.
+- SSH remains key-only. UFW remains active with inbound SSH and HTTPS
+  allowances; Fail2ban and the sshd jail are active.
+- Fresh current-container log samples for Traefik, Portainer, MariaDB,
+  Duplicati, and Cloudflared showed no matching errors after recovery.
+
+Container release review:
+
+- Cloudflared now runs `2026.9.1`, compared with `2026.8.3` last round.
+  The mutable `latest` image was already refreshed when inspected after
+  reboot; pulling and reapplying the service image confirmed the current
+  version. Registry digest:
+  `sha256:b269e8abd07a5bf6f3f4be65d5050b2174eca89c56a0241a8ff32a16aec454e4`.
+  All four tunnel connections registered successfully.
+- Traefik `3.7.13`, Portainer `2.45.0`, Vaultwarden `1.37.2`, Redis `7.4.11`,
+  MariaDB `11.8.9`, and phpMyAdmin `5.2.3` remain current in the selected
+  release lines based on upstream release and official-image metadata.
+- Duplicati stable remains `2.4.0.0`; its pinned image digest still matches
+  the registry's `latest` manifest. New canary releases were not selected.
+- Major application/database changes and private custom-app build reviews
+  remain separate work. Private registry freshness was not reverified during
+  the initial inspection; Peter's subsequent FLOC/Chargy bumps are noted below.
+
+Backups:
+
+- September 12 local backups are present and passed `gzip -t`:
+  `/data/backups/mysql/mariadb-all-databases-2026-09-12-200001.sql.gz` and
+  `/data/backups/portainer/portainer-data-20260912-201001.tar.gz`.
+- Read-only Duplicati metadata and result inspection confirms successful
+  Synology backups on September 8, 9, 10, 11, and 12 after the stable upgrade.
+  The latest finished at `2026-09-12 18:34:27 UTC`, examining 87,345 files
+  totaling 12,581,533,390 bytes. This closes the prior post-upgrade backup
+  verification follow-up.
+- No restore test was performed. The last recorded restore remains April 18.
+
+Application follow-up before commit:
+
+- Peter reported updating FLOC and Chargy. Live service inspection confirmed
+  FLOC digest `sha256:8a25198cf10b6e39b869704ab4c8347cc06ef9b41704a78a13a15f733289799c`
+  and both Chargy stacks on digest
+  `sha256:a0015897e46c952ea4a1c7f0783a67d856e5e8875eb951aa2e3f4d787f10e6d6`.
+- All three application containers were running, with FLOC returning `200`
+  and both Chargy routes returning `302`. Source build commits and dependency
+  review were not independently verified here.
+
+Sources: [Cloudflared release](https://github.com/cloudflare/cloudflared/releases/tag/2026.9.1),
+[Traefik releases](https://github.com/traefik/traefik/releases),
+[Portainer releases](https://github.com/portainer/portainer/releases),
+[Vaultwarden releases](https://github.com/dani-garcia/vaultwarden/releases),
+[Duplicati releases](https://github.com/duplicati/duplicati/releases),
+[Docker official-image metadata](https://github.com/docker-library/official-images/tree/master/library).
+
 ## 2026-09-05 - September Maintenance Round
 
 Date: 2026-09-05 09:34 CEST

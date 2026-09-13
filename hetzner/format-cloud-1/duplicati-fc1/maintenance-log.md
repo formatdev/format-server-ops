@@ -4,6 +4,30 @@ Use this log for Duplicati checks during the combined Hetzner platform maintenan
 
 Do not record encryption keys, backup destination credentials, SSH private keys, Duplicati UI credentials, exported job definitions containing secrets, SQL dumps, or other secrets here.
 
+## 2026-09-13 - Post-Upgrade Backup Verification
+
+Date: 2026-09-13 12:08 CEST
+
+Maintainer: Codex with Peter
+
+- Image unchanged: stable `2.4.0.0`, pinned digest
+  `sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218`.
+  The registry `latest` manifest still matches; newer canaries were skipped.
+- Service recovered to `1/1` after the host reboot. Origin route returned
+  `200`, with no matching errors in the fresh container log sample.
+- Inspected the server Metadata table and backup database LogData result
+  records using SQLite read-only connections. No destination credentials or
+  encryption settings were retrieved.
+- The last five recorded results, dated September 8 through 12, all report
+  `ParsedResult: Success`. The latest backup ran from `18:30:00` to
+  `18:34:27 UTC` on September 12, examining 87,345 files totaling
+  12,581,533,390 bytes. Metadata records 151 target filesets.
+- The September 5 follow-up to verify remote backups after upgrading is
+  complete based on recorded job results. No new restore was attempted;
+  the last recorded restore remains `2026-04-18`.
+- Follow-up: Schedule the next restore test separately to verify recovery,
+  beyond successful backup job results.
+
 ## 2026-09-05 - Duplicati Stable Upgrade
 
 Date: 2026-09-05 09:34 CEST

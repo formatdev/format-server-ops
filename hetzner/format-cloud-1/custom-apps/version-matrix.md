@@ -1,6 +1,6 @@
 # Custom App Version Matrix
 
-Observed on `2026-09-05` from `hetzner-cloud-1`.
+Observed on `2026-09-13` from `hetzner-cloud-1`.
 
 Do not treat mutable tags such as `latest` or channel tags as proof that an app
 is up to date. For those, compare the live image digest with the image Peter
@@ -16,6 +16,16 @@ built from the latest reviewed repo commit.
 | `chargy` | `chargy_app` | `chargy.format.lu` | `esst/chargy:latest` | Mutable tag with observed digest | Run Composer/pnpm checks in `Chargy`; rebuild `latest` if Peter accepts updates |
 
 ## Shared Runtime Services
+
+Peter reported FLOC and Chargy image bumps on `2026-09-13`. Subsequent live
+inspection confirmed these service image digests:
+
+- FLOC: `sha256:8a25198cf10b6e39b869704ab4c8347cc06ef9b41704a78a13a15f733289799c`.
+- Both Chargy stacks: `sha256:a0015897e46c952ea4a1c7f0783a67d856e5e8875eb951aa2e3f4d787f10e6d6`.
+
+All three containers were running. Origin probes returned `200` for FLOC
+and `302` for both Chargy routes. Build source commits and dependency review
+were not independently verified during this host maintenance round.
 
 | Stack | Service | Live image | Notes |
 | --- | --- | --- | --- |
