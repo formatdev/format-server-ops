@@ -315,6 +315,57 @@ Notes:
 - Peter confirmed Lportainer was intentionally left powered off.
 - Do not treat the current SSH/network failure from the maintainer path as a fault while the VM remains intentionally off.
 
+## 2026-08-04 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH/network checked: `192.168.1.9` returned `Network is unreachable` while the on-prem VPN route was active.
+- The prior operator clarification that Lportainer is intentionally powered off was carried forward.
+
+Notes:
+
+- No Docker, Portainer, stack, package, prune, reboot, or VM power action was performed.
+- Power on Lportainer before requesting its package/container maintenance pass.
+
+## 2026-08-23 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- `192.168.1.9` remained unreachable while the on-prem VPN route was active, consistent with Peter intentionally leaving Lportainer powered off.
+
+Notes:
+
+- No VM power, Linux package, Docker, Portainer, stack, container, image, volume, or prune action was performed.
+
+## 2026-09-05 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH to `192.168.1.9` timed out, consistent with Lportainer remaining intentionally powered off.
+
+Notes:
+
+- No VM power, package, Docker, Portainer, stack, image, volume, prune, update, or reboot action was performed.
+
+## 2026-09-13 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH to `192.168.1.9` timed out. Peter confirmed Lportainer was intentionally left powered off.
+
+Notes:
+
+- No VM power, Linux package, Docker, Portainer, stack, image, volume, prune, update, or reboot action was performed.
+- Lportainer maintenance remains deferred until the VM is intentionally powered on.
+
 ## Maintenance Template
 
 Date:

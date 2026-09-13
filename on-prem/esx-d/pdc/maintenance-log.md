@@ -321,6 +321,82 @@ Notes:
 - Live replication summary is clean, but `dcdiag` still has BDC-related diagnostic noise that should be reviewed from both DCs when BDC access is available.
 - WinRM disablement recurred after reboot/policy refresh.
 
+## 2026-08-04 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- PDC local and domain SSH checked: working.
+- Core DC services checked: `DFSR`, `DNS`, `KDC`, `Netlogon`, and `NTDS` are `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- PDC time checked: synchronized to `192.168.1.253`; BDC was synchronized to PDC while reachable.
+- PDC and BDC initially checked directly. Both reported `0 / 5` replication failures and healthy core services; visible updates were `0` and CBS/Windows Update reboot flags were false.
+- Reciprocal `repadmin` summary enumeration still reported SSH-token operational errors (`1326`) while all five partition replication results were successful.
+- At the end of the round BDC `192.168.1.4` became unreachable from both the maintainer Mac and PDC. PDC could not reach BDC on TCP `22`, `53`, `88`, `135`, `389`, or `445`. The concurrent ESX-C maintenance log confirms this was a planned orderly BDC guest shutdown for physical ESX-C host maintenance.
+- Immediately before the outage, PDC still reported `0 / 5` replication failures with a last successful delta under eight minutes.
+- PDC remained reachable, advertised as the domain controller, and retained healthy AD/DNS/DFSR/KDC services.
+
+Notes:
+
+- Domain redundancy is currently reduced to PDC during the planned ESX-C host maintenance window.
+- No DC reboot, service restart, replication reset, DNS/GPO change, or VM power action was performed.
+- Follow-up: after ESX-C host maintenance, power on BDC through that maintenance workflow and repeat two-way replication, DNS, SYSVOL, and time checks.
+
+## 2026-08-23 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH checked: both working.
+- Core `DFSR`, `DNS`, `KDC`, `Netlogon`, `NTDS`, `W32Time`, and `sshd` services are `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Installed `KB890830`, .NET cumulative update `KB5121650`, and OS cumulative update `KB5120242`; all returned success and Windows reported a reboot is required.
+- PDC did not reboot. The final scan re-offers `KB5120242` while CBS and Windows Update reboot markers remain set. Do not retry before reboot.
+- BDC was maintained concurrently in the ESX-C workflow and restarted at `2026-08-23 16:45:16`; PDC remained booted but SSH was temporarily unresponsive under servicing load.
+- Post-maintenance replication checks show `0/5` failures. Detailed inbound views on both controllers show successful attempts for all five naming contexts; the writable domain partition replicated in both directions after servicing.
+- A manual `repadmin /syncall` attempt was blocked by the known SSH delegated-token `Access denied` limitation and made no change. Normal replication resumed without intervention.
+- PDC time remains synchronized to `192.168.1.253`; BDC is synchronized to PDC.
+- Temporary Codex update task, script, and log were removed after verification.
+
+Notes:
+
+- A planned PDC reboot is required. No reboot was performed by Codex.
+- No AD object, DNS, SYSVOL, GPO, FSMO, firewall, or replication configuration was changed.
+
+## 2026-09-05 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH checked. Core DFSR, DNS, KDC, Netlogon, NTDS, W32Time, and SSH services are running; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Windows Update scan returned `0`; CBS and Windows Update reboot markers are clear.
+- Replication summary reports `0/5` failures. Detailed inbound replication attempts are successful, including the writable domain partition.
+- DNS, SYSVOL/DFSR, advertising, and time checks are healthy; PDC remains synchronized to `192.168.1.253`.
+
+Notes:
+
+- No reboot, service restart, AD object, DNS, SYSVOL, GPO, FSMO, firewall, or replication configuration change was performed.
+
+## 2026-09-13 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- PDC and BDC were checked before servicing. Core AD DS, DNS, DFSR, KDC, Netlogon, time, and SSH services were healthy, with `0/5` replication failures on both controllers.
+- Installed `KB890830`, .NET update `KB5126149`, and OS update `KB5122882` through a temporary SYSTEM task, then rebooted PDC.
+- PDC completed multi-phase servicing and returned on OS build `20348.5622`. Final Windows Update scan returned `0`; CBS and Windows Update reboot markers are clear.
+- A transient BDC inbound replication error `1825` occurred immediately after the PDC reboot and recovered through normal replication without a forced sync or configuration change.
+- Final replication checks on both controllers reported `0/5` failures. PDC remained synchronized to `192.168.1.253`.
+- The known reciprocal `repadmin` SSH-token error `1326` remains diagnostic noise while detailed partition replication succeeds.
+- Temporary update task, script, and log were removed after verification.
+
+Notes:
+
+- PDC maintenance and reboot are complete; PDC/BDC replication is healthy.
+- No AD object, DNS, SYSVOL, GPO, FSMO, firewall, or replication configuration was changed.
+
 ## Maintenance Template
 
 Date:

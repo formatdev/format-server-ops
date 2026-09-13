@@ -320,6 +320,89 @@ Notes:
 - Domain trust is healthy, but domain-admin SSH is still denied; local break-glass SSH works.
 - WinRM disablement recurred after reboot/policy refresh.
 
+## 2026-08-04 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH checked: both working; domain SSH access has recovered since the July post-update check.
+- Trust checked: `nltest /sc_verify:format.lu` succeeded against PDC; time is synchronized to PDC.
+- `sshd` and `Netlogon` checked: `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- One downloaded Windows Security platform update, `KB5007651` version `10.0.29628.1000`, was installed through a one-time SYSTEM task.
+- Update install result: success (`ResultCode=2`, `HResult=00000000`), no reboot required.
+- Final Windows Update rescan still re-offered the same `KB5007651` package.
+- The exact x64 standalone package was downloaded from Microsoft Update Catalog, its SHA-256 matched the catalog metadata, and Authenticode validation reported `Valid` with signer `Microsoft Windows`.
+- The standalone installer also returned result `0`, but the registered Security Health platform remained `10.0.29554.1001` instead of the offered `10.0.29628.1000`.
+- Reboot state after installation: CBS `False`, Windows Update `False`.
+- Temporary Codex tasks, scripts, result logs, and the standalone installer were removed after verification.
+
+Notes:
+
+- No reboot was performed.
+- Pending file rename entries remain for Edge, TeamViewer, Aether, and temporary installer files; they are not CBS/Windows Update reboot flags.
+- Treat the recurring `KB5007651` offer as a Windows Server 2025 Security Health servicing/detection follow-up. No AppX re-registration or registry change was attempted.
+
+## 2026-08-23 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local SSH checked: working. Domain SSH was denied during initial discovery, but trust verification from the local path succeeded against PDC.
+- `sshd` and `Netlogon` are `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Installed Windows Malicious Software Removal Tool x64 v5.144 (`KB890830`) through a temporary SYSTEM task; install result was success with no reboot required.
+- Final Windows Update rescan returned `0` visible updates.
+- CBS, Windows Update, and pending-file-rename reboot markers are clear.
+- Temporary Codex update task, script, and log were removed after verification.
+
+Notes:
+
+- No reboot was performed and no GPO, firewall, or role configuration was changed.
+
+## 2026-09-05 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH, secure channel, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Windows Update offered only Broadcom Display Driver `9.17.11.4` for VMware SVGA 3D. Installed it through a temporary SYSTEM task without reboot; final scan returned `0` updates.
+- Driver version is now `9.17.11.4`; CBS and Windows Update reboot markers remain clear.
+- Recurring Netlogon `5719` events correlate with periodic Windows Update/Windows Modules Installer activity. VMware time-provider events report the precision clock unavailable, while Windows time is currently synchronized to PDC.
+- Temporary task, scripts, and log were removed after verification.
+
+Notes:
+
+- No reboot, GPO, firewall, role, or data change was performed.
+
+## 2026-09-05 - Veeam Guest Component Repair
+
+Maintainer: Codex with Peter
+
+- Investigation found `VeeamDeploySvc` Automatic but stopped and its executable stale at `13.0.1.180` after the Veeam server upgrade; Transport and Guest Interaction were `13.0.2.29`.
+- The prior Veeam-driven upgrade had timed out stopping the Installer Service. A controlled first replacement was rolled back after the newer service reported a missing Veeam OpenSSL FIPS provider.
+- Installed signed Veeam OpenSSL FIPS `3.1.2.2`, then installed signed Veeam component packages with the exact managed-install properties recorded in Veeam's own logs.
+- Installer, Transport, and Guest Interaction now report signed version `13.1.1.18`; all three services are Automatic/Running and listen on TCP `6160`, `6162`, and `6190`.
+- No reboot flag was introduced. No reboot, Windows update, GPO, firewall, domain, remote-admin, or application-data change was made.
+- Temporary staging files were removed. The old Installer Service executable is retained as a rollback copy until a successful Veeam backup confirms the repair.
+
+## 2026-09-13 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH, domain trust, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Installed Windows Malicious Software Removal Tool `KB890830` through a temporary SYSTEM task.
+- Installation returned success without requiring a reboot. Final Windows Update scan returned `0`; CBS and Windows Update reboot markers are clear.
+- Temporary update task, script, and log were removed after verification.
+
+Notes:
+
+- Tim maintenance is complete and the server is update-clean.
+- No reboot, GPO, firewall, role, trust, or data change was performed.
+
 ## Maintenance Template
 
 Date:

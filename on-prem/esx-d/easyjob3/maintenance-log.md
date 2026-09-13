@@ -321,6 +321,90 @@ Notes:
 - SQL service state is healthy, but SQL integrated-auth version queries could not be re-run because domain SSH is denied and the local administrator account is not authorized inside SQL.
 - WinRM disablement recurred after reboot/policy refresh.
 
+## 2026-08-04 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH checked: both working; domain SSH access has recovered since the July post-update check.
+- Trust checked: `nltest /sc_verify:format.lu` succeeded against PDC.
+- `sshd` and `Netlogon` checked: `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Six production SQL engines checked: `APSAL`, `CLOUDDEMAT`, `DATAGATE`, `EASYJOB6`, `PLANNINGPME`, and `PNT` are `Running`/`Automatic`; SQL Browser and the EASYJOB6 agent are running.
+- All six SQL instances report SQL Server 2019 `15.0.4480.2`, CU32 + GDR. Microsoft lists this as the current SQL Server 2019 build (`KB5102335`, 2026-07-14).
+- One downloaded Windows Security platform update, `KB5007651` version `10.0.29628.1000`, was installed through a one-time SYSTEM task.
+- Update install result: success (`ResultCode=2`, `HResult=00000000`), no reboot required.
+- Final Windows Update rescan still re-offered the same `KB5007651` package. The registered Security Health platform remained `10.0.29554.1001`, so the transaction did not advance the platform to the offered version.
+- C: initially had about 7.5 GB free. DISM analysis found 4 reclaimable packages and recommended cleanup.
+- Supported component-store cleanup completed successfully; C: increased to about 14.75 GB free.
+- SQL services were rechecked after cleanup and remained healthy.
+- Reboot state after maintenance: CBS `False`, Windows Update `False`.
+- Temporary Codex task, script, and result log were removed after verification.
+
+Notes:
+
+- No SQL database or application data was changed and no reboot was performed.
+- Continue watching C: capacity despite the roughly 7 GB recovery.
+- Treat the recurring `KB5007651` offer as a Windows Server 2025 Security Health servicing/detection follow-up. Do not loop the installer or change AppX/registry state during routine maintenance.
+
+## 2026-08-23 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH checked: both working.
+- `nltest /sc_verify:format.lu` succeeded; the known split diagnostic remained where PowerShell returned `False` while `nltest` verified the channel.
+- `sshd` and `Netlogon` are `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Six production SQL engines, SQL Browser, and the EASYJOB6 agent are running in their expected start modes. All six instances reported SQL Server 2019 `15.0.4480.2` (CU32 + GDR) during pre-install discovery.
+- Installed `KB890830`, .NET security update `KB5120708`, and OS security update `KB5120233`; all returned success and Windows reported a reboot is required.
+- The final scan re-offers the .NET and OS updates while CBS and Windows Update reboot markers remain set. Do not retry before reboot.
+- C: free space fell to about 5 GB. Component-store cleanup was not run during the pending transaction; reassess it after reboot.
+- Temporary Codex update task, script, and log were removed after verification.
+
+Notes:
+
+- A planned guest reboot is required. No reboot was performed by Codex.
+- No SQL database or application data was changed.
+
+## 2026-09-05 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH, secure channel, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Windows Update scan returned `0`; CBS and Windows Update reboot markers are clear.
+- All six production SQL Server instances are `Running`/`Automatic`. Each reports SQL Server 2019 `15.0.4480.2` (CU32 + GDR, KB5102335), current on Microsoft's SQL Server 2019 build list during this check.
+- Component-store analysis found 2 reclaimable packages and recommended cleanup. `DISM /StartComponentCleanup` completed successfully without reboot; C: free space changed from 13.03 GB to 13.05 GB.
+- All six SQL engines and the secure channel remained healthy after cleanup.
+- Recurring Netlogon `5719` events correlate with periodic Windows Update/Windows Modules Installer activity while current trust, DNS, ports, and time are healthy.
+- Temporary analysis and cleanup logs were removed after verification.
+
+Notes:
+
+- No SQL database, application data, GPO, or firewall configuration was changed. No reboot was performed.
+- Continue monitoring C: capacity.
+
+## 2026-09-13 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH, domain trust, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Six production SQL instances `APSAL`, `CLOUDDEMAT`, `DATAGATE`, `EASYJOB6`, `PLANNINGPME`, and `PNT` are running.
+- Windows servicing installed SQL Server 2019 update `KB5122772` and `KB890830`. All six SQL instances subsequently reported `15.0.4490.9` and their databases were online.
+- Windows cumulative update `KB5122871` and .NET update `KB5126052` remain offered. CBS and Windows Update reboot markers are set, so they were not retried before reboot.
+- Component-store analysis found four reclaimable packages and recommended cleanup. Free space on C: recovered to about 8 GB while native servicing settled.
+- An active `FORMAT\administrateur` RDP session was present with unknown unsaved application state, so no reboot or component-store cleanup was performed.
+- A waiting read-only DISM analysis process was stopped only after `TiWorker` had settled; no active servicing transaction was interrupted.
+
+Notes:
+
+- Easyjob3 requires a planned reboot, followed by installation of the remaining OS and .NET updates, another reboot if requested, a final update scan, SQL/application smoke tests, and supported component-store cleanup.
+- No SQL database, application data, GPO, firewall, or trust configuration was changed.
+
 ## Maintenance Template
 
 Date:

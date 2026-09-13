@@ -386,6 +386,87 @@ Notes:
 - Full Exchange Management Shell queue/certificate service checks remain best validated from an interactive Exchange shell because SSH-launched EMS has previously hit credential/token issues.
 - WinRM disablement recurred after reboot/policy refresh.
 
+## 2026-08-04 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Local and domain SSH checked: both working.
+- Trust checked: `nltest /sc_verify:format.lu` succeeded against PDC.
+- Automatic Exchange services checked: all running; POP services remain manual/stopped.
+- Visible Windows updates checked: `0`.
+- win-acme renewal task checked: last run `2026-08-04 11:48:48`, result `0`; next run scheduled for 2026-08-05.
+- Certificate store checked: `CN=exchange.format.lu`, private key present, expires `2026-09-26 11:58:31`.
+- Reboot state checked: CBS `False`, Windows Update `False`.
+- SSH-launched Exchange cmdlets still returned the known delegated-credential error, so queue and Exchange service bindings were not changed.
+
+Notes:
+
+- Exchange3 is operational and update-clean. No reboot was performed.
+- Keep the certificate renewal task under routine observation; full queue checks remain best performed in an interactive Exchange Management Shell.
+
+## 2026-08-23 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH checked: both working.
+- `nltest /sc_verify:format.lu` succeeded against PDC; the known PowerShell secure-channel false result remained non-authoritative.
+- Windows Update had already started a native install session before the temporary Codex task began. The duplicate task ended with `0x41306` and was not retried while servicing was active.
+- The native session installed `KB890830`, .NET cumulative update `KB5121650`, and OS cumulative update `KB5120242`, then restarted Exchange3 twice under Windows Update control. Final boot time is `2026-08-23 16:07:45`.
+- Final Windows Update rescan returned `0`; CBS and Windows Update reboot markers are clear.
+- Automatic Exchange services, including Replication and Throttling after post-boot settling, are running. SSH, SMTP, and HTTPS are reachable.
+- win-acme renewal task last result is `0`. Certificate `CN=exchange.format.lu` has a private key and expires `2026-11-20 08:30:25`.
+- Temporary Codex task, script, and log were removed after verification.
+
+Notes:
+
+- The restarts were not issued by Codex. No Exchange, certificate, queue, connector, GPO, or firewall configuration was changed.
+- SSH-launched Exchange cmdlets retain the known delegated-token limitation; no transport queue mutation was attempted.
+
+## 2026-09-05 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH, secure channel, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Windows Update scan returned `0`; CBS and Windows Update reboot markers are clear.
+- Exchange mailbox, transport, replication, throttling, mitigation, and flighting services are running. The transport queue audit found only the empty Ready submission queue.
+- The Exchange Mitigation connectivity test still cannot reach its service endpoint even though DNS and TCP 443 to `officeclient.microsoft.com` succeed. No proxy, TLS, or firewall change was made.
+- SMTP initially omitted STARTTLS because the Default Frontend connector still referenced the previous R13 certificate issuer. The current YR1 certificate was already bound to IIS/backend transport and is valid through `2026-11-20`.
+- Ran the existing `exchange-post-renewal.ps1` hook once as SYSTEM. It corrected the frontend connector, after which SMTP advertised STARTTLS and presented certificate thumbprint `B053D9AF863A4931B04931418CFA60097E56458E`.
+- Updated the custom hook to enable SMTP, IIS, and IMAP, and changed the active win-acme renewal definition to call that hook instead of the stock relative `ImportExchange.ps1`. Dated backups of both changed files were retained.
+- A non-forced win-acme renewal check connected successfully and found renewal not yet due. The scheduled task last result remains `0`, with its next run on `2026-09-06`.
+- Exchange build is `15.2.1748.39`; Microsoft's current Exchange 2019 CU15 release table lists `15.2.1748.49`. Schedule the applicable security update separately with an outage/reboot plan and ESU eligibility confirmed.
+- DKIM transport agent `3.4.0.0` is enabled. Event `1057` matches a known async-resume issue in the unmaintained upstream project; queue state is currently clean, so no agent change was made.
+- Temporary audit and repair tasks, scripts, and logs were removed after verification.
+
+Notes:
+
+- No reboot, queue mutation, firewall, GPO, or mailbox data change was performed.
+
+## 2026-09-13 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Local and domain SSH, domain trust, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Exchange Server Subscription Edition build is `15.2.2562.17`. Mailbox, transport, replication, throttling, mitigation, and flighting services were running.
+- Windows Update offered Exchange security update `KB5121608`, .NET update `KB5126149`, OS update `KB5122882`, and `KB890830`.
+- SMTP, submission port 587, and HTTPS were reachable. SMTP STARTTLS negotiated TLS 1.2 and presented the valid `CN=exchange.format.lu` certificate.
+- The win-acme renewal task last result is `0`; the active certificate is valid through `2026-11-20`.
+- SSH-launched Exchange queue cmdlets retained the known delegated-credential limitation. A staged read-only SYSTEM precheck was blocked because task registration for the PowerShell action returned Access Denied.
+
+Notes:
+
+- No Exchange or Windows updates were installed and no reboot was performed during this round.
+- Complete an interactive Exchange health and queue precheck, confirm backup state and outage window, then install the four offered updates and verify services, queues, mail flow, HTTPS, SMTP STARTTLS, and win-acme afterward.
+- No connector, queue, certificate, firewall, GPO, or mailbox data was changed.
+
 ## Maintenance Template
 
 Date:

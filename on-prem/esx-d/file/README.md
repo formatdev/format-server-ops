@@ -2,11 +2,11 @@
 
 Runbook for the Windows file server VM `File` on ESX-D.
 
-Last updated: 2026-04-18
+Last updated: 2026-09-13
 
 ## Current Verified State
 
-Last verified from this maintenance thread: 2026-04-18.
+Last verified from this maintenance thread: 2026-09-13.
 
 - VM name in vCenter: `File`
 - Windows hostname: `FILE`
@@ -20,7 +20,7 @@ Last verified from this maintenance thread: 2026-04-18.
   - `win-file` returned `file\administrateur`
   - `winad-file` returned `format\administrateur`
 - Domain secure channel was healthy on 2026-04-18.
-- `WinRM` drifted from the previous baseline and was found `Disabled`/`Stopped` on 2026-04-18, then restored to `Automatic`/`Running`.
+- `WinRM` is intentionally `Disabled`/`Stopped` by GPO as of 2026-08-04. Do not restore it per-host unless the domain policy changes.
 - WinRM HTTP listener exists on port `5985` from GPO and listens on `127.0.0.1`, `192.168.1.7`, and `::1`.
 - SSH `22` and WinRM `5985` firewall rules are scoped to:
   - `192.168.1.73`
@@ -61,7 +61,7 @@ The host should keep:
 - local break-glass SSH working through `win-file`
 - domain-admin SSH working through `winad-file`
 - `sshd` `Automatic` and `Running`
-- `WinRM` `Automatic` and `Running`
+- `WinRM` `Disabled` and `Stopped` while the current domain policy remains in force
 - WinRM HTTP listener on `5985`
 - scoped inbound firewall for SSH `22` and WinRM `5985`
 - `PasswordAuthentication no`

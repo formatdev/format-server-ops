@@ -393,6 +393,92 @@ Notes:
 - Admin is update-clean and has no current reboot flags.
 - `Test-ComputerSecureChannel -Server PDC.format.lu` still returned `False` even while `nltest /sc_verify` succeeded; track as the known split secure-channel diagnostic pattern unless logons, GPO, or SMB access start failing.
 
+## 2026-08-04 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH checked: both working.
+- Trust checked: `nltest /sc_verify:format.lu` succeeded against PDC. The generic `nltest /sc_query` split remains non-authoritative while verification and domain access succeed.
+- `sshd` and `Netlogon` checked: `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Broadcom vmxnet3 driver checked: `1.9.20.0`; adapter status is OK.
+- One downloaded Windows Security platform update, `KB5007651` version `10.0.29628.1000`, was installed through a one-time SYSTEM task after the SSH update API returned `0x80070005`.
+- Update install result: success (`ResultCode=2`, `HResult=00000000`), no reboot required.
+- Final Windows Update rescan returned `0` visible updates.
+- Reboot state after installation: CBS `False`, Windows Update `False`.
+- Temporary Codex task, script, and result log were removed after verification.
+
+Notes:
+
+- No reboot was performed.
+- Pending file rename entries remain for Edge, Office, OneDrive, TeamViewer, printer, and temporary installer files; they are not CBS/Windows Update reboot flags.
+
+## 2026-08-23 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH checked: both working.
+- Trust checked: `Test-ComputerSecureChannel` and `nltest /sc_verify:format.lu` succeeded against PDC.
+- `sshd` and `Netlogon` are `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Installed Windows Malicious Software Removal Tool x64 v5.144 (`KB890830`) through a temporary SYSTEM task; install result was success with no reboot required.
+- Final Windows Update rescan returned `0` visible updates.
+- CBS, Windows Update, and pending-file-rename reboot markers are clear.
+- Temporary Codex update task, script, and log were removed after verification.
+
+Notes:
+
+- No reboot was performed and no GPO, firewall, or application configuration was changed.
+
+## 2026-09-05 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH, domain trust, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Windows Update offered only Broadcom Display Driver `9.17.11.4` for VMware SVGA 3D. Installed it through a temporary SYSTEM task without reboot; final scan returned `0` updates.
+- Driver version is now `9.17.11.4`; CBS and Windows Update reboot markers remain clear.
+- Recurring Netlogon `5719` events correlate with periodic Windows Update/Windows Modules Installer activity. Current DNS, time, and secure-channel checks are healthy; no trust repair was made.
+- Temporary task, scripts, and log were removed after verification.
+
+Notes:
+
+- No reboot, GPO, firewall, application, or data change was performed.
+
+## 2026-09-05 - Veeam Guest Component Repair
+
+Maintainer: Codex with Peter
+
+- Investigation found `VeeamDeploySvc` Automatic but stopped and its executable stale at `13.0.1.180` after the Veeam server upgrade. Transport was already `13.1.1.18`; Guest Interaction remained `13.0.2.29`.
+- The prior Veeam-driven upgrade had timed out stopping the Installer Service and left it partially upgraded.
+- Installed signed Veeam OpenSSL FIPS `3.1.2.2`, then installed signed Veeam component packages with the exact managed-install properties recorded in Veeam's own logs.
+- Installer, Transport, and Guest Interaction now report signed version `13.1.1.18`; all three services are Automatic/Running and listen on TCP `6160`, `6162`, and `6190`.
+- No reboot flag was introduced. No reboot, Windows update, GPO, firewall, domain, remote-admin, or application-data change was made.
+- Temporary staging files were removed. The old Installer Service executable is retained as a rollback copy until a successful Veeam backup confirms the repair.
+
+## 2026-09-13 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH, domain trust, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Installed Windows Malicious Software Removal Tool `KB890830` and SQL Server 2022 RTM GDR security update `KB5122771` through a temporary SYSTEM task.
+- Rebooted Admin after installation. Final Windows Update scan returned `0`; CBS and Windows Update reboot markers are clear.
+- SQL instance `NET2` is Microsoft SQL Server 2022 Express Edition. `MSSQL$NET2` is running and the installed patch level is `16.0.1200.5` (`KB5122771`).
+- Veeam guest services remained healthy after the reboot.
+- FTP investigation confirmed that IIS configuration still contains site `Formascan_input` at `C:\_BardecodeFiler\input`, bound to `192.168.1.11:21`, but the FTP service feature is disabled, `FTPSVC` is absent, and no process listens on TCP 21.
+- The TCP 21 firewall rule remains enabled with remote scope `Any`; the passive test rule is scoped to `192.168.1.220,192.168.1.70`. No FTP or firewall repair was made.
+- Temporary update task, script, and log were removed after verification.
+
+Notes:
+
+- Admin maintenance and reboot are complete and the server is update-clean.
+- Restoring the copier FTP service requires a separate approved change with the copier source address and required active/passive mode confirmed first.
+
 ## Maintenance Template
 
 Date:

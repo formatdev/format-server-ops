@@ -415,6 +415,95 @@ Notes:
 - No redirected-folder data, legacy `D:\Users` data, SMB shares, firewall rules, or GPOs were changed.
 - WinRM disablement appears to be recurring after reboot/policy refresh and should be handled as a GPO/baseline follow-up, not as an individual server issue.
 
+## 2026-08-04 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Local and domain SSH checked: both working; domain SSH returned `format\administrateur`.
+- Domain trust checked: `Test-ComputerSecureChannel -Server PDC.format.lu` and `nltest /sc_verify:format.lu` succeeded.
+- `sshd`, `Spooler`, and `Netlogon` checked: `Running`/`Automatic`.
+- `WinRM` checked: `Stopped`/`Disabled`, expected under the current GPO. The historical listener could not be enumerated while the service was stopped.
+- Firewall scope checked: SSH `22` and WinRM `5985` rules remain enabled for `192.168.1.73,192.168.113.2`.
+- GPO state checked: policy refreshed from BDC; expected `Allow remote Admin` and `Windows Update` GPOs were applied.
+- Visible Windows updates checked: `0`.
+- Reboot state checked: CBS `False`, Windows Update `False`; pending file rename is limited to Microsoft Edge Update files.
+- Disk free space checked: C: 50.9 GB, D: 316.8 GB, F: 1961.3 GB, G: 2007.2 GB.
+- Shares checked: expected data, redirected-folder, print, and admin shares remain present.
+- Redirected and legacy folder activity checked twice. Final state had 19 open handles under `D:\RedirectedFolders` and 3 under `D:\Users`.
+- Legacy/current compare checked: old `Documents` folders remain for `Administrateur`, `pascal.martin`, and `sarah.stehly`; current redirected targets also exist.
+- Desktop Markdown docs checked: `FILE-todo.md`, `FILE-health-log.md`, and `FILE-inspect.md` are present.
+- Recent events reviewed: one Windows Installer service restart and historical VMware time-provider/LSASS startup warnings; current trust and service checks are healthy.
+
+Notes:
+
+- No redirected-folder data, legacy `D:\Users` data, share, firewall, or GPO change was made.
+- File cleanup remains blocked by live handles in both trees and the mixed old/current folder state.
+- No reboot was performed.
+
+## 2026-08-23 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH checked: both working; domain SSH returned `format\administrateur`.
+- Trust checked: `Test-ComputerSecureChannel` and `nltest /sc_verify:format.lu` succeeded against PDC.
+- `sshd`, `Spooler`, and `Netlogon` are `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- GPO state and firewall scope checked: expected remote-admin and Windows Update policies are applied; SSH and WinRM rules remain scoped to `192.168.1.73,192.168.113.2`.
+- Installed `KB890830`, .NET cumulative update `KB5121650`, and OS cumulative update `KB5120242`; all returned success and Windows reported a reboot is required.
+- The final scan re-offers `KB5120242` while CBS and Windows Update reboot markers remain set. Do not retry before reboot.
+- Expected SMB shares remain present. Final activity check found 8 open handles under `D:\RedirectedFolders` and 0 under `D:\Users`.
+- Desktop Markdown documents remain present. No redirected-folder or legacy user data was changed.
+- Disk free space: C: 50.6 GB, D: 316.3 GB, F: 1933.1 GB, G: 2008.3 GB.
+- Temporary Codex update task, script, and log were removed after verification.
+
+Notes:
+
+- A planned guest reboot is still required. No reboot was performed by Codex.
+- Legacy `D:\Users` cleanup remains blocked by mixed old/current folder state; `Administrateur` legacy documents were modified as recently as 2026-08-17.
+
+## 2026-09-05 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Scope: discovery and health verification only
+
+Checks and actions:
+
+- Local and domain SSH, secure channel, `sshd`, `Spooler`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- GPO and firewall scope checked. Expected domain policies are applied; SSH and WinRM rules remain scoped to `192.168.1.73,192.168.113.2`.
+- Windows Update scan returned `0`; CBS and Windows Update reboot markers are clear. Pending file rename entries are application/installer entries, not Windows Update reboot flags.
+- Expected shares are present. Eight active handles were under `D:\RedirectedFolders` from `FORMAT\peter.czibula` and `FORMAT\jens.gilz`; no handle was open under `D:\Users` at inspection time.
+- `D:\Users\harry.haag\Documents` was modified on `2026-09-04`, newer than the redirected target. No legacy or redirected-folder data was changed.
+- Desktop Markdown documents remain present.
+- Disk free space: C: 50.1 GB, D: 316.1 GB, F: 1896.2 GB, G: 2007.3 GB.
+- Application log review found a burst of Perflib `1023` errors for missing legacy performance DLLs, without a file-role service failure. No counter repair was attempted.
+
+Notes:
+
+- No reboot, cleanup, GPO, firewall, share, permission, or user-data change was performed.
+
+## 2026-09-13 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH, domain trust, `sshd`, `Spooler`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Expected shares and desktop Markdown documents remain present. Disk free space was approximately C: 49.8 GB, D: 319.3 GB, F: 1890.8 GB, and G: 2001.6 GB.
+- Installed `KB890830`, .NET update `KB5126149`, and OS update `KB5122882` through a temporary SYSTEM task. All returned success and Windows reported a reboot is required.
+- CBS and Windows Update reboot markers remain set.
+- Reboot was withheld because `FORMAT\peter.czibula` had `D:\Public\Informatique\Checklist IT 2026.xlsx` and its Excel lock file open from `192.168.113.2`; additional redirected Pictures directory handles were also active.
+- Redirected folders under `D:\RedirectedFolders`, legacy data under `D:\Users`, and desktop Markdown documentation were inspected. Legacy `Administrateur`, `harry.haag`, and `pascal.martin` documents include data newer than corresponding redirected targets.
+- Temporary update task, script, and log were removed after verification.
+
+Notes:
+
+- FILE requires a planned reboot after users close active files, followed by a final update scan and share/SMB validation.
+- No redirected-folder data, legacy `D:\Users` data, share, permission, GPO, firewall, or document content was changed.
+
 ## Maintenance Template
 
 Date:

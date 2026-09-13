@@ -2,7 +2,7 @@
 
 Runbooks for the on-prem VMware host shown as `192.168.5.203` in vCenter.
 
-Last updated: 2026-07-19
+Last updated: 2026-09-13
 
 ## Current VM Inventory
 
