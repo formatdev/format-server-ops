@@ -3,11 +3,11 @@
 Runbook for maintaining the Hetzner VPS that hosts Wazuh for the Format
 environment.
 
-Last updated: 2026-09-05
+Last updated: 2026-10-10
 
 ## Current Verified State
 
-Last verified: 2026-09-05. See
+Last verified: 2026-10-10. See
 [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/maintenance-log.md)
 for the inspection details.
 
@@ -16,9 +16,9 @@ for the inspection details.
 - Alternate legacy SSH alias on this workstation: `hetzner-wazuh`
 - Public IPv4: `116.203.114.188`
 - Public IPv6: `2a01:4f8:1c1c:9a62::1/64`
-- OS: Ubuntu 24.04.4 LTS
-- Running kernel: `6.8.0-139-generic`
-- Primary workload: Wazuh 4.14.7, package/systemd deployment
+- OS: Ubuntu 24.04.5 LTS
+- Running kernel: `6.8.0-146-generic`
+- Primary workload: Wazuh 4.14.8, package/systemd deployment
 - Active services: `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`,
   `filebeat`
 - Recommended agent endpoint: `wazuh-agent.format.lu`
@@ -26,20 +26,29 @@ for the inspection details.
 - Portainer: not present by current deployment evidence
 - Wazuh indexer data: `/var/lib/wazuh-indexer`, bind-mounted from
   `/mnt/HC_Volume_104575658/wazuh-indexer`
-- Reboot state: reboot completed on 2026-09-05; no reboot marker remains
-- Remaining apt upgrades as of 2026-09-05: none
+- Reboot state: reboot completed on 2026-10-10; no reboot marker remains
+- Remaining apt upgrades as of 2026-10-10: `libopeniscsiusr` and `open-iscsi`,
+  deferred by Ubuntu phased updates
 - Searchable alert retention: 90 days through ISM policy
   `wazuh-alert-retention-90d`
 - Local rotated alert retention: 30 days through
   `wazuh-local-alert-retention.timer`
 - Internal Wazuh log retention: 31 days through the existing
   `monitord.keep_log_days` setting
-- Storage after 2026-09-05 maintenance: root 58% used and indexer data
-  volume 37% used
-- Agent state: canonical Mac agent `043 MBP-PCZ` active; the OpenVPN Connect
+- Storage after 2026-10-10 maintenance: root 58% used and indexer data
+  volume 42% used
+- Full agent inventory: 14 remote agents active, 21 disconnected, none never
+  connected; local manager active. Follow up on `021 NUC-MTX3`, last heard
+  before this maintenance round at 2026-10-10 04:10:18 UTC.
+- Agent state: canonical Mac agent `043 MBP-PCZ` active after starting its
+  stopped local 4.14.7 processes on 2026-10-10; the OpenVPN Connect
   profile persistently ignores the pushed route for `116.203.114.188` and
   routes that host through `net_gateway`, while the other pushed cloud route
   remains on the VPN
+- Configuration recovery copy: root-only
+  `/root/wazuh-maintenance-20261010-zkKURQ/config-before.tgz`; this is not an
+  index-data backup. Historical archive remains at
+  `/root/wazuh-backup-2025-08-03.tar.gz`.
 
 ## Host Files
 

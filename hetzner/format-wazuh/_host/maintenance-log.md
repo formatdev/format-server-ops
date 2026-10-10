@@ -6,6 +6,169 @@ Wazuh health checks, and reboot decisions for `format-wazuh`.
 Do not record passwords, API tokens, backup passwords, registry credentials,
 certificate private keys, enrollment secrets, or other secrets here.
 
+## 2026-10-10 - Wazuh 4.14.8 Upgrade And Kernel Reboot
+
+Date: 2026-10-10 06:32-06:41 CEST
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- SSH alias confirmed as `root@116.203.114.188:22`; hostname and addresses
+  match the runbook. Ubuntu 24.04.5 LTS, running kernel `6.8.0-139-generic`,
+  uptime 26 days 18 hours 25 minutes.
+- Kernel `6.8.0-146.146` already installed; reboot pending for installed
+  kernel packages. Wazuh manager/indexer/dashboard at `4.14.7-1`, Filebeat
+  at `7.10.2-2`; package/systemd deployment with no Docker/Compose binaries
+  or Docker/Portainer services found.
+- Core services active, no failed units, dashboard/API/indexer
+  `302`/`401`/`401`; single-node yellow with 391 active primary shards.
+- Root 61% used (44G used, 29G available), index volume 43% used
+  (32G used, 43G available). Memory available 3.4 GiB; swap used 1.5 GiB.
+- Local alerts 4.5G, queue 16G; historical 9.6G archive present at
+  `/root/wazuh-backup-2025-08-03.tar.gz`. No current index-data backup verified.
+
+Maintenance performed:
+
+- Refreshed apt metadata and simulated upgrade/full-upgrade. Both showed
+  17 upgrades, no additions or removals, and two phased deferrals.
+- Created a root-only, 424K configuration recovery archive at
+  `/root/wazuh-maintenance-20261010-zkKURQ/config-before.tgz` and verified
+  that its member listing is readable. It contains manager/API, indexer,
+  dashboard and Filebeat configuration, certificates/keys and Filebeat module
+  files; it is not a full backup or tested restore of index data.
+- Flushed the indexer (zero failed shards), stopped manager/Filebeat for the
+  upgrade, and applied apt upgrade with removals prohibited and existing
+  modified package configuration preserved.
+- Upgraded Wazuh manager, indexer and dashboard to `4.14.8-1`, plus 14 Ubuntu
+  packages covering AppArmor, audit libraries, Kerberos, Netplan, dmidecode
+  and sosreport. Filebeat remained `7.10.2-2`.
+- Updated the official Wazuh Filebeat 0.5 module and v4.14.8 alert template
+  after reviewing differences; preserved connection settings. Loaded ingest
+  pipelines and index template. Configuration and TLS output tests passed.
+- Rebooted once into `6.8.0-146-generic`.
+
+Verified result:
+
+- All four Wazuh services active, no failed units or boot error entries.
+  Dashboard/API/indexer returned `302`/`401`/`401` after shard recovery.
+- All 391 primary shards active, 31 replica shards unassigned as expected
+  on this single-node indexer, no initializing shards or pending tasks.
+- Filebeat TLS/output test passed after reboot. Today's alert index contained
+  a fresh alert timestamp of 04:41:11 UTC at the 04:41:17 UTC verification.
+- Root 58% used (42G used, 31G available), index volume 42% used
+  (31G used, 44G available); memory available 2.9 GiB, swap used 768 KiB.
+- UFW and fail2ban active; unchanged public 443/1514/1515 TCP, rate-limited
+  SSH, loopback API/indexer. SSH remains key-only with MaxAuthTries 3.
+- AppArmor installer emitted `[: Illegal number: yes`; package configuration
+  succeeded and post-reboot checks confirmed active service, loaded module
+  and 123 loaded profiles. Dpkg audit was clean.
+- All 90 alert indices dated 2026-07-13 through 2026-10-10 remain managed
+  by `wazuh-alert-retention-90d`, with no reported action/retry failures.
+- Local retention timer enabled/active, last cleanup succeeded at
+  03:40:25 UTC; deployed script/service/timer hashes match the repository.
+- No manual alert, index, queue or historical backup deletion performed.
+- No reboot marker remains. Only `libopeniscsiusr` and `open-iscsi` remain
+  deferred by Ubuntu phasing; these were not forced.
+
+Agents and follow-up:
+
+- Initial full inventory: 13 remote agents active, 22 disconnected.
+  Final inventory: 14 active, 21 disconnected, none never connected, plus
+  the active local manager. All nine listed server agents are active.
+- `043 MBP-PCZ` was disconnected with all five local agent processes stopped.
+  Its launchd job was loaded/running, so that alone did not prove agent health.
+  Started the installed 4.14.7 agent; all five processes ran, and the manager
+  confirmed it Active after the server reboot. The reason for the earlier
+  failed startup remains unverified. No agent re-enrollment was needed.
+- Mac route to Wazuh used en0 via 10.10.10.1 and TCP 1514 was reachable.
+- `021 NUC-MTX3` remains disconnected, last keepalive 2026-10-10 04:10:18 UTC,
+  before this maintenance round. Its newer contact confirms it has reported
+  since September; current workstation state remains unverified.
+- Recheck phased updates and Mac agent startup on the next round. Consider
+  upgrading the Mac agent separately from its current 4.14.7 version.
+
+References:
+
+- [Wazuh 4.14.8 release notes](https://documentation.wazuh.com/current/release-notes/release-4-14-8.html)
+- [Central component upgrade guide](https://documentation.wazuh.com/current/upgrade-guide/upgrading-central-components.html)
+
+## 2026-09-13 - Routine Updates, Reboot, And Retention Verification
+
+Date: 2026-09-13 12:04 CEST
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- Verified SSH alias `format-wazuh` targets `root@116.203.114.188:22`;
+  hostname and public IPv4/IPv6 match the runbook.
+- Ubuntu 24.04.4 LTS, kernel `6.8.0-139-generic`, uptime 8 days 2 hours
+  43 minutes. A reboot marker already existed for `libc6`.
+- Wazuh remains package/systemd-managed at `4.14.7-1`, with Filebeat
+  `7.10.2-2`. No Docker/Compose binaries or Docker/Portainer units found.
+- Root 59% used (42G used, 30G available); index volume 36% used
+  (27G used, 48G available). Memory available 3.4 GiB; swap used 971 MiB.
+- All core Wazuh services active; no failed units or Wazuh service journal
+  warnings in the preceding 24 hours.
+
+Maintenance performed:
+
+- Refreshed apt metadata. Both upgrade simulations showed six upgrades,
+  zero additions, zero removals, and zero held packages; dpkg audit was clean.
+- Applied `apt-get upgrade` with removals prohibited and existing modified
+  package configuration preserved:
+  `base-files` and `motd-news-config` to `13ubuntu10.5`;
+  `python-apt-common` and `python3-apt` to `2.7.7ubuntu5.3`;
+  `python3-distupgrade` and `ubuntu-release-upgrader-core` to `1:24.04.29`.
+- Rebooted once to complete the pre-existing library restart requirement.
+  No distribution release upgrade was run.
+
+Host after and checks:
+
+- Ubuntu now identifies as 24.04.5 LTS after the base-files update.
+  Kernel remains `6.8.0-139-generic`; Wazuh and Filebeat versions unchanged.
+- All four core services active. Dashboard/API/indexer responses recovered to
+  `302`/`401`/`401`; Filebeat output test passed, including TLS verification.
+- Indexer recovered from startup red to expected single-node yellow: all
+  382 primary shards active, 30 replicas unassigned, no initializing shards
+  or pending tasks. Manager indexer connectors logged successful initialization.
+- No failed systemd units. Final boot error scan contained one SSH connection
+  reset entry; startup indexer warnings resolved as recovery completed.
+- UFW remains active with public 443/1514/1515 TCP and rate-limited SSH.
+  Fail2ban sshd jail active with three banned sources. SSH remains key-only
+  with password/keyboard-interactive authentication disabled and MaxAuthTries 3.
+- Listener scope unchanged: dashboard and agents public; API and indexer
+  bound to loopback. Local Mac route uses en0 through 10.10.10.1;
+  agent endpoint TCP 1514 and 1515 reachable after reboot.
+- Root 57% used (41G used, 31G available); index volume 36% used
+  (27G used, 48G available). Memory available 2.9 GiB; swap used 512 KiB.
+- Retention timer enabled and active; today's 03:36:17 UTC run succeeded.
+  Deployed script/service/timer hashes match the tracked files.
+- All 90 alert indices, 2026-06-16 through 2026-09-13, managed by
+  `wazuh-alert-retention-90d`; no reported ISM action/retry failures in preflight.
+- Preflight alert tree 3.7G and queue 16G. Historical archive
+  `/root/wazuh-backup-2025-08-03.tar.gz` remains present at 9.6G; existence
+  does not establish a current tested backup. No manual data deletion performed.
+- Final apt simulation: zero upgrades/additions/removals/held packages.
+  No reboot marker remains.
+
+Agent inventory and follow-up:
+
+- Full inventory initially showed 13 remote agents active and 22 disconnected;
+  final inventory showed 12 active, 23 disconnected, no never-connected agents,
+  plus the active local manager. The prior round's `-lc` command filtered to
+  connected agents and did not establish that every enrolled agent was active.
+- Mac `043 MBP-PCZ` and all nine listed server agents are active. A duplicate
+  MBP-PCZ enrollment request was rejected during startup; canonical 043
+  reconnected and its registration was left unchanged.
+- `021 NUC-MTX3` (Windows 11 Pro, agent 4.14.6) last keepalive was
+  2026-09-13 09:56:34 UTC, before this round began. It initially displayed
+  Active but later Disconnected. No matching rejection was found in the
+  inspected recent manager log; workstation power/network/service state
+  remains unverified and should be checked separately.
+- Continue verifying both retention policies during future maintenance rounds.
+
 ## 2026-09-05 - Routine Maintenance And Kernel Reboot
 
 Date: 2026-09-05 09:20 CEST
