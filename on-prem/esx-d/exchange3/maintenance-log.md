@@ -467,6 +467,28 @@ Notes:
 - Complete an interactive Exchange health and queue precheck, confirm backup state and outage window, then install the four offered updates and verify services, queues, mail flow, HTTPS, SMTP STARTTLS, and win-acme afterward.
 - No connector, queue, certificate, firewall, GPO, or mailbox data was changed.
 
+## 2026-10-10 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Local and domain SSH, domain trust, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Exchange3 is running Windows Server 2022 build `20348.5622`, booted on 2026-10-09. Windows Update returned `0`; CBS and Windows Update reboot markers are clear.
+- Exchange Server Subscription Edition is build `15.2.2562.53`, the current Sep26SUv2 build released 2026-10-02. All automatic Exchange services are running.
+- SMTP ports 25 and 587 and HTTPS 443 are listening. External SMTP STARTTLS negotiated TLS 1.2 and presented the valid `CN=exchange.format.lu` Let's Encrypt certificate.
+- The win-acme task last result is `0`. The current certificate has a private key and expires 2026-11-20; Exchange has begun emitting expected certificate-expiry warnings.
+- Submission, retry-mailbox-delivery, and active-mailbox-delivery queue performance counters were all `0`. Full `Get-Queue` and `Get-ExchangeCertificate` checks remain blocked in SSH-launched EMS by the known delegated-credential error.
+- ESET Mail Security `13.0.10006.0` and ESET Management Agent `13.3.1192.0` are installed; ESET core, firewall helper, forwarder, and management-agent services are running. Microsoft Defender antivirus is disabled as expected with ESET active.
+- Recurrent DKIM event `1057` remains the known async-resume issue. AirSync clients for Jens Gilz and Pascal Martin exceeded the 250-message object limit.
+- Admin-audit event `5000` reports that Exchange cannot find the discovery mailbox. The AD object exists and has `Mailbox-DB3` and `EXCHANGE3` attributes, so interactive EMS mailbox/statistics validation is required before any repair.
+- OWA returned the expected unauthenticated HTTP 440 response. No external mail was sent as a test.
+
+Notes:
+
+- No update, reboot, queue, connector, certificate, mailbox, ESET, DKIM, firewall, or GPO change was made.
+- Monitor the daily ACME task through the next renewal. Validate the discovery mailbox and audit logging from an interactive Exchange Management Shell.
+
 ## Maintenance Template
 
 Date:

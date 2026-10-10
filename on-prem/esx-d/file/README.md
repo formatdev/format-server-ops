@@ -2,11 +2,11 @@
 
 Runbook for the Windows file server VM `File` on ESX-D.
 
-Last updated: 2026-09-13
+Last updated: 2026-10-10
 
 ## Current Verified State
 
-Last verified from this maintenance thread: 2026-09-13.
+Last verified from this maintenance thread: 2026-10-10.
 
 - VM name in vCenter: `File`
 - Windows hostname: `FILE`

@@ -479,6 +479,24 @@ Notes:
 - Admin maintenance and reboot are complete and the server is update-clean.
 - Restoring the copier FTP service requires a separate approved change with the copier source address and required active/passive mode confirmed first.
 
+## 2026-10-10 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Local and domain SSH, domain trust, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Admin is running Windows 11 Pro 26H2 build `26300.9550`, booted on 2026-10-10. Windows Update returned `0`; CBS and Windows Update reboot markers are clear.
+- SQL Server 2022 Express instance `NET2` is running at GDR build `16.0.1200.5` (`KB5122771`), the current GDR branch during this check. SQL Browser is running.
+- Veeam Installer, Transport, and Guest Interaction services are `Running`/`Automatic`.
+- Copier FTP remains unavailable: `IIS-FTPServer` is enabled but `IIS-FTPSvc` is disabled, `FTPSVC` is absent, and nothing listens on TCP 21. IIS still contains `Formascan_input` bound to `192.168.1.11:21`.
+- Recent event review found two OpenSSH restart-on-failure recoveries around reboots and one Panda HealthCheck plug-in crash. Current SSH and Panda endpoint operation were not otherwise impaired.
+
+Notes:
+
+- No update, reboot, SQL, FTP, firewall, GPO, or application-data change was made.
+- FTP restoration remains a separate approved change after confirming copier source address and active/passive requirements.
+
 ## Maintenance Template
 
 Date:

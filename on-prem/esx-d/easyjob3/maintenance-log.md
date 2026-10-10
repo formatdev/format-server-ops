@@ -405,6 +405,25 @@ Notes:
 - Easyjob3 requires a planned reboot, followed by installation of the remaining OS and .NET updates, another reboot if requested, a final update scan, SQL/application smoke tests, and supported component-store cleanup.
 - No SQL database, application data, GPO, firewall, or trust configuration was changed.
 
+## 2026-10-10 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- Local and domain SSH, domain trust, `sshd`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- Easyjob3 is running Windows Server 2025 Standard build `26100.33438`, booted on 2026-10-09. Windows Update returned `0`; CBS and Windows Update reboot markers are clear.
+- No interactive user session was present.
+- SQL Browser and all six production SQL Server 2019 Standard instances are `Running`/`Automatic`. Every instance reports current CU32 + GDR build `15.0.4490.9` (`KB5122772`), and all enumerated databases are online.
+- C: had 13.73 GB free. A read-only component-store analysis completed without a DISM error; supported `StartComponentCleanup` then completed successfully without reboot. C: remained approximately 13.74 GB free.
+- SQL services were rechecked after cleanup and remained healthy; no reboot marker was introduced.
+- Recent VSS events occurred while shutdown was already in progress. One Panda HealthCheck plug-in crash was also recorded; no SQL or application-role failure was observed.
+
+Notes:
+
+- No Windows or SQL update, reboot, database, application-data, GPO, firewall, or trust change was made.
+- Continue monitoring C: capacity.
+
 ## Maintenance Template
 
 Date:

@@ -403,6 +403,26 @@ Notes:
 - Tim maintenance is complete and the server is update-clean.
 - No reboot, GPO, firewall, role, trust, or data change was performed.
 
+## 2026-10-10 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks and actions:
+
+- At initial inspection, local break-glass SSH worked but domain-admin SSH was denied because OpenSSH could not resolve `format\Administrateur` as a valid user.
+- Tim is running Windows 11 Pro for Workstations 26H2 build `26300.9550`, booted on 2026-10-10. Windows Update returned `0`; CBS and Windows Update reboot markers are clear.
+- `sshd` and `Netlogon` are `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO. No interactive user session was present.
+- DC discovery, DNS/network access to PDC ports 135 and 445, and `nltest /sc_verify` succeed. Local SID translation for `format\Administrateur` and `format\sshadmins` nevertheless reports a broken workstation trust.
+- Performed the low-impact `nltest /sc_reset:format.lu\PDC.format.lu` and restarted Netlogon. Netlogon verification succeeded afterward, but SID translation and domain SSH remained broken.
+- Peter then ran `Reset-ComputerMachinePassword -Server PDC.format.lu -Credential format\Administrateur` interactively and restarted Netlogon. `Test-ComputerSecureChannel` and `nltest /sc_verify` both succeeded against PDC.
+- Codex retested `winad-tim`: domain SSH succeeded as `format\administrateur`, the user SID resolved correctly, and PDC confirmed `Administrateur` remains a member of the global security group `SSH Admins`.
+- Veeam Installer, Transport, and Guest Interaction services are `Running`/`Automatic`.
+
+Notes:
+
+- Tim's credentialed machine-password repair and domain SSH recovery are complete. No reboot, GPO, firewall, role, or data change was performed.
+- `net group "SSH Admins" /domain` from Tim still returns RPC error `1722`, but the authoritative AD query on PDC confirms the expected group and membership; no group change was made.
+
 ## Maintenance Template
 
 Date:

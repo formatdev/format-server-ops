@@ -504,6 +504,26 @@ Notes:
 - FILE requires a planned reboot after users close active files, followed by a final update scan and share/SMB validation.
 - No redirected-folder data, legacy `D:\Users` data, share, permission, GPO, firewall, or document content was changed.
 
+## 2026-10-10 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Local and domain SSH, domain trust, `sshd`, `Spooler`, `LanmanServer`, and `Netlogon` checked healthy; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- FILE is running Windows Server 2022 build `20348.5622`, booted on 2026-10-09. Windows Update returned `0`; CBS and Windows Update reboot markers are clear. Pending file rename remains an application/installer marker rather than a servicing reboot marker.
+- Applied computer GPOs include `NTLM Allow`, `Allow remote Admin`, and `Windows Update`; the latest policy refresh came from PDC. SSH and WinRM firewall rules remain scoped to `192.168.1.73,192.168.113.2`.
+- Expected file, redirected-folder, archive, print, and administrative shares are online. No open SMB file was present anywhere under D: during inspection.
+- Desktop `FILE-todo.md`, `FILE-health-log.md`, and `FILE-inspect.md` are present.
+- Disk free space: C: 50.8 GB, D: 317.8 GB, F: 1937.8 GB, G: 1842.6 GB.
+- Legacy/current comparison still blocks cleanup: `Administrateur` and `harry.haag` legacy Documents are newer than their redirected targets; newer redirected targets exist for `pascal.martin` and `sarah.stehly`. No data was changed.
+- Boot-time events include crash-dump initialization failure and LSASS/Panda service startup timing errors. Current file, print, security-agent, SSH, and domain services are running; VSS errors occurred during shutdown.
+- Veeam Installer, Transport, and Guest Helper services are `Running`/`Automatic`.
+
+Notes:
+
+- No update, reboot, cleanup, redirected-folder data, legacy data, share, permission, firewall, GPO, or document content was changed.
+
 ## Maintenance Template
 
 Date:

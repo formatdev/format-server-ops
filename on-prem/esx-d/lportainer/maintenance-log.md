@@ -366,6 +366,19 @@ Notes:
 - No VM power, Linux package, Docker, Portainer, stack, image, volume, prune, update, or reboot action was performed.
 - Lportainer maintenance remains deferred until the VM is intentionally powered on.
 
+## 2026-10-10 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- SSH to `192.168.1.9` timed out while all powered-on ESX-D Windows guests were reachable, consistent with Lportainer remaining intentionally powered off.
+
+Notes:
+
+- No VM power, Linux package, Docker, Portainer, stack, image, volume, prune, update, or reboot action was performed.
+- Lportainer maintenance remains deferred until the VM is intentionally powered on.
+
 ## Maintenance Template
 
 Date:

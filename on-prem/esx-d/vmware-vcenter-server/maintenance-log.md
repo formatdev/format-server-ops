@@ -78,6 +78,20 @@ Notes:
 
 - No host, appliance, datastore, VM, vCLS, snapshot, migration, reboot, update, certificate, or power action was performed.
 
+## 2026-10-10 - Connectivity Check
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- ESX-D management HTTPS at `192.168.5.203:443` is reachable; host SSH at port 22 remains refused and was not enabled.
+- vCenter at `192.168.5.15` is reachable on HTTPS and SSH.
+- Authenticated appliance, ESX hardware, datastore, backup, alarm, VM power-state, and available-update checks remain unavailable because no approved working vCenter credential path is configured.
+
+Notes:
+
+- No host, appliance, datastore, VM, vCLS, snapshot, migration, reboot, update, certificate, or power action was performed.
+
 ## Maintenance Template
 
 Date:

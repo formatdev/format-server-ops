@@ -397,6 +397,22 @@ Notes:
 - PDC maintenance and reboot are complete; PDC/BDC replication is healthy.
 - No AD object, DNS, SYSVOL, GPO, FSMO, firewall, or replication configuration was changed.
 
+## 2026-10-10 - Maintenance Round
+
+Maintainer: Codex with Peter
+
+Checks:
+
+- Local and domain SSH checked. Core DFSR, DNS, KDC, Netlogon, NTDS, W32Time, and SSH services are `Running`/`Automatic`; WinRM remains `Stopped`/`Disabled` as expected by GPO.
+- PDC is running Windows Server 2022 build `20348.5622`, booted on 2026-10-09. Windows Update returned `0`; CBS and Windows Update reboot markers are clear.
+- PDC and BDC each reported `0/5` replication failures. Detailed inbound views showed successful attempts for all five naming contexts.
+- The known reciprocal `repadmin` SSH-token error `1326` remains while detailed replication succeeds.
+- PDC is synchronized to `192.168.1.253`; BDC is synchronized to PDC. Both controllers' core AD/DNS services are healthy.
+
+Notes:
+
+- No update, reboot, service restart, AD object, DNS, SYSVOL, GPO, FSMO, firewall, or replication configuration change was made.
+
 ## Maintenance Template
 
 Date:
