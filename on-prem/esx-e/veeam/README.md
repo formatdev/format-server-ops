@@ -2,7 +2,7 @@
 
 Runbook for the standalone Windows Veeam server VM on ESX-E.
 
-Last updated: 2026-09-13
+Last updated: 2026-10-10
 
 ## Known State
 
@@ -15,7 +15,8 @@ Last updated: 2026-09-13
 - Role: Veeam backup server
 - OS: Microsoft Windows Server 2022 Standard, build `20348`
 - VM platform: VMware virtual machine
-- Last boot observed: `2026-09-13 12:38:18`, verified at `12:45` after the operator's update reboot
+- Last boot observed: `2026-10-10 08:10:53`, verified after the operator's host iLO/ROM maintenance
+- Guest iSCSI discovery portals: none after operator-approved removal of the stale `192.168.1.208:3260` entry at `2026-10-10 08:16`; no active sessions or mapped iSCSI storage were present
 
 ## Critical Role Notes
 
@@ -70,12 +71,13 @@ Current remote-admin findings:
 
 Current storage findings:
 
-- `C:` NTFS, healthy, about 39.34 GB free of 128.5 GB after the `2026-09-13` update reboot (`30.62%` free)
-- `E:` `VeeamHDD`, ReFS, healthy, about 6.71 TB free of 30.8 TB on `2026-09-13` (`21.81%` free)
+- `C:` NTFS, healthy, about 45.25 GB free of 128.5 GB on `2026-10-10` (`35.22%` free)
+- `E:` `VeeamHDD`, ReFS, healthy, about 6.36 TB free of 30.8 TB on `2026-10-10` (`20.66%` free)
 - The primary chain now contains one full plus 149 reverse increments; current Veeam logs explicitly confirm a 150-point retention policy
 
 Current Windows Update findings:
 
+- `2026-10-10`: successful Windows Update search found zero pending updates. Windows build remains `20348.5622`; CBS, Windows Update, and pending-file-rename flags are all clear. Veeam Core reports `13.1.1.18`, matching the latest public [Veeam build list](https://www.veeam.com/kb2680) checked the same day. No installation or reboot was performed.
 - April 2026 Windows/.NET/SQL updates installed on `2026-04-18`.
 - May 2026 update cycle completed on `2026-05-16`: `KB5089270`, `KB890830` v5.141, `KB5088862`, and `KB5087545`.
 - CBS, Windows Update reboot flags, and pending file rename operations were all clear after the May 2026 reboot.
@@ -107,6 +109,10 @@ Current Windows Update findings:
 
 Current Veeam warning interpretation:
 
+- Latest verification on `2026-10-10`: October 9 primary backup and replication and October 10 NAS4 copy each completed 10/10 tasks successfully. Their final warnings followed SMTP relay rejection `5.7.54`. All three jobs were Stopped in the latest service-log state block; only the infrastructure-rescan manager was observed. This is log-based job-completion evidence, not a restore test.
+- October 9 shutdown-related VSS and Veeam service errors were followed by recovery; all 11 local VSS writers are now Stable/No error. Before the approved removal below, boot-time iSCSI discovery failed against portal `192.168.1.208:3260`, with no active iSCSI session/target. The original device identity was not established. Current mounted disks are healthy and subsequent primary/copy jobs succeeded.
+- The pre-removal iSCSI investigation on October 10 found zero persistent targets, persistent volumes, and target mappings; both disks are VMware NVMe devices. Recent backups use local E: and the NAS4 SMB share; the same portal error exists since at least July 19. Port 3260 timed out and device identity could not be resolved. Removal was held until explicit operator approval; this historical investigation is not a claim that the portal remains configured.
+- With explicit operator approval, removed the stale discovery portal after Veeam returned from host maintenance on October 10. Portal inventory now reports zero entries; disks and service states remained healthy/unchanged. The iSCSI service remains Automatic/Running. Prior startup errors remain historical; confirm absence of recurrence at the next normal boot.
 - Recent Veeam warning-result jobs observed on 2026-05-03 were later confirmed by the operator to stem from backup-destination free space dropping below the `10%` warning threshold and SMTP/email warning behavior.
 - Treat those warnings as explained unless later maintenance finds a different underlying cause.
 - On `2026-08-04`, current job-state logging showed all three configured jobs stopped; repository free space had fallen to `3.78%`, reinforcing the existing capacity-warning explanation.
@@ -140,6 +146,8 @@ Get-NetFirewallRule -Enabled True |
 ## Veeam Health Checks
 
 For the verified domain/standalone time-source matrix, see [On-Prem Time Synchronization](../../time-synchronization.md). With operator approval on `2026-09-13`, Veeam now uses its own gateway `192.168.90.253,0x8` for Windows NTP. Windows Time is Automatic/Running and synchronized at stratum 4; VMware periodic synchronization is disabled. Startup/resume synchronization settings were not changed. These settings and successful gateway synchronization were verified again at `12:45` after the Windows update reboot.
+
+Rechecked on `2026-10-10`: gateway source unchanged, Windows Time Automatic/Running, leap indicator 0, stratum 5, and last successful synchronization `06:15:39`. VMware periodic synchronization remains Disabled. The registered VMware precision-clock provider still logs a missing-device error at startup; it is separate from the working gateway NTP source and was left unchanged.
 
 Start with service and event state before touching configuration.
 

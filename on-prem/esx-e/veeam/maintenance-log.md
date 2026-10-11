@@ -1450,3 +1450,96 @@ Read-only checks at `12:45-12:47` confirmed the operator's update restart comple
 - Gateway time survived reboot: source `192.168.90.253,0x8`, stratum 4, leap indicator 0, last successful sync `12:44:54`. VMware Tools periodic synchronization remained Disabled.
 - Both mounted volumes were Healthy. `C:` had `39344189440` bytes free of `128478867456`; `E:` had `6714809843712` bytes free of `30786258468864`.
 - Service and OS recovery are verified. A new post-reboot backup/restore cycle was not run or verified during this check; the latest successful primary/copy/replication evidence remains the September 11-12 cycle recorded above.
+
+## 2026-10-10 - Maintenance Access Blocked
+
+Started the requested Veeam-only maintenance round with repository and network discovery. Unrelated worktree changes were preserved.
+
+- Local SSH alias `win-veeam` still targets `192.168.90.10` as local `Administrator`, using the configured Windows admin key.
+- The route to `192.168.90.10` used the default gateway `10.10.10.1` through `en0`, not the previously observed on-prem VPN route.
+- One key-only SSH connection attempt with an eight-second connection timeout failed before authentication with a TCP 22 timeout. This does not establish an SSH service or server failure.
+- Current server identity, backup/session state, storage, updates, reboot flags, and gateway time synchronization could not be verified. September observations remain historical, not current health evidence.
+- No updates, reboot, cleanup, service changes, network changes, or Veeam configuration/data changes were performed.
+- Resume discovery after the operator restores the on-prem VPN/network path.
+
+## 2026-10-10 - Maintenance Inspection After VPN Recovery
+
+Resumed read-only Veeam-only discovery after the operator connected the VPN. Route now uses `utun6` through `192.168.113.1`; key-only SSH succeeded. The earlier access blocker is resolved.
+
+Host and services:
+
+- Identity remains local `veeam\administrator`, hostname `VEEAM`, standalone `WORKGROUP`.
+- Check began at `06:35` Europe/Luxembourg. Last boot: `2026-10-09 19:16:07`; Windows build `20348.5622`.
+- All enumerated automatic Veeam, SQL, SSH, WinRM, and Windows Time services were Running. SQL Agent remained Disabled/Stopped as expected.
+- No existing update/cleanup worker was observed before discovery. The only Veeam backup-manager process was `STARTINFRARESCAN`.
+- SSH retained key-only authentication; the broad OpenSSH firewall rule remained disabled and the custom rule retained its two approved admin sources.
+
+Backup evidence:
+
+- Latest service-log state at `06:22:16` showed all three configured jobs Stopped with Warning results.
+- Primary backup completed on `2026-10-09 23:19:46`: 10 tasks successful, zero failed.
+- NAS4 copy completed on `2026-10-10 00:46:43`: 10 tasks successful, zero failed.
+- Replication completed on `2026-10-09 16:55:55`: 10 tasks successful, zero failed.
+- Each completed payload was followed by the established SMTP relay rejection `5.7.54`, explaining the final Warning result. Configuration-backup logging also confirmed creation on October 9 followed by the same email error.
+- These results are log-based completion evidence. No restore test or new job execution was performed; native Veeam API session enumeration was not used.
+
+Storage, updates, and cleanup assessment:
+
+- Both disks were Online/Healthy and both mounted volumes were Healthy.
+- `C:` free `45247971328` of `128478867456` bytes (`35.22%`); `E:` free `6360881102848` of `30786258468864` bytes (`20.66%`).
+- Primary repository chain inventory remains one VBK, 149 VRB, and one VBM. No repository data was opened, modified, or removed.
+- Windows Update search succeeded (`ResultCode=2`) with zero pending non-hidden updates.
+- CBS reboot pending, Windows Update reboot required, and pending-file-rename indicators were all False.
+- Component-store analysis completed successfully: actual size `7.72 GB`, zero cache/temporary data, zero reclaimable packages, cleanup not recommended. Last recorded component cleanup: `2026-09-17 16:20:18`. This does not measure every Windows temporary-file category.
+- Installed Veeam Core DLL remains `13.1.1.18`, matching the latest published VBR build in [KB2680](https://www.veeam.com/kb2680) checked today. No update, reboot, or cleanup was needed or performed.
+
+Time and event findings:
+
+- Windows Time remains Automatic/Running, synchronized with `192.168.90.253,0x8`, leap indicator 0, stratum 5; last reported sync `06:15:39`. VMware Tools periodic synchronization remains Disabled.
+- The registered `vmwTimeProvider` still reported a missing precision-clock device at startup. Gateway NTP is working; no provider setting was changed.
+- October 9 event `1074` records VMware Tools requesting shutdown at `18:18:02`. VSS `13`/`8193`, Veeam platform-service messages, and an SSH termination occurred during that shutdown period. No unexpected-shutdown event was returned in the seven-day query. All 11 current VSS writers report Stable/No error and services have recovered.
+- Startup iSCSI discovery failed against configured portal `192.168.1.208:3260`; current iSCSI session and target queries returned no entries. The portal's intended role remains unverified. Do not infer that it is unused or remove/reconnect it without a dependency review. Current local disks and subsequent backup/copy runs were healthy.
+- Historical Virtual Disk Service and performance-counter warnings remain recorded; no current mounted-volume health failure was found.
+
+Outcome and follow-up:
+
+- Routine inspection completed; no patch or restart required by the observed state. No operational configuration changes, cleanup, repository changes, or other-host work was performed.
+- Optional separate follow-up: establish ownership/dependencies for the iSCSI portal and review the known email-report relay issue. Neither was changed during this maintenance round.
+
+## 2026-10-10 - iSCSI Portal Dependency Investigation
+
+With operator approval, performed read-only investigation from Veeam around `06:53` onward. No portal refresh, iSCSI login, reconnect, removal, firewall change, or service change was performed.
+
+- Windows retains one discovery portal: `192.168.1.208:3260`, with no explicit initiator interface binding in the returned settings.
+- Current iSCSI sessions: zero; discovered targets: none. `iscsicli ListPersistentTargets` reports zero persistent targets; `ReportPersistentDevices` reports no volumes; `ReportTargetMappings` reports no mappings.
+- Both current disks are VMware Virtual NVMe devices, not guest iSCSI disks. Mounted C: and E: volumes remain healthy. This does not establish the hypervisor's underlying storage transport.
+- The primary backup log references the local E: repository. Sampled proxy resource records contain `hotadd;nbd` and `nbd` modes, not direct SAN. The successful NAS4 copy log references an SMB share; NAS4 resolves from Veeam to `192.168.90.212`. These observations establish the recent data paths, not every possible future restore or storage-integration dependency.
+- Six bounded current Veeam service/job logs contained no exact reference to `192.168.1.208`. This was not an exhaustive configuration-database or historical-log audit.
+- Event `MSiSCSI 113` shows the same discovery failure at multiple boots from at least `2026-07-19` through October 9, predating the latest maintenance and coexisting with successful backup cycles.
+- A single five-second TCP connection probe from Veeam to the portal's port 3260 timed out. No iSCSI protocol login was attempted. A timeout does not distinguish an offline device, filtering, routing, or disabled service.
+- Reverse DNS returned name-not-found; the Windows hosts file and repository documentation did not identify the device.
+- Assessment: likely an obsolete discovery entry, with no observed current guest-storage dependency. Original device identity and intended occasional/recovery use remain unverified. Keep the entry unchanged until the operator identifies the device and confirms it is retired or unused; any removal requires explicit approval.
+
+Reference: [Microsoft Get-IscsiTargetPortal documentation](https://learn.microsoft.com/en-us/powershell/module/iscsi/get-iscsitargetportal), distinguishing portal inventory from session/target information.
+
+## 2026-10-10 - iSCSI Portal Removal Approved, Access Blocked
+
+- The operator found no documentation for `192.168.1.208`, suggested it may have been an installation-time experiment, and explicitly approved removal of only the saved discovery portal `192.168.1.208:3260`.
+- The attempted SSH connection timed out before authentication or remote execution. A separate hostname-only retry returned Network is unreachable. The local route still referenced VPN `utun6` through `192.168.113.1`; this does not establish a server-side failure.
+- No remote command ran and no portal, disk, data, service, firewall, or Veeam configuration was changed. Removal is approved but NOT completed.
+- After connectivity returns, recheck host identity, active iSCSI sessions and Veeam workers, then remove only the approved portal and verify portal inventory, disk health, and service state. Do not disable the iSCSI service or alter any other configuration.
+- Operator-requested retry returned Network is unreachable again before authentication or execution, despite the VPN route remaining listed. No removal occurred; approval remains pending execution once connectivity is restored.
+
+## 2026-10-10 - Host Maintenance Recovery and Stale iSCSI Portal Removed
+
+The operator explained that Veeam had been shut down for host iLO/ROM updates and subsequently confirmed it was back online. Verified recovery and completed the already-approved portal removal around `08:16` Europe/Luxembourg.
+
+- Key-only SSH succeeded as local `veeam\administrator`; identity remains `VEEAM` in `WORKGROUP`. New boot time: `2026-10-10 08:10:53`. Host firmware versions were not inspected in this Veeam-only check.
+- All enumerated automatic Veeam, SQL, SSH, WinRM, Windows Time, and iSCSI services were Running. SQL Agent remained Disabled/Stopped. All three jobs were Stopped in the latest service-log block; only the infrastructure-rescan manager was present.
+- Reconfirmed zero iSCSI sessions and zero persistent targets, with exactly one saved discovery portal matching the approved `192.168.1.208:3260`. Prior portal settings had no explicit initiator binding and both data/header digest flags were False.
+- The PowerShell removal cmdlet failed with a CIM parameter type mismatch for `TargetPortalPortNumber`; inventory confirmed the portal was still present. Used the native equivalent `iscsicli.exe RemoveTargetPortal 192.168.1.208 3260`, which returned success.
+- Post-change portal count: zero; session count: zero. Comparison of service state/startup before and after removal found zero differences and no stopped automatic service. The iSCSI service was not disabled or restarted.
+- Both VMware NVMe disks remained Online/Healthy; C: and E: remained Healthy. E: free space was `6360882282496` bytes before and after removal; C: free was about `45.31 GB` afterward. No disk, volume, repository, or backup content was deleted or changed.
+- Gateway time remained synchronized to `192.168.90.253,0x8`, stratum 5, leap indicator 0, last sync `08:15:27`; VMware periodic synchronization remained Disabled. CBS, Windows Update, and rename reboot flags were all False.
+- Post-boot event review showed the existing VMware precision-clock provider and pre-removal iSCSI startup errors; no critical/error Application event was returned. Historical events were preserved. No additional reboot was performed to test recurrence.
+- Removal is complete. Verify at the next normal boot that the old portal's discovery errors no longer recur; the next scheduled backup remains the operational follow-up. Re-adding the recorded portal would restore its discovery entry if later required, but no restoration was attempted.
