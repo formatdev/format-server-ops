@@ -1,25 +1,33 @@
 # ESST Cloud X Runbook
 
-Runbook root for the four servers.com VPS hosts in Luxembourg.
+Local historical records and verification aids for the servers.com ESST fleet.
 
-Last updated: 2026-09-13
+Last updated: 2026-09-21
 
-## Fleet
+## Canonical Conventions
 
-| Host | Public IP | Local IP | Plan | Provider key label | Status |
-| --- | --- | --- | --- | --- | --- |
-| `esst-cloud-1` | `188.42.62.40` | `192.168.0.101` | `SSD.120` | `key_2024-07-29_17-19-51` | Active |
-| `esst-cloud-2` | `188.42.62.39` | `192.168.0.5` | `SSD.180` | `key_2021-12-08_15-13-01` | Active |
-| `esst-cloud-3` | `188.42.62.60` | `192.168.0.20` | `SSD.80` | `key_2023-03-09_09-43-44` | Active |
-| `esst-cloud-4` | `172.255.248.244` | `192.168.0.14` | `SSD.100` | `key_2023-03-29_08-26-13` | Active |
+Use [esstdev/esst-infrastructure](https://github.com/esstdev/esst-infrastructure)
+for current topology, procedures and new maintenance records. Read its current
+conventions before each intervention, as described in [AGENTS.md](AGENTS.md).
+Historical logs here remain unchanged; they have not been migrated.
+
+- [Canonical estate](https://github.com/esstdev/esst-infrastructure/blob/main/servers/estate.md)
+- [Maintenance checklist](https://github.com/esstdev/esst-infrastructure/blob/main/runbooks/maintenance-checklist.md)
+- [Backup requirements](https://github.com/esstdev/esst-infrastructure/blob/main/runbooks/backups.md)
+- [Intervention log template](https://github.com/esstdev/esst-infrastructure/blob/main/logs/_template.md)
+
+The canonical reboot order is currently 3 -> 2 -> 1 -> 4. Verify live state,
+prepare backups and rollback, pin production images, and check recovery between
+hosts. New logs belong in upstream `logs/YYYY-MM-DD-short-description.md`;
+unresolved work belongs in linked issues, not completed-maintenance issues.
 
 ## Host Folders
 
-- [esst-cloud-1](/Users/czibulapeter/Documents/GitHub/format-server-ops/servers.com/esst-cloud-x/esst-cloud-1/README.md)
-- [esst-cloud-2](/Users/czibulapeter/Documents/GitHub/format-server-ops/servers.com/esst-cloud-x/esst-cloud-2/README.md)
-- [esst-cloud-3](/Users/czibulapeter/Documents/GitHub/format-server-ops/servers.com/esst-cloud-x/esst-cloud-3/README.md)
-- [esst-cloud-4](/Users/czibulapeter/Documents/GitHub/format-server-ops/servers.com/esst-cloud-x/esst-cloud-4/README.md)
-- [swarm-analysis-2026-04-19.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/servers.com/esst-cloud-x/swarm-analysis-2026-04-19.md): first-pass Swarm and Portainer topology analysis
+- [esst-cloud-1](esst-cloud-1/README.md)
+- [esst-cloud-2](esst-cloud-2/README.md)
+- [esst-cloud-3](esst-cloud-3/README.md)
+- [esst-cloud-4](esst-cloud-4/README.md)
+- [swarm-analysis-2026-04-19.md](swarm-analysis-2026-04-19.md): historical first-pass topology analysis
 
 ## Access
 
@@ -50,7 +58,12 @@ See [Firewall Maintenance](firewall-maintenance.md) for the exact policy and
 the mandatory checks after every reboot or Docker restart. An inactive UFW
 does not establish whether these custom iptables rules are present.
 
-## Baseline Maintenance Flow
+## Baseline Inspection Commands
+
+These commands are aids, not a substitute for the canonical pre-upgrade
+checklist. Production changes default to an operator-executed plan unless the
+user explicitly authorizes execution. Do not start a service-changing command
+until its window, backups, pinned targets and rollback have been addressed.
 
 For each host:
 
@@ -96,7 +109,7 @@ and, when missing, restored:
   a fresh SSH connection before canceling rollback.
 - Verify the rule chains and hooks, all Swarm nodes/services, permitted office
   SSH, blocked non-allowed SSH, Cloudflare access and blocked direct-origin HTTPS.
-- Record evidence in the host maintenance log. Check published Docker ports
+- Record evidence in the canonical intervention log. Check published Docker ports
   separately; these scripts do not impose a blanket office-only firewall.
 
 No automatic boot restoration was found or installed as of September 13, 2026.
@@ -110,4 +123,4 @@ Follow the [firewall runbook](firewall-maintenance.md) after every restart.
 - Keep at least one working SSH path before changing `sshd_config`.
 - Do not commit private keys, provider tokens, server passwords, or Bitwarden
   secure note contents into this repository.
-- Record host-level work in the matching `maintenance-log.md`.
+- Record new work in `esst-infrastructure/logs/` using its current template.
