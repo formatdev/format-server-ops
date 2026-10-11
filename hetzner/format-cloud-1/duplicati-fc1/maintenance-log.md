@@ -4,6 +4,24 @@ Use this log for Duplicati checks during the combined Hetzner platform maintenan
 
 Do not record encryption keys, backup destination credentials, SSH private keys, Duplicati UI credentials, exported job definitions containing secrets, SQL dumps, or other secrets here.
 
+## 2026-10-10 - Stable Patch Upgrade
+
+- Updated `2.4.0.0` to `2.4.0.1_stable_2026-10-07`, retaining digest pinning:
+  `sha256:e32e280cc30e98ac5cea8d2b339cd19810b1b39e638fb9d39253786630104de0`.
+  Container changelog confirmed the version; startup listened on port 8200.
+- Cold data-volume archive passed `gzip -t`:
+  `/data/backups/duplicati-maintenance/duplicati-data-20261010-044019.tar.gz`.
+  This root-only maintenance archive is separate from scheduled retention.
+- Before patching, read-only SQLite result inspection confirmed successful
+  remote backups on October 7, 8, and 9. Latest finish: `18:41:51 UTC` on
+  October 9; 87,601 examined files totaling 12,565,000,023 bytes.
+- Last recorded restore remains April 18. No new restore or post-patch
+  remote backup was performed during this maintenance window.
+- Follow-up: Verify the next scheduled remote backup and perform a separate
+  restore test. Retain the pre-upgrade archive until recovery is verified.
+
+Source: [Duplicati stable patch release](https://github.com/duplicati/duplicati/releases/tag/v2.4.0.1_stable_2026-10-07).
+
 ## 2026-09-13 - Post-Upgrade Backup Verification
 
 Date: 2026-09-13 12:08 CEST

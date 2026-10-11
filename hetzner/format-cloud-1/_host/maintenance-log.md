@@ -6,6 +6,100 @@ Docker Engine maintenance, and reboot decisions for `format-cloud-1`.
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
 
+## 2026-10-10 - October Maintenance Round
+
+Date: 2026-10-10 06:44 CEST
+
+Maintainer: Codex with Peter
+
+Host maintenance:
+
+- Before: kernel `6.8.0-139-generic`, Docker `29.8.0`, uptime about 26 days;
+  all 18 services `1/1`. Reboot marker referenced installed kernel `142`.
+- Applied 25 package upgrades and two new kernel packages, with no removals.
+  After controlled reboot: kernel `6.8.0-146-generic`, Docker `29.9.0`,
+  containerd `2.4.1`, Compose `5.6.0`, Buildx `0.38.0`; Ubuntu remains 24.04.5.
+- No reboot marker, dpkg audit findings, or failed systemd units remain.
+  Only `libopeniscsiusr` and `open-iscsi` are deferred by Ubuntu phasing;
+  phasing was not overridden.
+- AppArmor post-install emitted `Illegal number: yes`, but installation
+  completed and AppArmor was active after reboot. No workaround was applied.
+- Root: 60G used, 85G available, 42% used; about 12 GiB memory available.
+  No Docker prune, autoremove, or production-data deletion.
+- SSH remains key-only; UFW and Fail2ban baseline checks passed.
+
+Container maintenance:
+
+- Portainer server/agent: `2.45.0` -> `2.45.2 LTS`; migration and version API OK.
+- Traefik: `3.7.13` -> `3.7.14`; migration notes reviewed against actual Swarm
+  arguments. The usual transient host-port replacement wait resolved.
+- Vaultwarden: `1.37.2` -> `1.37.4`. Binary reports Web-Vault `2026.7.0`;
+  no separate frontend update. Effective `CF-Connecting-IP` avoids changed
+  `X-Forwarded-For` parsing behavior.
+- Duplicati: stable `2.4.0.0` -> `2.4.0.1`, verified in container changelog,
+  pinned to `sha256:e32e280cc30e98ac5cea8d2b339cd19810b1b39e638fb9d39253786630104de0`.
+- Cloudflared: explicit tag `2026.10.0`, digest
+  `sha256:9b49eed8f62806d5d45ddf59ecefb5710429598ea6d3fcccd2af938f621b2b07`.
+  All four tunnel connections registered.
+- Both Chargy Redis services had drifted to `7.4.8` under `7.4-alpine3.21`.
+  Saved definitions pinned the old digest. Saved RDB snapshots, then restored
+  `7.4.11-alpine3.21` pins. Both servers report `7.4.11` and respond `PONG`.
+- MariaDB `11.8.9` and phpMyAdmin `5.2.3` remain current in selected lines.
+  Major WordPress/Redis/MariaDB changes and MySQL `8-oracle` refresh remain
+  separate compatibility-reviewed work.
+- FLOC and Chargy application digests match September 13 recorded builds.
+  No private-image registry/source freshness claim is made.
+
+Saved deployment definitions:
+
+- Stopped Portainer, waited for its container to exit, and made a verified
+  archive before changing only image references in stored Compose files.
+  YAML parsing and target-image assertions passed; Portainer restarted.
+- Reconciled IDs `9` and `15` (Redis), `11` (Vaultwarden), `25` (Duplicati),
+  and `26` (Cloudflared) with this round's versions.
+- Also reconciled IDs `1` (MariaDB `11.8.9`) and `2` (phpMyAdmin `5.2.3`)
+  with existing live versions, without redeploying those services.
+- The Bolt database and unrelated saved stacks were not edited.
+
+Backups:
+
+- October 9 scheduled MariaDB/Portainer archives passed `gzip -t`.
+- Fresh dump: `/data/backups/mysql/mariadb-all-databases-2026-10-10-043731.sql.gz`.
+- Portainer pre-upgrade: `/data/backups/portainer/portainer-data-20261010-043719.tar.gz`.
+- Portainer pre-edit: `/data/backups/portainer/portainer-data-20261010-044305.tar.gz`.
+- Vaultwarden cold archive: `/data/backups/vaultwarden/vaultwarden-data-20261010-043956.tar.gz`.
+- Duplicati cold archive: `/data/backups/duplicati-maintenance/duplicati-data-20261010-044019.tar.gz`.
+- All fresh archives passed gzip verification. Vaultwarden SQLite
+  `quick_check` returned `ok` before maintenance.
+- Read-only Duplicati results confirmed successful remote jobs October 7-9.
+  Latest finish: October 9, `18:41:51 UTC`, 87,601 files, 12,565,000,023 bytes.
+- No post-patch remote backup or restore was run. Last recorded restore is
+  April 18. New Vaultwarden/Duplicati maintenance archives are root-only and
+  separate from existing scheduled retention policies.
+
+Final verification:
+
+- All 18 services `1/1`; node Ready, Active, Leader; no unhealthy containers.
+  Services recovered automatically after reboot. Both Chargy startup upgrade
+  processes exited 0; no forced app/database recovery was necessary.
+- Vaultwarden's health warm-up caused transient `404`, then `200` responses.
+- Origin: `200` for Bitwarden, FLOC, Portainer API, phpMyAdmin, and Duplicati;
+  `302` for both Chargy routes.
+- Public TLS: Bitwarden/FLOC `200`; Chargy routes `302`; Portainer, phpMyAdmin,
+  and Duplicati `302` to `esst.cloudflareaccess.com`.
+- Fresh two-minute error samples for ingress, management, vault, backup,
+  MariaDB, MySQL, and Redis containers had zero matches.
+- Peter confirmed completion of the Portainer and Vaultwarden smoke tests
+  after maintenance. This is user-reported functional verification.
+- Verify the next scheduled Duplicati backup and plan a separate restore test.
+
+Sources: [Docker releases](https://docs.docker.com/engine/release-notes/29/),
+[Traefik 3.7.14](https://github.com/traefik/traefik/releases/tag/v3.7.14),
+[Portainer 2.45.2](https://github.com/portainer/portainer/releases/tag/2.45.2),
+[Vaultwarden 1.37.4](https://github.com/dani-garcia/vaultwarden/releases/tag/1.37.4),
+[Duplicati 2.4.0.1](https://github.com/duplicati/duplicati/releases/tag/v2.4.0.1_stable_2026-10-07),
+[Cloudflared 2026.10.0](https://github.com/cloudflare/cloudflared/releases/tag/2026.10.0).
+
 ## 2026-09-13 - Package Maintenance, Reboot, And Backup Verification
 
 Date: 2026-09-13 12:08 CEST

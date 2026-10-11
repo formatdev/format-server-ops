@@ -4,6 +4,26 @@ Use this log for the combined Vaultwarden maintenance run on the 15th and the la
 
 Do not record real admin passwords, invite links, backup credentials, or unredacted hashes here.
 
+## 2026-10-10 - Security Patch Upgrade
+
+- Updated server from `1.37.2` to `1.37.4`, addressing upstream security
+  advisories. The binary reports Web-Vault `2026.7.0`; the frontend was not
+  upgraded separately or claimed to be the latest Bitwarden web release.
+- SQLite `quick_check` returned `ok` before maintenance.
+- Cold backup passed `gzip -t`:
+  `/data/backups/vaultwarden/vaultwarden-data-20261010-043956.tar.gz`.
+  The first attempt safely aborted because the old container was still
+  stopping; retry explicitly waited for no running container before archiving.
+- Effective `ip_header` is `CF-Connecting-IP`; the new rightmost-untrusted-IP
+  behavior for `X-Forwarded-For` does not change this setting. No obsolete
+  experimental feature flags were configured in inspected settings.
+- Public signup remains disabled. Existing config override warnings remain;
+  startup reported Rocket listening normally.
+- See the host log for final route/health checks. Peter confirmed completion
+  of the post-upgrade smoke test; functional verification is user-reported.
+
+Source: [Vaultwarden 1.37.4 release and upgrade notes](https://github.com/dani-garcia/vaultwarden/releases/tag/1.37.4).
+
 ## 2026-08-23 - Vaultwarden Upgrade To 1.37.2
 
 Date: 2026-08-23 15:40 CEST

@@ -10,8 +10,8 @@ Portainer is the control plane for this Docker Swarm environment. Treat updates 
 - stack namespace: `portainer`
 - Portainer service: `portainer_portainer`
 - Agent service: `portainer_agent`
-- Portainer image: `portainer/portainer-ce:2.45.0`
-- Agent image: `portainer/agent:2.45.0`
+- Portainer image: `portainer/portainer-ce:2.45.2`
+- Agent image: `portainer/agent:2.45.2`
 - live replica state during documentation: `1/1` for both services
 - public hostname in labels: `portainer.format.lu`
 - reverse proxy: Traefik on external Docker network `proxy`

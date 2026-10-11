@@ -3,7 +3,7 @@
 This folder documents the `duplicati-fc1` backup service hosted through
 Portainer on the Hetzner host `format-cloud-1`.
 
-Last verified: 2026-09-13.
+Last verified: 2026-10-10.
 
 Duplicati is part of the backup layer. Treat updates and configuration changes
 carefully, because backup metadata, destination credentials, and restore ability
@@ -26,9 +26,9 @@ off-server backups with a daily MariaDB dump included in the backup set.
 - Backup destination: Synology SFTP, user `FormatBU`
 - Synology destination path: `/FORMATBF/duplicati/format-cloud-1`
 - WatchGuard SFTP forwarding: [watchguard-sftp.md](./watchguard-sftp.md)
-- Current live image: `duplicati/duplicati@sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218`
-- Current observed digest: `sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218`
-- Latest stable release checked: `2.4.0.0_stable_2026-09-03`
+- Current live image: `duplicati/duplicati@sha256:e32e280cc30e98ac5cea8d2b339cd19810b1b39e638fb9d39253786630104de0`
+- Current observed digest: `sha256:e32e280cc30e98ac5cea8d2b339cd19810b1b39e638fb9d39253786630104de0`
+- Latest stable release checked: `2.4.0.1_stable_2026-10-07`
 - Backend container port: `8200`
 
 Sensitive values are intentionally not stored in this repository. Keep them in
@@ -285,7 +285,13 @@ On `2026-04-18`, the live image digest matched the current Docker registry
 
 On `2026-09-05`, `latest` resolved to digest
 `sha256:eb0c1298a1974048332745b393897ae3cc1c20258e4fc26a796f2b5d75eb6218`
-for stable release `2.4.0.0_stable_2026-09-03`; that digest is pinned live.
+for stable release `2.4.0.0_stable_2026-09-03`; that version was deployed.
+
+On `2026-10-10`, updated to stable `2.4.0.1_stable_2026-10-07`, pinned at
+`sha256:e32e280cc30e98ac5cea8d2b339cd19810b1b39e638fb9d39253786630104de0`.
+The stopped data volume was archived and gzip-verified before the update.
+Latest verified remote backup finished October 9 at `18:41:51 UTC`;
+the first scheduled backup after this patch still needs verification.
 
 Important rollback note:
 

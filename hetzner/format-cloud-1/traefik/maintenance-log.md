@@ -4,6 +4,19 @@ Use this log for Traefik checks during the combined Hetzner platform maintenance
 
 Do not record Cloudflare tokens, dashboard credentials, ACME account private keys, or other secrets here.
 
+## 2026-10-10 - Security Patch Upgrade
+
+- Updated `traefik_traefik` from `3.7.13` to `3.7.14`; service and stack image
+  label match. The usual single-node host-port replacement wait resolved.
+- Reviewed migration notes: Kubernetes provider and OpenTelemetry histogram
+  changes do not apply to the inspected Swarm configuration.
+- Existing arguments, ports, networks, certificates, and disabled dashboard
+  policy were retained. Fresh post-convergence error-log sample was quiet.
+- See the host maintenance log for final origin and public route checks.
+
+Sources: [Traefik 3.7.14 release](https://github.com/traefik/traefik/releases/tag/v3.7.14),
+[migration notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3714).
+
 ## 2026-09-05 - Traefik Patch Upgrade
 
 Date: 2026-09-05 09:34 CEST

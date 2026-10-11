@@ -4,6 +4,18 @@ Use this log for `chargy` checks during the combined Hetzner platform maintenanc
 
 Do not record credentials, tokens, customer data, Redis dumps, or other secrets here.
 
+## 2026-10-10 - Redis Pin Reconciliation
+
+- Found live Redis `7.4.8` under the moving `7.4-alpine3.21` tag and an older
+  pinned digest in the saved Portainer Compose definition (ID `9`).
+- Saved an RDB snapshot and restored `redis:7.4.11-alpine3.21` in the live
+  service, stack image label, and saved definition. YAML validation passed.
+- Service converged; binary reports `7.4.11`; `PING` returned `PONG`.
+- Chargy app digest remains unchanged from September 13. Startup upgrade
+  exited 0 after the host reboot; final origin/public routes returned `302`.
+- Portainer data was archived before the saved-definition correction; see
+  the host log for backup paths and full maintenance verification.
+
 ## 2026-08-23 - Redis Patch Update
 
 Date: 2026-08-23 15:40 CEST

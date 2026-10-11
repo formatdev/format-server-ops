@@ -3,7 +3,7 @@
 Runbook for maintaining the Hetzner VPS that hosts the Portainer-managed Docker
 Swarm environment.
 
-Last verified: 2026-09-13
+Last verified: 2026-10-10
 
 ## Host Facts
 
@@ -11,16 +11,16 @@ Last verified: 2026-09-13
 - Hostname: `format-cloud-1`
 - Public IP: `188.245.43.92`
 - OS: Ubuntu 24.04.5 LTS
-- Running kernel: `6.8.0-139-generic`
-- Docker Engine: `29.8.0`
+- Running kernel: `6.8.0-146-generic`
+- Docker Engine: `29.9.0`
 - Docker mode: single-node Docker Swarm
 - Primary public entrypoint: Traefik on HTTPS
 - Portainer stack: `portainer`
-- Portainer current version: `2.45.0 LTS`
-- Reboot state: no reboot required as of 2026-09-13 after booting
-  `6.8.0-139-generic`
-- Pending package maintenance as of 2026-09-13: none observed after package
-  maintenance and reboot
+- Portainer current version: `2.45.2 LTS`
+- Reboot state: no reboot required as of 2026-10-10 after booting
+  `6.8.0-146-generic`
+- Pending package maintenance as of 2026-10-10: only Ubuntu-phased
+  `libopeniscsiusr` and `open-iscsi`; no other upgrades pending
 
 ## Host Files
 
@@ -188,7 +188,7 @@ scp "hetzner-cloud-1:/data/portainer/data/backups/portainer-data-*.tar.gz" ~/Dow
 
 ## Portainer Upgrade
 
-Current host state: Portainer CE `2.45.0` for both server and agent.
+Current host state: Portainer CE `2.45.2` for both server and agent.
 
 Before upgrading:
 
@@ -200,10 +200,17 @@ docker service ps portainer_agent --no-trunc
 
 Back up Portainer data first, then update server and agent to the same version.
 
+When updating a managed stack through Swarm, also reconcile its saved Portainer
+Compose image reference. Updating `com.docker.stack.image` alone does not update
+the saved definition; a later redeploy can restore an old image. Prefer the
+Portainer UI/API. Before direct stored-file changes, stop Portainer, wait for
+its container to exit, archive its data, and validate the edited YAML before
+restarting. Never print secrets from those files.
+
 Example:
 
 ```sh
-VERSION="2.45.0"
+VERSION="2.45.2"
 
 docker pull "portainer/portainer-ce:${VERSION}"
 docker pull "portainer/agent:${VERSION}"

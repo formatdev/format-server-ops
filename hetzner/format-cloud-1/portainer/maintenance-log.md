@@ -4,6 +4,20 @@ Use this log for Portainer checks during the combined Hetzner platform maintenan
 
 Do not record Portainer passwords, API tokens, backup passwords, registry credentials, or other secrets here.
 
+## 2026-10-10 - LTS Patch Upgrade
+
+- Updated server and agent from `2.45.0` to `2.45.2 LTS`, including upstream
+  security fixes. Both services converged; stack image labels match.
+- Fresh stopped-service backup:
+  `/data/backups/portainer/portainer-data-20261010-043719.tar.gz`.
+  Archive passed `gzip -t` before the update.
+- Server reported migration to `2.45.2`; `/api/status` confirmed `2.45.2`.
+  Fresh server and agent error-log samples were quiet.
+- Peter confirmed the post-upgrade UI smoke test as completed; functional
+  verification is user-reported.
+
+Source: [Portainer 2.45.2 release](https://github.com/portainer/portainer/releases/tag/2.45.2).
+
 ## 2026-09-05 - LTS Security Upgrade
 
 Date: 2026-09-05 09:34 CEST
