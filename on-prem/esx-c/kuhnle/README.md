@@ -2,7 +2,7 @@
 
 Starter runbook for the `Kuhnle` VM on ESX-C.
 
-Last updated: 2026-09-13
+Last updated: 2026-10-10
 
 ## Known State
 
@@ -14,9 +14,13 @@ Last updated: 2026-09-13
 - Expected SSH identity: `~/.ssh/windows-admin_ed25519`
 - Role: production Windows member server for format.lu; SQLBase_SERVER1 is Running/Automatic.
 - Verified live state: confirmed domain-joined Windows member server on 2026-04-18.
-- Current maintenance: see [maintenance log](maintenance-log.md), September 13 entries.
-- Domain access: both SSH aliases, secure-channel validation, and account lookup recovered after the approved temporary RPC-policy test and 13:19:12 reboot on September 13. SQLBase is running, no updates are offered, and reboot/rename markers are clear. Recovery across another reboot is not yet established.
+- Current maintenance: see [maintenance log](maintenance-log.md), October 10 entry.
+- Current access/update state: boot October 10 07:18:02 after operator shutdown. Local SSH, secure-channel validation and SQLBase pass, but domain-account lookup and winad-kuhnle fail again at recovery inspection. Fresh scan succeeded with zero offered updates; CBS/WU reboot flags clear. No checked cleanup/installer processes or FormatOps tasks remained.
+- Follow-up: six non-empty rename strings identify psUniqueExecution.ini under Windows temporary locations, down from 24 before shutdown. C: has 23.52 GiB free. WinRM remains Stopped/Disabled. ESET and all four checked Panda services are Running/Automatic. No security-software or policy changes were initiated during verification.
+- Read-only crash investigation: identical HealthCheck faults followed the October 7 WatchGuard agent update, but causation is unproven. Agent 1.25.13.1 matches the published Windows agent release; the daily plugin remains 1.21.11.0. ESET plus EDR Core coexistence is supported in principle, but applied exclusions/anti-exploit policies and cloud protection status are not yet verified. See the October 10 investigation entry before attempting repair or removal.
+- Post-start WatchGuard state: EDR Core now registers protection 8.00.26.0012 and package 13.01.15 installed October 10; its service binary reports 8.0.26.10. Agent remains 1.25.13.1. No PluginLauncher crash was returned since boot, but the next daily HealthCheck has not been validated. Different product/package/binary versions alone do not establish a mismatch.
 - Investigation: a likely RPC endpoint-mapper/NTLM policy conflict is documented in the September 13 log. The test set EnableAuthEpResolution=0 before reboot, but its configured value was already back to 1 after startup. No durable exception or shared-policy edit was made; NTLM blocking remains unchanged. A lasting Kuhnle-only correction needs separate approval.
+- October 10 recurrence: EnableAuthEpResolution remains 1 with Default Domain Policy as the RSoP source. Account lookup reports a trust-related error while Test-ComputerSecureChannel and nltest channel query pass. This partial failure does not justify a machine-password reset or domain rejoin; preserve working local access and use the existing policy audit for the next correction.
 - Subsequent [PDC/BDC policy audit](../../kerberos-ntlm-gpo-audit-2026-09-13.md) found Default Domain Policy enforced, an edge/domain-exception mismatch, and other conflicting settings. A normal child-OU exception cannot override the RPC setting; use the audit's correction plan instead of assuming a simple local exception will persist.
 - September 5 cleanup ended with a terminated task result; reclaimed space is unverified. The stopped task and profile were removed on September 13.
 

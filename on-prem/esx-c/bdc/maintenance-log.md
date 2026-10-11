@@ -1096,3 +1096,124 @@ Pre-state and blast radius:
   be tested by the user.
 - Full scope, backup reference, rollback, and PDC verification are tracked in
   the [domain audit change record](../../kerberos-ntlm-gpo-audit-2026-09-13.md#admin-exception-removal).
+
+## 2026-10-10 - Routine Inspection; No Updates Offered
+
+Scope and access:
+
+- Started the ESX-C round with repository status and discovery. Route to
+  192.168.1.4 uses VPN interface utun6 through 192.168.113.1. Both expected
+  SSH aliases work; `win-bdc` authenticates as FORMAT\Administrateur, so its
+  name alone does not establish an independent local break-glass identity.
+- BDC remains a Windows Server 2022 format.lu backup domain controller.
+  Last boot is September 26 08:18:54 CEST. Inspection began around 06:35 CEST.
+- No installer, reboot, cleanup, snapshot, migration, power operation,
+  service restart, GPO, AD/DNS/DHCP, time, replication, firewall, SSH, or WinRM
+  configuration change was performed.
+
+Verified findings:
+
+- Windows Update scan completed with ResultCode 2 and zero applicable
+  non-hidden software updates at 06:36:37. KB5122882 is installed, reported
+  September 13. CBS and Windows Update reboot markers are clear. This
+  supersedes the September 13 uninstalled-update finding; it does not attribute
+  the intervening installation or restart to this task.
+- Three non-empty pending-rename strings are categorized as EdgeUpdate cleanup.
+  Queue contents were preserved. No installer/cleanup worker or FormatOps task
+  was present during initial discovery; no competing worker was launched.
+- C: has 66.93 GiB free of 89.40 GiB; the fixed volume reports Healthy.
+- DNS, NTDS, DFSR, Netlogon, SSH, and Windows Time are Running/Automatic.
+  SYSVOL and NETLOGON shares exist. Focused dcdiag Connectivity, Advertising,
+  SysVolCheck, NetLogons, and Services tests pass.
+- All five inbound replication contexts report zero failures and successful
+  latest attempts. The writable domain partition succeeded at 06:37:24.
+  Time source is PDC.format.lu, leap indicator 0, last successful sync 06:31:42.
+- Seven-day System/Application warning/error query found three DCOM 10016
+  events and no returned Application warning/error records. All 11 sampled
+  VSS writers are Stable/No error; this is not a backup or restore test.
+- WinRM remains Stopped/Disabled. Its explicit 5985 rule is scoped to
+  192.168.1.73 and 192.168.113.2. SSH has both a scoped rule and the enabled
+  `sshd-In-TCP` Allow-Any rule; the scoped rule does not remove that broad access.
+- EnableAuthEpResolution remains 1 and incoming NTLM restriction remains 2.
+  ADMIN remains absent from the effective five-entry domain exception list.
+  No full GPO/precedence audit was repeated.
+
+Outcome:
+
+- Update and focused DC-health checks pass; no Windows servicing restart is
+  currently requested. Leave the application cleanup queue for a planned
+  reboot with PDC available, not manual registry deletion.
+- Broad SSH access and disabled WinRM remain separately scoped policy findings.
+  Preserve current access until a hardening change has a documented rollback.
+- The separate Veeam October 10 maintenance record reports successful recent
+  backup/copy/replication payloads with email warnings. Per-VM restore-point
+  coverage, a restore test, and hypervisor job/inventory state were not
+  independently verified here. Only sanitized findings were written to this log.
+
+## 2026-10-10 - iLO Maintenance Shutdown Deferred
+
+- User requested shutdown of the three ESX-C guests for an iLO update.
+  BDC is planned last because it supplies domain authentication, DNS, and
+  replication. PDC availability must be rechecked before BDC shutdown; if
+  other hosts remain off, this could remove the last available domain controller.
+- At 06:55:06 CEST, BDC still had cleanmgr, DismHost, TiWorker, and
+  TrustedInstaller processes, plus two remote-interactive logon records.
+  These records do not establish two active users. No open SMB files returned.
+- DNS, NTDS, DFSR, Netlogon, SSH, and ESET were running. CBS/WU reboot flags
+  were clear. No FormatOps tasks or established guest connections to Veeam
+  were returned; hypervisor backup-job state was not established.
+- Shutdown was deferred pending cleanup completion and closure of active work.
+  No shutdown, forced termination, AD/GPO change, host change, or iLO update
+  was performed. ESX-C host SSH was refused, preventing power/inventory checks.
+
+### 07:00 CEST Shutdown-Readiness Recheck
+
+- At 07:00:24, cleanmgr, DismHost, TiWorker, and TrustedInstaller remained
+  present. Each accumulated zero CPU seconds during a five-second sample;
+  CBS.log was last modified at 07:00:04. Process presence alone does not
+  prove active servicing, completion, or a hang.
+- No open SMB files or FormatOps tasks returned. Two remote-interactive
+  logon records remained; CBS/WU restart flags were clear.
+- Read-only status check only; no shutdown or forced termination was issued.
+  Check the interactive cleanup window before retrying shutdown, with BDC last.
+
+### Operator-Reported Shutdown
+
+- The operator subsequently confirmed shutting down all three ESX-C VMs for
+  the planned iLO update. Exact shutdown time, sequence, graceful completion,
+  and VMware power state were not independently verified. No shutdown command
+  was sent from this thread; iLO update completion is not yet established.
+- Cleanup completion and the outcome of queued file operations remain unverified.
+  After startup, check SSH, boot/shutdown events, DNS/AD/DFSR, SYSVOL/NETLOGON,
+  replication, time, disks, servicing flags, and pending rename state. Establish
+  available domain-controller services before relying on member workloads.
+
+## 2026-10-10 - Post-Start Verification After Operator iLO Maintenance Window
+
+- Operator reported all three guests back online. Read-only checks at
+  08:16-08:19 CEST used the VPN route through utun6/192.168.113.1. No new
+  power, update installation, cleanup, service, policy, or access change was made.
+- BDC boot is 07:17:55, Windows build 20348.5622. Event 1074 at 07:01:59 and
+  EventLog stop 6006 at 07:02:03 precede EventLog start 6005 at 07:18:08.
+  The bounded one-day power-event query returned no 41/6008 unexpected shutdown.
+- Both expected SSH aliases work as FORMAT\Administrateur. DNS, NTDS, DFSR,
+  Netlogon, Windows Time, SSH, ESET and its management agent are Running/Auto.
+  SYSVOL/NETLOGON are present. Focused dcdiag Connectivity, Advertising,
+  SysVolCheck, NetLogons and Services tests pass. All five inbound replication
+  contexts from PDC have zero failures; last success times span 07:48:17-08:16:38.
+- Time source is PDC.format.lu, leap indicator 0, stratum 6, last sync 08:10:46.
+  The 11 sampled VSS writers are Stable/No error. C: is Healthy with 67.14 GiB
+  free of 89.40 GiB; zero-sized optical volumes were not treated as data disks.
+- Fresh Windows Update scan at 08:16:58 succeeded, ResultCode 2, with zero
+  applicable non-hidden software updates. CBS/WU restart flags are false and
+  no non-empty pending rename strings remain, down from three before shutdown.
+  No checked cleanup/installer processes or FormatOps tasks remained before scan.
+- Since-boot warning/error groups: Time-Service 1 and 4, five each; DCOM 10016,
+  Schannel 36928, and Perflib 1023, one each. Current time and DC role checks
+  pass, but the event summary is not an assertion that every warning is resolved.
+- WinRM remains Stopped/Disabled. Broad sshd-In-TCP Allow-Any remains enabled
+  alongside the trusted-source rule. RPC endpoint authentication remains 1 and
+  incoming NTLM restriction 2. These settings were read, not changed.
+- Guest recovery is verified. ESX-C host SSH still returns connection refused;
+  VMware inventory/jobs and the iLO firmware version/update result were not
+  verified. No application/restore transaction was tested and no raw logs saved.

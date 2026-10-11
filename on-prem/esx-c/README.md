@@ -2,7 +2,7 @@
 
 Runbooks for the on-prem VMware host `ESX-C`.
 
-Last updated: 2026-09-13
+Last updated: 2026-10-10
 
 ## Current VM Inventory
 
@@ -11,42 +11,54 @@ Known Windows VMs currently assigned to ESX-C:
 | VM | Folder | Expected access alias | Notes |
 | --- | --- | --- | --- |
 | `BDC` | [bdc](bdc/README.md) | `win-bdc`, `winad-bdc` | Verified backup domain controller and DNS server for `format.lu`; domain-critical. |
-| `Kuhnle` | [kuhnle](kuhnle/README.md) | `win-kuhnle`, `winad-kuhnle` | Production `format.lu` member server running `SQLBase_SERVER1`; both access paths recovered after the temporary policy test. |
+| `Kuhnle` | [kuhnle](kuhnle/README.md) | `win-kuhnle`, `winad-kuhnle` | Production `format.lu` member running `SQLBase_SERVER1`; local access and trust pass, but domain SSH/account lookup fail after the October 10 restart. |
 | `LMR` | [lmr](lmr/README.md) | `win-lmr`, `winad-lmr` | Production `format.lu` member server hosting `IMOSSQL2019` and `MySQL_CSF2_Master`. |
 
 ## Latest Maintenance Status
 
-September 13, 2026 maintenance is partially completed. Kuhnle's domain access
-recovered after an approved temporary policy test and additional reboot; a
-durable correction is not established. LMR's reboot and BDC patching remain
-outstanding. All times below are local. See per-VM logs for evidence and scope.
+Post-start verification on October 10 around 08:16-08:19 CEST confirms all
+three guests are reachable after the operator's shutdown for planned iLO work.
+Each guest records a planned shutdown and EventLog stop/start; the bounded
+one-day query returned no unexpected-shutdown event 41/6008. All run Windows
+build 20348.5622. Fresh Windows Update scans succeeded with zero applicable
+non-hidden software updates; CBS/WU restart flags are clear. No checked cleanup
+or installer processes and no FormatOps tasks remained before the scans.
+The iLO firmware version/update outcome and hypervisor job state were not
+verified; ESX-C host SSH still returns connection refused.
 
-| VM | Updates | Restart And Health |
+| VM | Updates And Restart | Health And Follow-Up |
 | --- | --- | --- |
-| Kuhnle | KB890830, KB5126149, KB5122882 installed successfully; fresh scan offers zero updates. | Booted 13:19:12; both SSH aliases, account lookup, trust, and SQLBase pass. Reboot/rename markers clear. Temporary-policy result is not a durable fix. |
-| LMR | Above three updates plus SQL KB5122773 installed successfully at 12:41:30. | Reboot required and deferred. SQL/MySQL, both SSH aliases, and domain trust pass. Not yet verified after reboot. |
-| BDC | Three offered updates remain uninstalled. | No reboot performed. Focused DC tests, SYSVOL/NETLOGON, time sync, and last inbound replication attempts pass. |
+| Kuhnle | Zero offered; CBS/WU clear. Boot October 10 07:18:02. | SQLBase, local SSH, trust and disks pass. Domain lookup/SSH fail again. Six Windows temporary-file rename strings remain. WatchGuard protection now registered as 8.00.26.0012; no HealthCheck crash since boot, next daily execution unverified. C: 23.52 GiB free. |
+| LMR | Zero offered; CBS/WU and rename queue clear. Boot October 10 07:18:02. | SQL/MySQL, both SSH aliases, trust, lookup and disks pass. Three expired personal certificates still warn; active RDP certificate remains valid. C: 20.02 GiB free. |
+| BDC | Zero offered; CBS/WU and rename queue clear. Boot October 10 07:17:55. | Focused DC tests, SYSVOL/NETLOGON and all five inbound replication contexts pass. Both SSH aliases work. C: 67.14 GiB free. Broad SSH rule remains enabled. |
 
-Next: review the [domain authentication policy audit](../kerberos-ntlm-gpo-audit-2026-09-13.md).
-Direct PDC/BDC inspection found that Default Domain Policy is enforced, so a
-normal child-OU exception cannot override its RPC setting. The approved Kuhnle
-test set EnableAuthEpResolution=0 before reboot, but the configured value was
-back to 1 after startup. Any durable correction needs a separately approved
-scope and precedence design; do not weaken NTLM blocking.
-Review the same inherited setting on LMR before resuming its reboot; patch and
-restart BDC last with PDC available. This test did not create a GPO exception or
-change AD, firewall, SSH, WinRM, or replication configuration. WinRM remains
-Stopped/Disabled on all three guests; the target model below is not a statement
-of current configuration.
+`EnableAuthEpResolution=1` remains configured on all three. Kuhnle's domain
+lookup and domain SSH regression recurred after this boot, while its secure
+channel test and channel query pass. Computer RSoP still attributes the setting
+to Default Domain Policy. This resembles the September partial-access failure
+and keeps the RPC/NTLM policy conflict open; it is not a controlled cause test.
+Retain the [September domain-policy audit](../kerberos-ntlm-gpo-audit-2026-09-13.md)
+as the baseline for a scoped policy correction. No policy change was performed
+during recovery verification. ADMIN's absence was last checked earlier today.
 
-The September 5 cleanup tasks were found stopped with a terminated result;
-cleanup success and reclaimed space remain unverified. Their tasks and saved
-profile flags were removed from all three guests on September 13. No new broad
-Disk Cleanup was launched. The prior C:-only scope claim is corrected in each
-log: `cleanmgr /sagerun` enumerates all drives and ignores `/d`.
+WinRM is still Stopped/Disabled on all three; the target model below is not
+the current configuration. Kuhnle/LMR explicit SSH and WinRM rules retain the
+two trusted sources. BDC still has an enabled SSH Allow-Any rule alongside
+its scoped rule. Both BDC aliases authenticate as the domain administrator,
+not as independently verified local break-glass identities. No access policy
+was changed.
 
-Guest disks report Healthy. Current backup success, hypervisor job state, and
-end-to-end application transactions were not independently verified.
+All sampled VSS writers are Stable/No error. Guest disks and role services
+pass. Time synchronization currently uses PDC with leap indicator 0 on all
+three, despite startup VMware time-provider warnings. Kuhnle's six remaining
+rename strings identify psUniqueExecution.ini in Windows temporary locations;
+leave the queue intact and do not infer a mandatory restart from it alone.
+The separate [Veeam October 10 record](../esx-e/veeam/maintenance-log.md#2026-10-10---maintenance-inspection-after-vpn-recovery)
+reports successful primary/copy/replication payloads with email warnings;
+this task did not independently verify per-VM restore points or perform a
+restore test. Hypervisor inventory/job state and end-to-end application
+transactions were not independently checked. No raw logs or certificate
+thumbprints are stored here.
 
 ## Safety Rules
 

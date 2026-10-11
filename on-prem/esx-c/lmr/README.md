@@ -2,7 +2,7 @@
 
 Starter runbook for the `LMR` VM on ESX-C.
 
-Last updated: 2026-09-13
+Last updated: 2026-10-10
 
 ## Known State
 
@@ -12,10 +12,11 @@ Last updated: 2026-09-13
 - Expected local break-glass SSH alias: `win-lmr`
 - Expected domain-admin SSH alias: `winad-lmr`
 - Expected SSH identity: `~/.ssh/windows-admin_ed25519`
-- Role: production format.lu member server hosting IMOSSQL2019 and MySQL_CSF2_Master. Both database services were Running/Automatic on September 13.
+- Role: production format.lu member server hosting IMOSSQL2019 and MySQL_CSF2_Master. Both database services were Running/Automatic on October 10.
 - Verified live state: confirmed domain-joined Windows member server on 2026-04-18.
-- Current maintenance: see [maintenance log](maintenance-log.md), September 13 entries.
-- September 13 patch status: four updates installed successfully, including SQL KB5122773. Reboot remains required and is held pending review of the inherited policy implicated in Kuhnle's regression; Kuhnle access recovered after a temporary test, not a durable fix. SQL/MySQL and both SSH aliases remain available; post-reboot health is not yet verified.
+- Current maintenance: see [maintenance log](maintenance-log.md), October 10 entry.
+- October 10 post-start status: boot 07:18:02 after operator shutdown. Fresh scan succeeded with zero offered updates; CBS/WU flags and rename queue are clear. SQL/MySQL, both SSH aliases, trust, account lookup, disks and PDC time sync pass. No checked cleanup/installer processes or FormatOps tasks remained at recovery inspection.
+- Follow-up: three expired LocalMachine personal-store certificates still cause auto-enrollment warnings; the currently bound RDP certificate remains valid through February 3, 2027. C: has 20.02 GiB free. WinRM remains Stopped/Disabled. Recovery verification made no certificate, policy or power changes; startup MySQL/time/Kerberos warnings are documented in the log.
 - September 5 cleanup ended with a terminated task result; reclaimed space is unverified. The stopped task and profile were removed on September 13.
 
 ## Safety Rules

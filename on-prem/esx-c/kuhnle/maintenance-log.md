@@ -1294,3 +1294,245 @@ Pending verification:
 
 - Latest local credential-validation records correlate with this audit's public-key SSH sessions. Do not interpret them as proof that SSH authenticated using network NTLM. The latest retained NTLM Operational event is an audit-only 8002 at September 12 15:26:53, with local caller KUHNLE$/PID 4; no remote user is identified.
 - The Security log only extends back to September 13 10:39:21, preventing correlation with that prior-day event. No policy/logging changes were made. See the [sanitized activity review](../../kerberos-ntlm-gpo-audit-2026-09-13.md#latest-ntlm-event-inspection).
+
+## 2026-10-10 - Routine Inspection; Panda HealthCheck Follow-Up
+
+Scope and access:
+
+- Discovery-first check over VPN utun6 through 192.168.113.1. KUHNLE remains
+  the production format.lu member at 192.168.1.14. Both SSH aliases work;
+  local `win-kuhnle` authenticates as KUHNLE\Administrateur.
+- Last boot is September 26 08:20:34 CEST. Secure-channel validation and
+  domain account lookup both succeed now. The September 26 startup sequence
+  was not observed, and current success does not prove a durable policy fix.
+- No update installation, reboot, cleanup, VMware operation, trust reset,
+  service restart, security-software change, or AD/GPO/firewall/SSH/WinRM
+  configuration change was performed.
+
+Verified findings:
+
+- Windows Update scan completed with ResultCode 2 and zero applicable
+  non-hidden software updates at 06:36:35. KB5122882 remains installed.
+  CBS and Windows Update reboot markers are clear, including the final check.
+- PendingFileRenameOperations contains 24 non-empty strings: four EdgeUpdate,
+  one TeamViewer, 16 Windows temporary/installer, and three other security-
+  upgrade configuration/temporary filenames. These are strings, not a claim
+  of 24 distinct operations. No entries or queued files were deleted.
+- No TiWorker, TrustedInstaller, DISM, Disk Cleanup worker, or FormatOps task
+  was present at initial discovery. Final servicing-worker check was also clear.
+- C: has 23.46 GiB free of 49.37 GiB; D: has 33.74 GiB free of 49.98 GiB.
+  Fixed volumes report Healthy. SQLBase_SERVER1, Netlogon, SSH, and Windows
+  Time are Running/Automatic. All 10 sampled VSS writers are Stable/No error.
+- Time source is BDC.format.lu, leap indicator 0, last successful sync 06:29:00.
+  Historical vmwTimeProvider events 1/4 describe a missing precision-clock
+  device; current domain time synchronization works. No time setting changed.
+- WinRM remains Stopped/Disabled. The explicit enabled SSH 22 and WinRM 5985
+  rules retain 192.168.1.73 and 192.168.113.2 as sources. RPC endpoint discovery
+  authentication is still 1; incoming NTLM is still Allow (0).
+
+Event follow-up:
+
+- Seven-day Application events include three crashes of PluginLauncher.exe
+  in HealthCheck.dll with exception c0000005, October 7, 8, and 9 around 20:30.
+  File metadata identifies Panda Aether Agent HealthCheck, not SQLBase.
+  PluginLauncher version 1.19.0.1 and HealthCheck version 1.21.11.0 both have
+  Valid signatures. This identifies the crashing component, not its root cause.
+- Panda Cloud Antivirus, Elam Service Protection, Product Service, and Endpoint
+  Agent services are all Running/Automatic. Service health does not establish
+  complete endpoint-protection health; the management-console status and
+  HealthCheck plugin failure need separate investigation. No agent was
+  disabled, reinstalled, or upgraded during this round.
+- Other returned warning/error groups: TPM-WMI 1803 (14), DCOM 10016 (4),
+  DNS Client 1014 (1), Time-Service 1/4 (one each), and Perflib 1008 (5).
+  No personal identities or raw application logs were retained in the repo.
+
+Outcome:
+
+- No updates or Windows servicing reboot are currently required. Main workload,
+  disks, SSH, and domain-access checks pass, but event health is not fully clear.
+- Leave queued application cleanup for a planned reboot, retaining local SSH
+  and the documented RPC/NTLM recovery precautions. A permanent policy change
+  is not authorized by this inspection.
+- Application transactions, endpoint-management status, per-VM restore points,
+  hypervisor job/inventory state, and a restore test were not independently
+  verified. The separate Veeam task reports recent successful backup payloads;
+  that is supporting evidence, not an application/restore acceptance test.
+
+## 2026-10-10 - Read-Only WatchGuard HealthCheck Investigation
+
+Authorization and scope:
+
+- User accepted investigation of the recurring Kuhnle Panda/WatchGuard crashes.
+  Checked existing local events, agent/installer logs, file metadata, product
+  registration, and services around 06:46-06:49 CEST over the working VPN route.
+- Did not execute the plugin, enable tracing/dumps, export configuration, collect
+  or upload a support bundle, stop protection, change exclusions, repair or
+  reinstall software, restart services, change policy, or reboot. No raw logs,
+  credentials, customer identifiers, certificate material, or dumps entered
+  the repository. Other hosts were not changed.
+
+Crash and update evidence:
+
+- The bounded query (latest 100 Application Error event 1000 records within
+  30 days) returned three PluginLauncher.exe crashes: October 7 20:30:49,
+  October 8 20:30:47, and October 9 20:30:47. All identify launcher 1.19.0.1,
+  HealthCheck.dll 1.21.11.0, exception c0000005, offset 00019f00. This is a
+  repeatable fault signature, not a demonstrated root cause or full crash history.
+- Files are under the existing Panda Aether Agent Downloads\HealthCheck
+  directory. Launcher and HealthCheck signatures are Valid. Directory file
+  modification dates are May 24, 2024; timestamps alone do not establish a
+  stale or incompatible plugin, and plugin versions need not match agent versions.
+- Agent logs register HealthCheck every 86,400 seconds, consistent with a daily
+  task. No manual rerun was attempted; diagnostic tools can have repair or
+  inventory side effects beyond merely reading existing evidence.
+- WatchGuard Agent installation completed October 7 at 17:38:51 with MSI
+  status 0; subsequent configuration also succeeded. The first returned crash
+  was later that evening. October 8 EDR Core configuration completed with
+  status 0, yet the crash recurred October 9. This supports an update-associated
+  hypothesis without proving an update regression or ruling out other causes.
+- Installed agent binary is 1.25.13.1; registration also exposes 1.25.13.0001
+  and MSI package version 2.30.05. These are different version representations,
+  not evidence of duplicate active agent installations. Agent 1.25.13.0001
+  matches the October 5 published Windows agent release. The reviewed release
+  notes do not document this exact HealthCheck crash/fix; do not treat an
+  unrelated hotfix or generic reinstall as a verified remedy.
+- EDR Core registrations expose protection 8.00.25.0002 and package 12.50.20.
+  Current tenant-specific protection rollout/upgrade eligibility was not
+  verified from WatchGuard Cloud, and no protection upgrade was initiated.
+
+Service health and coexistence:
+
+- ESET Server Security 13.0.12007.0 and ESET Management Agent 13.3.1192.0 are
+  installed alongside WatchGuard EDR Core. ESET Service/Management Agent,
+  the four checked Panda services, SQLBase_SERVER1, and SSH all remain
+  Running/Automatic at the 06:48:33 recheck.
+- October 9 agent logs continue processing SecurityEvents sends after the
+  20:30 plugin crash. Daily logs show 96 completed send tasks on October 2-9.
+  This demonstrates continued local agent task processing, not independently
+  verified cloud receipt, current console health, or full protection efficacy.
+- Agent logs also record an incompatible-product notice for internal CompanyId
+  123, 24 times daily on every sampled October 1-9 log. Product identity behind
+  that numeric code is unverified. The notices predate the returned crashes,
+  so they do not establish an ESET conflict or a newly introduced failure.
+  An internal task named UninstallThirdParty is not proof a product was removed.
+- WatchGuard documents EDR Core as complementary to third-party antivirus,
+  with coordinated exclusions and anti-exploit settings to review. Current
+  applied settings in both management consoles were not inspected. Do not
+  uninstall ESET based on Panda service names or add broad exclusions merely
+  to suppress this crash.
+- No matching PluginLauncher WER report directories were found in the checked
+  ReportArchive/ReportQueue locations. No new dump collection was enabled.
+
+Conclusion and next gate:
+
+- Confirmed recurring HealthCheck plugin failure, while sampled core security
+  services and SQLBase remain running. No verified fix was applied; cloud
+  endpoint status and the technical root cause remain unresolved.
+- Next inspect KUHNLE's applied EDR Core/ESET coexistence policies and current
+  protection rollout in their management consoles. If those are correct, use
+  the recorded versions, timestamps, exception and offset in a WatchGuard
+  support case to request a supported plugin remedy. Do not submit logs or
+  diagnostic bundles without reviewing their contents and obtaining approval.
+- Any repair/reinstall, protection update, exclusion or anti-exploit change
+  requires a separate scope covering security coverage, application impact,
+  local SSH recovery, rollback, and subsequent scheduled HealthCheck validation.
+
+Official references checked October 10:
+
+- [WatchGuard Windows agent release notes](https://www.watchguard.com/support/release-notes/Cloud/Content/en-US/Endpoint-Security/Endpoint-Security-360-resolved_issues.html).
+- [EDR Core features and third-party antivirus coexistence](https://www.watchguard.com/help/docs/help-center/en-us/content/en-us/Endpoint-Security/_intro/edr-core-about.html).
+- [WatchGuard third-party security compatibility guidance](https://techsearch.watchguard.com/KB?SFDCID=kA16S00000110ZbSAI&lang=en_US&type=Article).
+
+## 2026-10-10 - iLO Maintenance Shutdown Deferred
+
+- User requested shutdown of the three ESX-C guests for an iLO update.
+  Planned sequence is Kuhnle and LMR before domain controller BDC; SQLBase
+  availability would end during the host maintenance window.
+- At 06:54:55 CEST, KUHNLE still had cleanmgr, DismHost, TiWorker, and
+  TrustedInstaller processes. Two remote-interactive logon records existed;
+  these are not proof of two active human users. No open SMB files were returned.
+- SQLBase_SERVER1, SSH, Netlogon, ESET, and sampled Panda services were running.
+  CBS/WU reboot flags were clear, but that does not establish cleanup completion
+  or rule out a vendor-specific restart requirement. No FormatOps tasks or
+  established guest connections to the Veeam server were returned; this is
+  not a hypervisor backup-job check.
+- No shutdown or forced process termination was attempted. Finish cleanup and
+  close active work before retrying. ESX-C host SSH was refused, so hypervisor
+  inventory/power state could not be verified. No host or iLO change was made.
+- User reports WatchGuard-related slow shutdowns on other hosts on October 9;
+  that report was not independently verified and does not prove the cause of
+  KUHNLE's HealthCheck crashes. Validate those after the next startup.
+
+### 07:00 CEST Shutdown-Readiness Recheck
+
+- At 07:00:22, no cleanmgr, DismHost, TiWorker, TrustedInstaller, msiexec,
+  or DISM processes remained. No FormatOps tasks or open SMB files returned.
+- CBS/WU restart flags remained clear; two remote-interactive logon records
+  remained, not proof of active human sessions. Cleanup-process blocker is
+  no longer observed. This does not validate every cleanup category's result.
+- Read-only status check only; no shutdown command was issued.
+
+### Operator-Reported Shutdown
+
+- The operator subsequently confirmed shutting down all three ESX-C VMs for
+  the planned iLO update. Exact shutdown time, graceful completion, and VMware
+  power state were not independently verified. No shutdown command was sent
+  from this thread; iLO update completion is not yet established.
+- After startup, verify local/domain SSH, boot/shutdown events, domain trust,
+  SQLBase_SERVER1, disks/free space, servicing flags, pending rename state,
+  and ESET/WatchGuard health. A restart alone does not prove the recurring
+  HealthCheck fault resolved; check the subsequent scheduled execution.
+
+## 2026-10-10 - Post-Start Verification And Recurring Domain-Access Failure
+
+- Operator reported all three guests back online. Read-only verification at
+  08:16-08:19 CEST made no policy, access, security-software, service, cleanup,
+  update-installation or power changes. Working local break-glass access retained.
+- KUHNLE boot is 07:18:02, Windows build 20348.5622. Event 1074 at 07:01:39
+  precedes EventLog stop 6006 at 07:04:08, an interval of 2 minutes 29 seconds;
+  EventLog starts at 07:18:17. The bounded one-day power-event query returned
+  no 41/6008 unexpected shutdown. That interval does not prove WatchGuard caused
+  the delay or measure when VMware finally powered off the guest.
+- SQLBase_SERVER1, SSH, Netlogon, Windows Time, ESET, its management agent,
+  and all four sampled Panda services are Running/Auto. C: and D: are Healthy,
+  with 23.52/49.37 GiB and 33.76/49.98 GiB free/total. Ten sampled VSS writers
+  are Stable/No error. Time source is PDC, leap indicator 0, stratum 6; last
+  successful sync 08:03:17. Application transactions were not tested.
+- Fresh Windows Update scan at 08:16:58 succeeded, ResultCode 2, with zero
+  applicable non-hidden software updates. CBS/WU restart flags are false.
+  No checked cleanup/installer processes or FormatOps tasks remained before scan.
+  Six non-empty pending rename strings remain, all psUniqueExecution.ini in
+  Windows temporary locations, down from 24. Preserve the queue; these entries
+  alone do not establish that another restart is mandatory.
+- Local win-kuhnle authenticates as KUHNLE\Administrateur. Domain alias
+  winad-kuhnle fails with Permission denied on the initial and later retry.
+  Domain-user-to-SID translation fails with a trust-relationship error, while
+  Test-ComputerSecureChannel returns True and nltest /sc_query returns
+  NERR_Success against BDC. DNS resolves both controllers correctly. Thus
+  passing machine-channel tests do not establish working domain-user access.
+- OpenSSH's bounded recent event sample classifies the domain attempt as an
+  invalid user. No Security 4625 event was returned in the checked ten-minute
+  window; absence is not proof no authentication error occurred.
+- EnableAuthEpResolution remains 1. Computer RSoP attributes it to Default
+  Domain Policy with precedence 1; incoming NTLM remains allowed locally (0).
+  This resembles September's partial RPC/NTLM access failure. Cause is not
+  isolated by this inspection. Do not reset the machine password, rejoin the
+  domain, or weaken domain NTLM blocking merely from the translation error.
+  Next correction should follow the existing September policy audit, with
+  explicit scope/filtering and rollback; local access and SQLBase remain usable.
+- WatchGuard now registers EDR Core protection 8.00.26.0012 and MSI package
+  13.01.15, InstallDate October 10; earlier inspection showed 8.00.25.0002
+  and 12.50.20. NanoServiceMain's binary reports 8.0.26.10. Agent remains
+  1.25.13.1 with MSI package 2.30.05. These representations are not proof
+  of duplicate installations or a version mismatch. The update was not
+  initiated by this thread. No PluginLauncher event 1000 was returned since
+  boot; resolution of the daily HealthCheck fault awaits its next execution.
+  Console receipt, coexistence policies and full protection efficacy are unverified.
+- Since-boot event groups: Time-Service 1/4 six each (messages mention VMware
+  time provider), TPM-WMI 1801/1803 one each, DCOM 10016 one, startup Kerberos 9
+  one, SPBaseMgrService 13 one. Current domain time works; do not call all logs
+  clean or infer the startup Kerberos warning alone caused the ongoing failure.
+- SSH/WinRM custom rules still use the two trusted sources; broad sshd rule is
+  disabled and WinRM remains Stopped/Disabled. ESX-C host SSH was refused;
+  hypervisor jobs/inventory and iLO firmware outcome were not verified.
+  Only sanitized status findings were recorded. Domain access remains unresolved.

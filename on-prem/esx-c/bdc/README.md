@@ -2,20 +2,21 @@
 
 Starter runbook for the `BDC` VM on ESX-C.
 
-Last updated: 2026-09-13
+Last updated: 2026-10-10
 
 ## Known State
 
 - VM name in vCenter: `BDC`
 - Expected Windows hostname: `BDC`
 - Expected IP from local SSH config: `192.168.1.4`
-- Expected local break-glass SSH alias: `win-bdc`
+- Existing alternate SSH alias: `win-bdc`; October 10 session identity is `FORMAT\Administrateur`, not a separately verified local break-glass account.
 - Expected domain-admin SSH alias: `winad-bdc`
 - Expected SSH identity: `~/.ssh/windows-admin_ed25519`
 - Role: confirmed backup domain controller and DNS server for `format.lu`; domain-critical.
 - Verified live state: confirmed backup domain controller for `format.lu` on 2026-04-18.
-- Current maintenance: see [maintenance log](maintenance-log.md), September 13 entries.
-- September 13 patch status: three updates offered; installation/reboot held after Kuhnle's post-reboot domain-access regression. Kuhnle access recovered after a temporary test, but a durable policy correction is still pending. BDC remains online with focused DC checks passing.
+- Current maintenance: see [maintenance log](maintenance-log.md), October 10 entry.
+- October 10 post-start status: boot 07:17:55 after operator shutdown; fresh scan succeeded with zero offered updates. CBS/WU flags and pending rename queue are clear. Focused DC checks and all five inbound replication contexts pass; both SSH aliases work, time sync uses PDC, and C: has 67.14 GiB free.
+- No checked cleanup/installer processes or FormatOps tasks remained at recovery inspection. WinRM is Stopped/Disabled; broad SSH Allow-Any remains enabled alongside a scoped rule. Recovery verification made no policy or power changes. Startup event warnings remain documented in the log.
 - September 5 cleanup ended with a terminated task result; reclaimed space is unverified. The stopped task and profile were removed on September 13.
 
 ## Safety Rules

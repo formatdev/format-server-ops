@@ -1022,3 +1022,139 @@ Pre-state and blast radius:
 
 - Latest local credential-validation records correlate with this audit's public-key SSH sessions and do not establish application use of network NTLM. Latest retained incoming blocked event is 4002 at 10:30:39, with local caller LMR$/PID 4; no remote user/source is identified.
 - No policy/logging changes or reboot were performed. See the [sanitized activity review](../../kerberos-ntlm-gpo-audit-2026-09-13.md#latest-ntlm-event-inspection) for evidence and retention limits.
+
+## 2026-10-10 - Routine Inspection; Expired Certificate Follow-Up
+
+Scope and access:
+
+- Discovery over VPN utun6 through 192.168.113.1 confirms LMR at 192.168.1.8,
+  still a production format.lu member. Both SSH aliases work; local access
+  authenticates as LMR\Administrateur. Domain trust and account lookup pass.
+- Last boot is September 26 08:20:29 CEST. The earlier September servicing
+  reboot is no longer outstanding in the observed boot/marker state; this
+  task did not perform or observe that intervening restart.
+- No update installation, reboot, cleanup, certificate deletion/renewal,
+  SQL/MySQL change, trust reset, or AD/GPO/firewall/SSH/WinRM change was made.
+
+Verified findings:
+
+- Windows Update scan completed with ResultCode 2 and zero applicable
+  non-hidden software updates at 06:36:36. KB5122882 remains installed;
+  CBS and Windows Update reboot markers are clear.
+- Six non-empty pending-rename strings remain: five EdgeUpdate and one
+  TeamViewer. Queue and files were preserved. No initial servicing/cleanup
+  worker or FormatOps task was present; no installer was launched.
+- C: has 19.61 GiB free of 119.40 GiB; D: has 894.54 GiB free of 1023.99 GiB.
+  Fixed volumes report Healthy. Monitor C: headroom before future servicing.
+- IMOSSQL2019 and MySQL_CSF2_Master are Running/Automatic. SQL full-text
+  launcher is Running/Manual; SQL Agent remains Stopped/Disabled. Netlogon,
+  SSH, and Windows Time are Running/Automatic. All 11 sampled VSS writers
+  report Stable/No error; database integrity/transactions were not tested.
+- Time source BDC.format.lu, leap indicator 0, last successful sync 06:28:47.
+  WinRM is still Stopped/Disabled. Explicit enabled SSH 22/WinRM 5985 rules
+  retain 192.168.1.73 and 192.168.113.2. RPC endpoint discovery authentication
+  remains 1 and incoming NTLM restriction remains 2; no full GPO audit repeated.
+
+Certificate and event findings:
+
+- Seven-day Application query returned 63 certificate auto-enrollment warnings
+  (event 64), latest October 10 00:20:53. The warned identities were matched
+  in memory to three LocalMachine personal-store certificates, all expired
+  February 20, 2026. Thumbprints, certificate material, and subjects are not
+  stored in this repository.
+- Their purposes include client/server authentication, smart-card logon, KDC
+  authentication, and directory-service email replication. Ownership, why
+  they remain on this member server, and all consumers are unverified. Do not
+  infer they are safe to delete from expiry or template purposes alone.
+- The currently bound RDP listener certificate is a different, unexpired
+  certificate valid through February 3, 2027. An older expired certificate
+  also remains in the Remote Desktop store. No interactive RDP test was made.
+- IMOSSQL2019 has no explicit certificate configured in its network registry
+  setting; ForceEncryption is 0. This does not establish the certificate or
+  encryption negotiated by actual clients and is not authorization to change it.
+- One MySQL event 100 on October 7 describes an unresolved client hostname,
+  not a demonstrated database-service outage. Client identity is omitted here.
+  Other seven-day groups are TPM-WMI 1803 (14) and DCOM 10016 (3).
+
+Outcome:
+
+- No update or Windows servicing restart is required by current checks.
+  SQL/MySQL, domain access, SSH, and disks pass, but certificate warnings remain
+  unresolved. Investigate certificate ownership/bindings and renewal policy
+  before proposing removal or replacement; do not delete them as disk cleanup.
+- Application transactions, per-VM restore points, hypervisor job/inventory
+  state, and a restore test were not independently verified. The separate
+  Veeam October 10 task reports successful recent backup/copy/replication
+  payloads with the known email warnings; that does not replace these checks.
+
+## 2026-10-10 - iLO Maintenance Shutdown Deferred
+
+- User requested shutdown of the three ESX-C guests for an iLO update.
+  LMR shutdown would interrupt IMOS SQL/MySQL workloads; BDC is planned last.
+- At 06:55:00 CEST, LMR still had cleanmgr, DismHost, TiWorker, and
+  TrustedInstaller processes, two remote-interactive logon records, and two
+  open SMB files. Logon records are not proof of active human sessions; no
+  usernames, client details, or file paths were retained.
+- SQL/MySQL, SSH, Netlogon, and ESET services were running. CBS/WU reboot flags
+  were clear. No FormatOps tasks or established guest connections to Veeam
+  were returned; these checks do not establish hypervisor backup-job state.
+- No shutdown or forced application termination was attempted. Finish cleanup
+  and close active work/open files before retrying. Host SSH was refused, so
+  VMware power/inventory state was not verified. No host or iLO change was made.
+
+### 07:00 CEST Shutdown-Readiness Recheck
+
+- At 07:00:23, cleanmgr, DismHost, TiWorker, and TrustedInstaller remained
+  present. Each accumulated zero CPU seconds during a five-second sample.
+  CBS/DISM logs were last modified around 06:49. This does not establish
+  completion, a hang, or a confirmed dialog waiting for input.
+- Two SMB files remained open, with two remote-interactive logon records.
+  No FormatOps tasks returned; CBS/WU restart flags remained clear.
+- Read-only status check only; no shutdown or forced termination was issued.
+  Check the interactive cleanup window and close active work before shutdown.
+
+### Operator-Reported Shutdown
+
+- The operator subsequently confirmed shutting down all three ESX-C VMs for
+  the planned iLO update. Exact shutdown time, graceful completion, and VMware
+  power state were not independently verified. No shutdown command was sent
+  from this thread; iLO update completion is not yet established.
+- Cleanup completion and closure of the previously observed shared files were
+  not independently verified. After startup, check local/domain SSH, domain
+  trust, SQL/MySQL services and application availability, boot/shutdown events,
+  disks/free space, servicing flags, pending rename state, and security services.
+  The existing certificate findings remain unresolved, not cleared by shutdown.
+
+## 2026-10-10 - Post-Start Verification After Operator iLO Maintenance Window
+
+- Operator reported all three guests back online. Read-only checks at
+  08:16-08:19 CEST made no power, update-installation, cleanup, service, policy,
+  certificate or access changes. No raw logs or certificate hashes retained.
+- LMR boot is 07:18:02, Windows build 20348.5622. Event 1074 at 07:02:11 and
+  EventLog stop 6006 at 07:02:12 precede EventLog start 6005 at 07:18:16.
+  The bounded one-day power-event query returned no 41/6008 unexpected shutdown.
+- Local and domain SSH aliases work as their expected local/domain identities.
+  Machine secure-channel validation and domain-user SID translation pass.
+  IMOS SQL, MySQL_CSF2_Master, Netlogon, SSH, Windows Time, ESET and its agent
+  are Running/Auto. Eleven sampled VSS writers are Stable/No error.
+- C: and D: are Healthy, with 20.02/119.40 GiB and 894.54/1023.99 GiB
+  free/total. Time uses PDC, leap indicator 0, stratum 6, last sync 08:03:16.
+  Zero-sized optical volumes were excluded from the data-disk assessment.
+- Fresh Windows Update scan at 08:16:58 succeeded, ResultCode 2, with zero
+  applicable non-hidden software updates. CBS/WU restart flags and pending
+  rename queue are clear, down from six non-empty rename strings before shutdown.
+  No checked cleanup/installer processes or FormatOps tasks remained before scan.
+  These checks do not measure success of every operator-selected cleanup category.
+- Three expired LocalMachine personal-store certificates remain. Three
+  auto-enrollment event 64 warnings recur at startup; active RDP certificate
+  is still valid through February 3, 2027. No certificates were removed.
+- Other since-boot groups: MySQL 100 seven records, including name-resolution
+  and deprecation warnings; Time-Service 1/4 five each; TPM-WMI 1801/1803 one
+  each; DCOM 10016 and startup Kerberos 9 one each. Database services are
+  running, but end-to-end application transactions were not tested.
+- RPC endpoint authentication remains 1, incoming NTLM restriction 2. Broad
+  sshd rule remains disabled, custom 22/5985 source scopes retain the two
+  trusted addresses, and WinRM remains Stopped/Disabled.
+- Guest recovery checks pass with known certificate/startup warnings still
+  open. ESX-C host SSH was refused; hypervisor jobs/inventory, restore tests,
+  and the iLO firmware version/update outcome remain unverified.
