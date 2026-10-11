@@ -497,6 +497,19 @@ Notes:
 - No update, reboot, SQL, FTP, firewall, GPO, or application-data change was made.
 - FTP restoration remains a separate approved change after confirming copier source address and active/passive requirements.
 
+## 2026-10-10 - Copier FTP Retirement
+
+Maintainer: Codex with Peter
+
+- Peter confirmed all VMs and hosts had been rebooted and explicitly retired copier FTP following the Kyocera firmware SMB update.
+- Discovery found only the copier FTP site `Formascan_input` and two local FTP firewall rules. The FTP service and extensibility were already disabled; only the parent FTP feature remained enabled.
+- Backed up IIS configuration and the two firewall rules and their port/address filters under `C:\Windows\System32\inetsrv\backup\Codex-FTP-Retirement-20261010-081716` before removal.
+- Deleted the IIS FTP site `Formascan_input` and local firewall rules `{9883e86b-0b8a-4da1-a992-a040b1a3fb0b}` (`FTP Formascan_input`) and `Formascan-Passive-Test` (`Formascan passive FTP test`). Disabled `IIS-FTPServer` using Windows servicing without removing payload files.
+- Verification: all three IIS FTP features are disabled, no FTP site or FTP firewall rule remains, and there is no TCP 21 listener. Default Web Site remains configured.
+- SMB shares `Formascan_input` and `OUTPUT_BO` remain online; the scan input folder is present. No scan/application data, SMB share, account, password, or NTLM/GPO setting was changed.
+- SMB server, SSH, and SQL `NET2` services remain running. Windows reported `RestartNeeded=False`; CBS and Windows Update reboot markers remain clear.
+- Copier-to-SMB acceptance testing has not been performed by Codex. The prior FTP restoration follow-up is superseded by this retirement.
+
 ## Maintenance Template
 
 Date:

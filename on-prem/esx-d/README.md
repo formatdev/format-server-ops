@@ -23,6 +23,8 @@ The screenshot also showed a `vCLS-*` VM. That is a VMware Cluster Services syst
 
 ## Safety Rules
 
+- On 2026-10-10, Peter confirmed all VMs and hosts had been rebooted. This is an operator confirmation; authenticated ESXi/vCenter boot-time verification remains unavailable.
+
 - Treat all ESX-D VMs as production until proven otherwise.
 - Do not reboot, snapshot, migrate, or delete VMs without explicit confirmation.
 - Prefer read-only discovery first: SSH, WinRM, VMware inventory, event logs, services, and disk state.
