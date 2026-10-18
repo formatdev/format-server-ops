@@ -2,7 +2,7 @@
 
 Starter runbook for the `Exchange3` VM on ESX-D.
 
-Last updated: 2026-10-11
+Last updated: 2026-10-18
 
 ## Known State
 
@@ -17,6 +17,14 @@ Last updated: 2026-10-11
 - Treat as production mail infrastructure.
 - Do not reboot, patch, change certificates, or restart Exchange services without explicit confirmation.
 - Check transport queues and Exchange service health before and after maintenance.
+
+## 2026-10-18 Mailbox Access Recovery
+
+- Incident: both databases reported Mounted, but live MAPI access failed with MapiExceptionMdbOffline / Microsoft System Attendant errors; 77 messages were waiting for mailbox delivery. The interactive desktop also failed to start normally. Server/transport components were Active, domain trust passed against PDC and BDC, and the existing RPC compatibility value remained `0`.
+- Peter confirmed a successful backup from the previous day and no running backup jobs, then authorized a normal server restart. A graceful Windows restart without forced application closure completed; verified boot time is 2026-10-18 22:21:32 Luxembourg time. No database repair, manual dismount, queue deletion, policy change or host restart was performed.
+- Both databases logged successful mounts at 22:22:35; all automatic Exchange services recovered. By 22:24:49, all sampled total transport queue-length counters were zero and the post-reboot mailbox-delivery log contained 82 DELIVER records. The identified external resend to Peter's mailbox was delivered at 22:24:20. These are live log/counter checks, not a fresh interactive Get-Queue or MAPI test.
+- Peter confirmed after reconnecting that the desktop and Start menu work normally and emails are arriving. SMTP STARTTLS and HTTPS certificate validation pass from the maintenance VPN; the certificate expires 2027-01-14. Domain channel query returns PDC with status 0; WinRM remains intentionally Disabled/Stopped.
+- Immediate recovery is verified, but the underlying cause is not established. The earlier sender-side DMARC rejection still requires its exact error text; it is separate from the recovered Store-access failure. Filtering/DKIM warnings, the failed win-acme scheduled run, and other historical warnings below remain follow-ups rather than claimed fixed.
 
 ## RPC Compatibility Policy
 
