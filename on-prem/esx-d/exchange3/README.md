@@ -26,6 +26,37 @@ Last updated: 2026-10-18
 - Peter confirmed after reconnecting that the desktop and Start menu work normally and emails are arriving. SMTP STARTTLS and HTTPS certificate validation pass from the maintenance VPN; the certificate expires 2027-01-14. Domain channel query returns PDC with status 0; WinRM remains intentionally Disabled/Stopped.
 - Immediate recovery is verified, but the underlying cause is not established. The earlier sender-side DMARC rejection still requires its exact error text; it is separate from the recovered Store-access failure. Filtering/DKIM warnings, the failed win-acme scheduled run, and other historical warnings below remain follow-ups rather than claimed fixed.
 
+## Transaction Logs and Backup Verification
+
+- Operator-supplied interactive database status on 2026-10-18 identifies Archive-DB2 at `E:\ExchangeDatabases\Archive-DB2.edb`, with transaction logs in `C:\ExchangeLogs\Archive-DB2`, and Mailbox-DB3 at `E:\ExchangeDatabases\Mailbox-DB3\Mailbox-DB3.edb`, with transaction logs in `C:\ExchangeLogs\Mailbox-DB3`. Both LastFullBackup values are 2026-10-16 22:06:22; LastIncrementalBackup is empty.
+- Read-only guest and Veeam-server inspection confirms the October 16 Exchange task succeeded at 22:32:38. Guest `VeeamVssSupport.log` records `VSS_BT_FULL`, successful BACKUP FINISH notification to Microsoft Exchange Writer at 22:32:30 and subsequent Stable state. The current Exchange VSS writer is Stable/No error. This establishes successful application-aware processing and the backup-completion handoff that enables Exchange truncation; it is not independent proof of every file deletion.
+- At approximately 22:34 on October 18, the archive log folder contains 744 numbered logs, plus current/temp logs, totaling 746 MiB of `.log` files; the mailbox log folder contains 542 numbered logs, plus current/temp logs, totaling 544 MiB. Oldest numbered files are from October 16. This is a bounded current inventory, not a before/after deletion comparison. The retained Application log starts October 18, so October 16 ESE truncation events are unavailable there.
+- Never manually delete transaction logs, checkpoints or reserved logs. The operator's separate cleanup script targets IIS/Exchange diagnostic/Ceres paths, not these verified transaction-log roots. That read-only verification did not run cleanup, change circular logging or modify/rerun backup jobs; diagnostic cleanup was automated separately below. Next backup verification should compare generation ranges across the next normal primary backup and check new backup/truncation events. A newer Exchange application-aware run after October 16 was not found in the inspected records; verify the intended schedule before classifying that gap as a failure.
+
+## Automated Diagnostic Log Cleanup
+
+- Scheduled task: `\Codex\Exchange diagnostic log cleanup`, daily at 06:30 in the server's W. Europe time zone (Luxembourg), as SYSTEM. It runs locally without the maintainer Mac. Missed runs start when available; overlapping task instances are ignored, an additional named mutex prevents concurrent manual runs, and runtime is capped at one hour.
+- Installed script: `C:\script\ExchangeDiagnosticCleanup\Clear-ExchangeDiagnosticLogs.ps1`. Source: [Clear-ExchangeDiagnosticLogs.ps1](scripts/Clear-ExchangeDiagnosticLogs.ps1). Administrator/SYSTEM-only permissions apply to the new subfolder and reports; existing `C:\script` files and their ACLs were not changed. The older manual `C:\script\DeleteExchangeLogs.ps1` remains present but should not be run alongside the scheduled cleanup.
+- Only `.log`, `.blg` and `.etl` files with LastWriteTimeUtc strictly older than 15 days are eligible, under these four fixed roots: `C:\inetpub\logs\LogFiles`, `C:\Program Files\Microsoft\Exchange Server\V15\Logging`, and the two `V15\Bin\Search\Ceres\Diagnostics\ETLTraces` / `Logs` folders. No directories are deleted. Newer files, other extensions, linked/reparse paths and in-use files are retained.
+- Hard exclusions protect all of `C:\ExchangeLogs` and `E:\ExchangeDatabases`, plus standard Exchange numbered/current/temporary transaction-log names regardless of their age or location. Each candidate's path, ancestors and current metadata are rechecked before deletion. Checkpoint, reserved and database extensions are never eligible. This does not change Veeam truncation or circular logging.
+- Without `-Apply`, the script only previews. Each run writes per-file JSONL audit records and a JSON summary under `C:\script\ExchangeDiagnosticCleanup\Reports`; unexpected errors produce a nonzero task result instead of being hidden. Audit reports are retained separately and are not deleted by the 15-day diagnostic rule. Task XML is saved beside the script. Execution policy remains RemoteSigned; no policy/GPO/service changes are needed.
+- [Safety tests](scripts/Test-ExchangeDiagnosticCleanup.ps1) passed 22 checks on Exchange3. The first SYSTEM preview found 10,302 eligible files, 8.13 GiB logical size, with zero errors and no deletions. First applied-run and protected-file verification results are recorded in the maintenance log.
+- First applied run completed successfully on October 18 at 22:51:50: 10,302 old diagnostic files deleted, zero errors, task result 0. C: free space increased by approximately 7.46 GiB to 61.66 GiB during verification (distinct from logical file size). All 1,298 baseline numbered transaction logs, all 22 checkpoint/reserved files, both database files and the unchanged legacy script were verified present. All 19 sampled queue-length counters were zero and core mail services remained running. Next scheduled run: October 19 at 06:30 local.
+
+Preview manually from elevated PowerShell:
+
+```powershell
+& 'C:\script\ExchangeDiagnosticCleanup\Clear-ExchangeDiagnosticLogs.ps1'
+```
+
+Pause the schedule without removing scripts or reports:
+
+```powershell
+Disable-ScheduledTask -TaskPath '\Codex\' -TaskName 'Exchange diagnostic log cleanup'
+```
+
+To resume, use `Enable-ScheduledTask` with the same task path/name. Disabling the schedule does not restore deleted diagnostics; use retained backups if historical logs are required. Keep scheduled cleanup separate from incident collection and transaction-log management.
+
 ## RPC Compatibility Policy
 
 - GPO: `EXCHANGE3 - RPC endpoint mapper compatibility`
