@@ -1543,3 +1543,112 @@ The operator explained that Veeam had been shut down for host iLO/ROM updates an
 - Gateway time remained synchronized to `192.168.90.253,0x8`, stratum 5, leap indicator 0, last sync `08:15:27`; VMware periodic synchronization remained Disabled. CBS, Windows Update, and rename reboot flags were all False.
 - Post-boot event review showed the existing VMware precision-clock provider and pre-removal iSCSI startup errors; no critical/error Application event was returned. Historical events were preserved. No additional reboot was performed to test recurrence.
 - Removal is complete. Verify at the next normal boot that the old portal's discovery errors no longer recur; the next scheduled backup remains the operational follow-up. Re-adding the recorded portal would restore its discovery entry if later required, but no restoration was attempted.
+
+## 2026-10-31 - End-of-Month Maintenance Inspection
+
+Resumed Veeam-only maintenance with read-only discovery from `14:36` Europe/Luxembourg. VPN route and key-only SSH were healthy. Unrelated dirty files were preserved.
+
+Host and services:
+
+- Identity remains local `veeam\administrator`, hostname `VEEAM`, standalone `WORKGROUP`. Last boot: `2026-10-28 19:37:16`; Windows build `20348.5761`.
+- All enumerated automatic Veeam, SQL, SSH, WinRM, Windows Time, and iSCSI services were Running. SQL Agent remains Disabled/Stopped. Both disks were Online/Healthy and C:/E: volumes were Healthy.
+- SSH remains key-only. The default broad OpenSSH rule is disabled; the custom rule retains the two approved admin sources.
+- A scheduled `STARTHEALTHCHECKJOB` worker was initially active alongside infrastructure rescan. It was allowed to finish naturally; its log confirmed successful verification at `14:36:51`, one task successful, zero failed. Subsequent manager inventory showed only `STARTINFRARESCAN`.
+- All three configured jobs were Stopped in the latest service-log state block. Native Veeam API session enumeration was not used.
+
+Backup verification:
+
+- October 30 primary backup completed at `23:02:44`, with 10 successful tasks and zero failed. Individual current task logs likewise report Success for all 10 VMs.
+- NAS4 copy completed October 31 at `00:30:08`, with 10 successful tasks and zero failed.
+- October 30 replication completed at `16:48:56`, with 10 successful tasks and zero failed.
+- SMTP relay rejection `5.7.54` still affects reports. Primary backup also logged low disk space and metadata-cache warnings before the email step; its Warning result must not be described as email-only. Metadata check records sampled in that run reported zero errors/warnings.
+- Today's configuration-backup log confirmed creation at `10:01:00`. Successful payloads and the health check do not substitute for an isolated restore test; none was performed.
+
+Repository capacity:
+
+- `C:` free `67172564992` of `149953703936` bytes (`44.80%`); capacity is larger than the October 10 baseline. No disk expansion was performed in this round.
+- `E:` free `2495240536064` of `30786258468864` bytes (`8.11%`), down approximately 3.87 TB from the post-maintenance October 10 baseline and below the known 10% warning threshold.
+- The primary chain remains one VBK, 149 VRB, and one VBM; current retention logging still reports 150 points. Metadata inventory shows about 12.26 TB logical in the full and 15.79 TB in reverse increments.
+- One VRB last modified October 20 has logical size `3925726429184` bytes (about 3.93 TB). That is comparable to the observed loss of headroom; the originating guest change and physical allocation were not established. Do not delete it manually.
+- Approximately 583 GB additional free space would be required merely to return E: to 10% free, with no additional operating margin. This is not a time-to-full forecast or an approved retention target.
+- Next priority: review repository capacity and required restore-point retention through Veeam. No backup chain, retention setting, repository, or data was changed.
+
+Windows and Veeam updates:
+
+- Windows Update search succeeded (`ResultCode=2`) with zero pending non-hidden updates. Recent history shows successful October Windows `KB5126655`, .NET `KB5128928`, MSRT `KB890830` v5.146, and PowerShell installations through `7.6.9`.
+- CBS and Windows Update reboot flags are False. Pending rename operations contain seven non-empty paths: six Windows Temp/SystemTemp deletion paths and one Edge updater path. No Veeam or Windows servicing path was present in that queue, and it was preserved.
+- Veeam Core DLL reports `13.1.2.57`, matching the latest public build in [KB2680](https://www.veeam.com/kb2680), checked today. [KB4738](https://www.veeam.com/kb4738) dates this release October 27. No application update or Windows installation was initiated by this round.
+- Component-store analysis completed successfully: actual size `7.76 GB`, zero cache/temporary data, zero reclaimable packages, cleanup not recommended. Last recorded component cleanup: `2026-10-29 15:37:42`. This assessment does not enumerate every temporary-file category and does not reclaim repository capacity on E:.
+
+Time, iSCSI, and events:
+
+- Windows Time is Automatic/Running, synchronized to `192.168.90.253,0x8`, leap indicator 0, stratum 4, last successful sync `14:24:17`. VMware periodic synchronization remains Disabled.
+- Guest iSCSI portal and session counts remain zero. An explicit event query found zero MSiSCSI 113 events since the October 10 portal removal, including subsequent boots. Other iSNS-disabled/non-iSCSI-interface messages remain separate; no firewall or service change was made for them.
+- All 12 current VSS writers report Stable/No error.
+- Seven-day event summary still includes the known VMware precision-clock provider, DCOM, performance-counter, and Virtual Disk Service messages. Four SSH service terminations occurred during October 28 maintenance transitions; none was returned after the current boot time. SSH is currently healthy.
+
+Routine update discovery and role checks are complete. Capacity pressure remains the material follow-up; no reboot, cleanup, service change, or backup configuration/data change was performed.
+
+## 2026-10-31 - Repository Capacity and Large Reverse-Increment Investigation
+
+At the operator's request, inspected repository file metadata, parsed the VBM XML, and read the relevant archived Veeam logs. All investigation was read-only; no retention, job, repository, guest, or backup-data setting was changed. Archived logs were streamed without extracting files to disk. No binary VBK/VRB backup payload was opened.
+
+Verified chain and capacity:
+
+- Metadata contains exactly 150 storage files/restore-point groups and 10 VM objects. The job-point range is April 6 through October 30, approximately seven calendar months because backups run on weekdays; 150 points is not 150 calendar days. Not every historic point necessarily contains every current VM.
+- Current E: free space remains approximately 2.495 TB of 30.786 TB (`8.11%`). ReFS version 3.7, 64 KB allocation units. Total logical size under VeeamBackups is about 28.156 TB across 510 files; Windows reports about 28.291 TB used on E:. No large aggregate logical-size excess over physical usage was evident, but shared extents and exact marginal reclaimable bytes were not measured.
+- The 149 reverse increments have median size about 64.73 GB when the outlier is excluded, and mean about 80.15 GB. The outlier is about 3.926 TB.
+
+Large-file identity and origin:
+
+- The file is the October 16 `22:00:21` restore point, not an October 20 restore point. Its filesystem creation is October 19 `22:01:30`; final modification is October 20 `11:24:47`, matching the subsequent reverse-incremental run. Reverse increments preserve the previous state while the full backup advances.
+- VBM storage statistics record backup size `3925726429184` bytes and represented data size `4448068916583` bytes. It is linked to all 10 VM objects in the active chain. No current OIB is flagged IsCorrupted or NeedHealthCheckRepair. Those flags and today's successful health check are not an isolated restore test of every historic point.
+- Archived FILE task/source logs show `File_3.vmdk` ran from October 19 around `23:20` until October 20 `11:21`, about 12 hours. All four FILE disks used CBT; the task explicitly records CBT was not reset. FILE completed successfully at `11:24:57`.
+- That disk's agent recorded about 1.177 TB read and 1.040 TB traffic, with 1,042,508 transmitted data blocks and 2,872,105 sparse-area blocks. These observations support exceptional block/sparse changes on the large FILE disk as the main lead. They do not identify which guest operation caused the changes or establish that 3.93 TB of new live files was created.
+- The containing job's final session was Failed because it was cancelled by the administrator at `11:25`, despite 10 successful VM tasks. Subsequent daily jobs returned to much smaller reverse increments and current tasks succeed. No present failure was inferred from that historical cancellation.
+- The file is the 11th newest job point. Removing it through retention today would require keeping at most 10 points and discarding all older history too. It remains required for older states under the proposed 100/120/140-point settings. Do not remove it directly or launch a new full/compact operation with current low headroom.
+
+Retention scenarios at this snapshot:
+
+| Retained job points | Oldest points removed | Logical size removed | Projected E: free if fully reclaimed | Earliest remaining job point |
+| --- | --- | --- | --- | --- |
+| 150 | 0 | 0 | 2.50 TB / 8.11% | April 6 |
+| 140 | 10 | 0.96 TB | 3.45 TB / 11.22% | April 20 |
+| 130 | 20 | 1.75 TB | 4.24 TB / 13.79% | May 4 |
+| 120 | 30 | 2.50 TB | 5.00 TB / 16.24% | May 18 |
+| 100 | 50 | 4.09 TB | 6.58 TB / 21.37% | June 15 |
+| 90 | 60 | 4.86 TB | 7.36 TB / 23.90% | June 29 |
+
+The model sums existing oldest VRB file lengths and holds current free space fixed. These are conditional estimates, not guaranteed physical reclamation. ReFS block sharing, retention processing, per-VM chain constraints, and the next run's growth can alter the result. A retention edit is not an immediate verified free-space gain. Backup-copy/GFS retention and recoverability of any alternative historic copy were not established by this investigation.
+
+Recommendation:
+
+- If the repository stays at its current size and history before May 18 is not required, 120 points is a reasonable proposed first target, providing about 16% free under the model. 140 only marginally exceeds the warning threshold; 100 gives more room if the shorter history is acceptable.
+- If all 150 points are required, investigate additional capacity instead. Based on current used bytes, about 3 TB additional usable capacity would project roughly 16% free, and 5 TB roughly 21%, before further growth. Hypervisor/datastore capacity and expansion feasibility have not been checked or approved.
+- No retention reduction or storage expansion was applied. Any subsequent change must use Veeam-supported configuration, preserve the chain, and be followed by actual free-space and job-result verification.
+
+References: [Veeam short-term retention](https://helpcenter.veeam.com/docs/vbr/userguide/retention_policy.html), [reverse-incremental method and retention](https://www.veeam.com/kb1933), [Fast Clone and shared blocks](https://helpcenter.veeam.com/docs/vbr/userguide/backup_repository_block_cloning.html?ver=13), and [Microsoft ReFS block cloning](https://learn.microsoft.com/en-us/windows/win32/fileio/block-cloning). These explain why oldest points expire first and why logical file sizes do not guarantee reclaimed capacity.
+
+## 2026-10-31 - Primary Retention Reduction Approved, Authentication Pending
+
+The operator explicitly approved reducing the primary backup job to 120 restore points and cited the separate NAS4 backup-copy jobs. Scope is only `Backup Job to ESXE` (job ID `b50c2323-601c-449e-a7d1-4e3c4a4dbdd8`); do not change NAS4/copy retention, replication, schedules, or repository configuration.
+
+- Reconfirmed `VEEAM` remains standalone, only the infrastructure-rescan manager was active, and the latest state block showed all three jobs Stopped.
+- The installed PowerShell 7 Veeam module supports `Get-VBRJobOptions` and `Set-VBRJobOptions`. A local management connection first failed TLS trust; retry using the documented session certificate-acceptance switch failed environment initialization with request cancelled. No job-setting write was executed.
+- Inspected the authenticated vSphere session and opened only Veeam's web console. Windows is at the Administrator sign-in screen. `quser` returned no users and no Explorer/Veeam console process was present, so there was no existing authenticated interactive session to inherit.
+- Left the Veeam web console open for the operator to sign in and open Veeam Backup & Replication. No password was requested in chat, recovered, or changed. No database/configuration-file workaround was used.
+- The approved reduction is NOT completed. Current retention remains the previously verified 150 points; the repository chain and copy-job settings are unchanged.
+- After console authentication, read current primary job options, preserve the existing point-based retention mode, change only the count from 150 to 120, save, and independently reread the saved setting. Then verify when Veeam applies retention and measure actual free space after processing; do not report the projected 2.50 TB as reclaimed before that happens.
+
+## 2026-10-31 - Primary Retention Changed to 120 Restore Points
+
+After the operator signed into Windows and opened Veeam Backup & Replication, completed the approved change in the authenticated console as `VEEAM\Administrator`.
+
+- Selected only the primary VMware job `Backup Job to ESXE`. All three listed jobs were Stopped, and SSH process inspection showed only `STARTINFRARESCAN`; no backup or health-check manager was active.
+- Opened the job's Storage settings and verified the original value was 150 with unit `restore points`. Changed the count to 120, preserved the unit and existing repository/secondary-destination settings, and saved using Finish.
+- Independently reopened the job wizard and confirmed the persisted value was `120 restore points`. Closed that verification wizard with Cancel to avoid another save.
+- The service log independently records `CRetentionSettings[RetentionType: 0, RetainCycles: 120, RetainDaysToKeep: 7]` at `15:08:53.561`, applies that retention option to the primary backup, and records `Job [Backup Job to ESXE] has been modified` at `15:08:53.783`. The unused day-based value was left unchanged; the active mode remains restore points.
+- NAS4 backup-copy job retention, replication, schedules, repository configuration, and backup files were not manually changed. No job, new full, compact, or manual retention operation was started.
+- Verification at `15:09:55`: E: remained Healthy with `2495240798208` bytes free, and the primary chain remained one VBK, 149 VRB, and one VBM. Saving the policy did not immediately reclaim space; do not report the projected 2.50 TB gain as completed.
+- The next primary run remains Monday, November 2 at `22:00` Europe/Luxembourg. Follow up after normal retention processing to verify the retained chain, actual free space, and backup/copy results. The October 16 large VRB remains part of the retained recent history under the new policy.
+- The approved settings change is complete. Reclamation and post-change job verification remain pending; no further reboot or guest maintenance was performed.

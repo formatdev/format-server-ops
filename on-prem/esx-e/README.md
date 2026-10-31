@@ -2,7 +2,7 @@
 
 Runbooks for the on-prem VMware host `ESX-E`.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-31
 
 ## Current VM Inventory
 
