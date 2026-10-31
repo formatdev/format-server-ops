@@ -1,5 +1,19 @@
 # Duplicati FC1 Maintenance Log
 
+## 2026-10-31 - Backup Schedule Alignment
+
+- Peter authorized fixing the schedule. Moved the root cron MariaDB dump from
+  `20:00` to `18:00 UTC` and Portainer archive from `20:10` to `18:10 UTC`.
+  Duplicati remains daily `18:30 UTC` (`19:30 CET` / `20:30 CEST`).
+- Old root crontab backed up; the candidate passed syntax validation and
+  installed-content comparison. Commands, retention, Duplicati sources/filters,
+  and the Duplicati schedule were unchanged. Cron is active; no service restart.
+- Today's fresh SQL dump and cold archive are visible inside Duplicati and pass
+  gzip checks. Actual inclusion in the next scheduled remote backup is pending;
+  no manual remote backup or restore was triggered.
+- [Reviewed crontab](../_host/backup-schedule.cron) and
+  [full change/rollback record](../_host/maintenance-2026-10-31.md#backup-schedule-follow-up).
+
 ## 2026-10-31 - End-Of-Month Maintenance
 
 - Upgraded `2.4.0.1` -> `2.4.1.0 stable`; pinned published digest and running
@@ -10,7 +24,7 @@
   backup or restore test was run; check next job and then schedule a restore test.
 - Saved Compose ID 25 matches the new pin. Origin `200`, public Access `302`;
   live MariaDB/Portainer exclusions remain. Fresh error sample quiet.
-- Backup cron/remote schedule alignment merits review; no schedule changed.
+- Backup cron/remote schedule alignment was corrected in the follow-up above.
 - [Full round record, archive, and downgrade caveat](../_host/maintenance-2026-10-31.md).
 
 Use this log for Duplicati checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.

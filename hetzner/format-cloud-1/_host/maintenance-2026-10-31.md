@@ -165,16 +165,43 @@ Rebuild/release and Peter's redeploy are still required for those app fixes.
 - Prioritize application dependency fixes for FLOC/Chargy, timesheets, reports,
   and TIM; assess actual deployed dependency versions and affected code paths
   rather than equating audit counts with exploitable production vulnerabilities.
-- Verify the next Duplicati job succeeds after its deferred schema migration;
-  perform a separate restore test. Existing backup time-zone alignment merits
-  review: latest remote job began `18:30 UTC`, while host dump/archive cron jobs
-  run at `20:00`/`20:10 UTC`, so that job includes the previous day's archives.
-  No schedule was changed in this round.
+- Verify the next Duplicati job succeeds after its deferred schema migration
+  and includes the fresh scheduled dump/archive; perform a separate restore
+  test. The schedule mismatch was corrected in the follow-up below.
 - Resolve registry publication for the three local-only patched Apache images.
 - Redis `vm.overcommit_memory=0` warning remains; no sysctl tuning was applied.
 - Peter authorized committing and pushing these maintenance records after the
   successful Vaultwarden smoke test. Unrelated host changes and the separate
   October 19 FLOC migration record are excluded from this delivery.
+
+## Backup Schedule Follow-Up
+
+Peter authorized fixing preparation times so Duplicati can include fresh dumps.
+The correction was installed October 31 at `14:16 UTC` without restarting any
+services or changing Duplicati's database/configuration.
+
+- Confirmed host/container clocks are UTC. Duplicati's next stored start was
+  October 31 `18:30 UTC` (`19:30 CET`), repeat `1D`; last job also began at
+  `18:30 UTC`. The previous `20:00`/`20:10 UTC` cron jobs ran too late.
+- Moved only the MariaDB dump hour `20` -> `18` and Portainer archive hour
+  `20` -> `18`; all commands, scripts, log destinations, and retention settings
+  are unchanged. New order: dump `18:00`, archive `18:10`, remote backup `18:30`
+  UTC. Keeping one time base avoids a DST ordering mismatch.
+- Root crontab was checked to contain exactly the two expected existing jobs
+  before replacement; any unexpected job/content would have aborted the edit.
+  Candidate passed `crontab -n`; installed contents exactly match the reviewed
+  [backup-schedule.cron](backup-schedule.cron). Cron remains active.
+- Original crontab is root-only at
+  `/root/maintenance-20261031/crontab-before-backup-schedule-20261031-141603`.
+  Roll back with `crontab` followed by that absolute path if required.
+- The Duplicati schedule was rechecked unchanged. Its sources include
+  `/source-data/`; exclusions still omit live MariaDB/Portainer state but not
+  `/source-data/backups/mysql/` or `/source-data/backups/portainer/`.
+- Today's existing fresh dump/archive are readable from inside Duplicati and
+  pass gzip integrity checks there. This proves staging visibility, not remote
+  inclusion or restore success. The next automatic cycle has not yet run.
+- No manual backup, restore, retention cleanup, or application restart was
+  triggered by this schedule correction.
 
 ## Sources
 

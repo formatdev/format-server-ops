@@ -128,8 +128,28 @@ from `/source-data/backups/portainer/` instead of attempting to copy the locked
 Schedule:
 
 ```text
-Daily at 20:30 Europe/Luxembourg time
+Daily at 18:30 UTC (19:30 CET / 20:30 CEST)
 ```
+
+The host and Duplicati container use UTC. The October 31 schedule correction
+moved host preparation jobs earlier without changing Duplicati's schedule:
+
+| Daily operation | UTC | Luxembourg winter (CET) | Luxembourg summer (CEST) |
+| --- | --- | --- | --- |
+| MariaDB all-database dump | 18:00 | 19:00 | 20:00 |
+| Portainer cold archive | 18:10 | 19:10 | 20:10 |
+| Duplicati off-host backup | 18:30 | 19:30 | 20:30 |
+
+The unchanged 24-hour Duplicati schedule is UTC-based, not a fixed Luxembourg
+wall-clock time. Keeping all three jobs in UTC preserves their order across
+daylight-saving changes. Recent dumps took seconds and Portainer archives about
+13 seconds; the archive has a 20-minute scheduled head start. The jobs remain
+independent: a local job failure or unusually long run still requires attention
+before claiming that night's remote backup contains the fresh files.
+
+The reviewed root crontab is [backup-schedule.cron](../_host/backup-schedule.cron).
+Do not replace an existing crontab blindly: preserve unrelated jobs, back it up,
+and validate the candidate first. No other jobs or retention settings changed.
 
 Email notifications:
 
@@ -148,7 +168,7 @@ A host cron job runs the database dump before Duplicati starts.
 Cron entry:
 
 ```cron
-0 20 * * * /data/backups/mysql/backup-mariadb.sh >> /data/backups/mysql/backup-mariadb.log 2>&1
+0 18 * * * /data/backups/mysql/backup-mariadb.sh >> /data/backups/mysql/backup-mariadb.log 2>&1
 ```
 
 Script path:
@@ -192,7 +212,7 @@ Host script:
 Host cron entry:
 
 ```cron
-10 20 * * * /usr/local/sbin/backup-portainer.sh >> /data/backups/portainer/backup-portainer.log 2>&1
+10 18 * * * /usr/local/sbin/backup-portainer.sh >> /data/backups/portainer/backup-portainer.log 2>&1
 ```
 
 Output pattern:

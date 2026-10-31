@@ -105,8 +105,12 @@ Recommended host install path:
 Recommended host cron entry:
 
 ```cron
-10 20 * * * /usr/local/sbin/backup-portainer.sh >> /data/backups/portainer/backup-portainer.log 2>&1
+10 18 * * * /usr/local/sbin/backup-portainer.sh >> /data/backups/portainer/backup-portainer.log 2>&1
 ```
+
+Host timezone is UTC. This runs at 19:10 CET / 20:10 CEST, after the 18:00 UTC
+MariaDB dump and before Duplicati's 18:30 UTC job. See the reviewed
+[root crontab](../_host/backup-schedule.cron). Retention remains unchanged.
 
 Expected archive output:
 

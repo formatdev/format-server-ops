@@ -1,5 +1,14 @@
 # Portainer Maintenance Log
 
+## 2026-10-31 - Backup Schedule Alignment
+
+- Moved the existing cold archive job to `18:10 UTC`, after the `18:00 UTC`
+  MariaDB dump and before Duplicati at `18:30 UTC`. Only the cron hour changed;
+  the backup script and seven-day retention are unchanged.
+- Original root crontab backed up, candidate syntax and installed contents
+  verified. No Portainer interruption or manual archive was needed for this edit.
+- [Full schedule and rollback record](../_host/maintenance-2026-10-31.md#backup-schedule-follow-up).
+
 ## 2026-10-31 - End-Of-Month Maintenance
 
 - Server and agent upgraded `2.45.2` -> `2.45.3 LTS`; both converged at `1/1`.

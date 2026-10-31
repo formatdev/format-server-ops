@@ -1,5 +1,18 @@
 # format-cloud-1 Host Maintenance Log
 
+## 2026-10-31 - Backup Schedule Alignment Follow-Up
+
+- With Peter's approval, moved only the two root cron preparation hours from
+  `20` to `18`: MariaDB dump `18:00`, Portainer archive `18:10`, followed by
+  unchanged Duplicati `18:30 UTC`. All clocks use UTC; Luxembourg winter times
+  are `19:00`, `19:10`, and `19:30` respectively.
+- Original crontab backed up; expected-job guards, syntax validation, and
+  installed-content comparison passed. Cron remains active. Scripts, retention,
+  Duplicati configuration and services were not modified by this correction.
+- Existing fresh staging files are readable and gzip-valid inside Duplicati;
+  the next automatic cycle and remote inclusion remain to be verified.
+- [Detailed schedule/rollback record](maintenance-2026-10-31.md#backup-schedule-follow-up).
+
 ## 2026-10-31 - End-Of-Month Maintenance
 
 Applied 20 standard host package upgrades and rebooted into kernel
