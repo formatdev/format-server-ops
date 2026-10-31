@@ -3,11 +3,11 @@
 Runbook for maintaining the Hetzner VPS that hosts Wazuh for the Format
 environment.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-31
 
 ## Current Verified State
 
-Last verified: 2026-10-10. See
+Last verified: 2026-10-31. See
 [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/maintenance-log.md)
 for the inspection details.
 
@@ -17,8 +17,8 @@ for the inspection details.
 - Public IPv4: `116.203.114.188`
 - Public IPv6: `2a01:4f8:1c1c:9a62::1/64`
 - OS: Ubuntu 24.04.5 LTS
-- Running kernel: `6.8.0-146-generic`
-- Primary workload: Wazuh 4.14.8, package/systemd deployment
+- Running kernel: `6.8.0-147-generic`
+- Primary workload: Wazuh 4.14.9, package/systemd deployment
 - Active services: `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`,
   `filebeat`
 - Recommended agent endpoint: `wazuh-agent.format.lu`
@@ -26,28 +26,34 @@ for the inspection details.
 - Portainer: not present by current deployment evidence
 - Wazuh indexer data: `/var/lib/wazuh-indexer`, bind-mounted from
   `/mnt/HC_Volume_104575658/wazuh-indexer`
-- Reboot state: reboot completed on 2026-10-10; no reboot marker remains
-- Remaining apt upgrades as of 2026-10-10: `libopeniscsiusr` and `open-iscsi`,
-  deferred by Ubuntu phased updates
+- Reboot state: reboot completed on 2026-10-31; no reboot marker remains
+- Remaining apt upgrades as of 2026-10-31: none
+- Public ingress: dashboard 443/tcp, agent events 1514/tcp, rate-limited SSH
+  22/tcp. Enrollment 1515/tcp is blocked by UFW on IPv4 and IPv6.
+- Enrollment defense in depth: password required, automatic duplicate-agent
+  replacement disabled, enrollment TLS certificate renewed through 2027-10-31.
+- Security case closed at Peter's request on 2026-10-31: unrecognized agent
+  `045 poc-f9b33373` key revoked, source `46.55.225.40` blocked, enrollment
+  hardened and evidence retained. Closure is not forensic clearance; see the
+  security review for scope and limitations.
 - Searchable alert retention: 90 days through ISM policy
   `wazuh-alert-retention-90d`
 - Local rotated alert retention: 30 days through
   `wazuh-local-alert-retention.timer`
 - Internal Wazuh log retention: 31 days through the existing
   `monitord.keep_log_days` setting
-- Storage after 2026-10-10 maintenance: root 58% used and indexer data
-  volume 42% used
-- Full agent inventory: 14 remote agents active, 21 disconnected, none never
-  connected; local manager active. Follow up on `021 NUC-MTX3`, last heard
-  before this maintenance round at 2026-10-10 04:10:18 UTC.
+- Storage after 2026-10-31 maintenance: root 58% used and indexer data
+  volume 43% used
+- Full valid agent inventory: 16 remote agents active, 19 disconnected, none
+  never connected; local manager active. `021 NUC-MTX3` is active again.
 - Agent state: canonical Mac agent `043 MBP-PCZ` active after starting its
-  stopped local 4.14.7 processes on 2026-10-10; the OpenVPN Connect
-  profile persistently ignores the pushed route for `116.203.114.188` and
-  routes that host through `net_gateway`, while the other pushed cloud route
-  remains on the VPN
+  stopped local 4.14.8 processes on 2026-10-31. Server route uses en0.
+  The persistent VPN route exception is documented in the August 23 log;
+  VPN reconnect behavior was not retested this round.
 - Configuration recovery copy: root-only
-  `/root/wazuh-maintenance-20261010-zkKURQ/config-before.tgz`; this is not an
-  index-data backup. Historical archive remains at
+  `/root/wazuh-maintenance-20261031-8Iy6j8/config-before.tgz`; this is not an
+  index-data backup. The same directory holds registration/log evidence.
+  Historical archive remains at
   `/root/wazuh-backup-2025-08-03.tar.gz`.
 
 ## Host Files
@@ -55,6 +61,7 @@ for the inspection details.
 - [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/maintenance-log.md): host-level maintenance history
 - [new-thread-prompt.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/new-thread-prompt.md): prompt for opening a dedicated maintenance thread
 - [retention/README.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/retention/README.md): tracked index and local alert retention configuration
+- [security-review-2026-10-31.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/security-review-2026-10-31.md): unrecognized enrollment, investigation, containment and verified hardening
 
 ## Safety Rules
 
@@ -70,6 +77,44 @@ for the inspection details.
   connectivity.
 
 ## Access
+
+Public agent enrollment is closed following the October 31 security finding.
+Existing agents use their current keys over TCP 1514. Authd now requires a
+256-bit random password stored only in `/var/ossec/etc/authd.pass`
+(`0640 root:wazuh`), and `<auth><force><enabled>no</enabled></force></auth>`
+prevents automatic replacement of an existing registration. Do not restore a
+general public 1515 allow rule.
+
+### New Agent Registration
+
+SSH forwarding is disabled (`AllowTcpForwarding no`); a local SSH tunnel was
+tested and rejected. Preserve this restriction. Register new agents through
+authenticated SSH administration without opening 1515:
+
+1. Verify the endpoint owner and intended unique agent name. Inspect the
+   existing roster with `/var/ossec/bin/manage_agents -l` on the manager.
+   A renamed or temporarily disconnected endpoint normally keeps its key;
+   do not automatically delete or replace its registration.
+2. From `ssh format-wazuh`, use `/var/ossec/bin/manage_agents` interactively
+   to add the approved endpoint and extract only its new client key.
+3. Transfer the extracted key through a protected, authenticated admin channel.
+   On the endpoint, stop the agent and import it using the interactive
+   `manage_agents` tool. Keep the key out of shell command arguments, shell
+   history, chat transcripts and this repository. On macOS the tool is
+   `/Library/Ossec/bin/manage_agents`; on Linux, `/var/ossec/bin/manage_agents`.
+4. Set the agent's event server to `wazuh-agent.format.lu`, TCP 1514, and
+   start the agent. Confirm its expected name/ID is Active on the manager
+   and that current events are arriving. Do not re-enroll a healthy agent.
+
+The enrollment password is defense in depth for the blocked TLS listener,
+not a requirement for existing 1514 sessions or manually imported client keys.
+Any future network-enrollment exception needs a separate scoped plan, source
+restriction, password/certificate validation, and removal of the temporary rule.
+The self-signed enrollment certificate is not publicly CA-trusted. It was
+validated against its exact certificate and DNS name during the local tests;
+future network clients must use a securely distributed trust anchor too.
+Renew it before **2027-10-31 13:59:33 UTC**. Dashboard/indexer certificates were
+not replaced.
 
 Try the currently working local SSH alias:
 

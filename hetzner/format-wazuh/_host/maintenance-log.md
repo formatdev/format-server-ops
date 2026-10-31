@@ -6,6 +6,166 @@ Wazuh health checks, and reboot decisions for `format-wazuh`.
 Do not record passwords, API tokens, backup passwords, registry credentials,
 certificate private keys, enrollment secrets, or other secrets here.
 
+## 2026-10-31 - Security Case Closed
+
+- Peter requested closure after reviewing the investigation, containment and
+  enrollment hardening. No provider abuse report was requested or sent.
+- Case closed as contained and hardened, not as a forensic clearance. Keep
+  the source deny, revoked agent key, closed public enrollment and protected
+  evidence. No further incident investigation is scheduled by this closure.
+- Routine follow-ups remain separate: Mac agent startup reliability/update,
+  recovery coverage and enrollment certificate renewal before October 31, 2027.
+- Wazuh-only documentation commit/push authorized; unrelated repository edits
+  are excluded.
+
+## 2026-10-31 - October 27 Review And Enrollment Hardening
+
+Maintainer: Codex with Peter; explicitly authorized after the initial containment.
+
+Investigation:
+
+- Correlated preserved manager/API logs, registration snapshot, retained alert
+  indices and journals. Source `46.55.225.40` probed API port 55000 at
+  October 27 01:01:30 UTC (firewall blocked), enrolled agent 045 at 01:01:45,
+  and last reported at 01:01:54. The only indexed alert for 045 was a
+  disconnect at 01:14:44.856 UTC.
+- No matching source in the reviewed API/SSH logs, and no level-10-or-higher
+  manager alerts in the October 26-28 window. The only manager FIM alert
+  matched the October 28 Ubuntu library-update timestamp. Inspected config
+  hashes already matched the October 10 archive before hardening.
+- No evidence of successful host compromise in the reviewed records, but it
+  cannot be ruled out. Unalerted raw messages were not retained; no full
+  disk/memory forensic acquisition was performed. See the
+  [security review](security-review-2026-10-31.md) for exact scope/limitations.
+
+Hardening:
+
+- Preserved pre-hardening configuration, enrollment cert/key, client keys and
+  firewall status under the protected maintenance directory's
+  `review/enrollment-before-hardening/`.
+- Required an enrollment password, generated directly into the manager's
+  `authd.pass` with `0640 root:wazuh`; disabled automatic duplicate-agent
+  replacement. No enrollment secret was printed or added to Git.
+- Replaced expired enrollment-only TLS certificate/key; new certificate valid
+  through 2027-10-31 13:59:33 UTC. Dashboard/indexer TLS unchanged.
+- Authd configuration validation passed; restarted only the manager around
+  13:59 UTC. Passwordless and wrong-password requests were rejected. Correct
+  password authenticated but an existing agent name was rejected by duplicate
+  protection. TLS certificate/name verification passed, no test agent was
+  created, and all 35 valid remote-agent keys were unchanged.
+- Agent 045 remains absent from valid keys/roster. Its void row was no longer
+  present in live keys by the pre-hardening snapshot; original evidence remains.
+- Public enrollment remains blocked for IPv4/IPv6, source deny retained;
+  external 1515 probe timed out and 1514 succeeded. External IPv6 not probed.
+- Existing SSH policy disables forwarding; tested tunnel was rejected. Kept
+  that policy and documented manual agent-key enrollment through SSH instead.
+
+Post-change verification:
+
+- Manager/indexer/dashboard/Filebeat active, no failed units or new manager
+  service-journal warnings. HTTP checks `302/401/401`, Filebeat TLS/output OK.
+- 397 primary shards active, 31 expected single-node replicas unassigned.
+  Latest alert 14:01:07 UTC at 14:01:11 verification. Sixteen active remote
+  agents, 19 disconnected; all nine servers and Mac 043 active.
+- No additional reboot, package changes or data deletion in this follow-up.
+  No reboot required. The earlier maintenance/upgrade is recorded below.
+- Root-only evidence and test results remain under
+  `/root/wazuh-maintenance-20261031-8Iy6j8/review/`; no off-host copy or
+  restore test was performed. Renew enrollment TLS before October 31, 2027.
+
+## 2026-10-31 - Maintenance And Unrecognized Enrollment Containment
+
+Date: 2026-10-31, 14:36-14:48 CET
+
+Maintainer: Codex with Peter
+
+Host before:
+
+- SSH alias confirmed as `root@116.203.114.188:22`; hostname/public IPv4/IPv6
+  match the runbook. Ubuntu 24.04.5 LTS, kernel `6.8.0-146-generic`, uptime
+  21 days 8 hours 57 minutes. Kernel 147 was already installed with reboot pending.
+- Wazuh manager/indexer/dashboard `4.14.8-1`, Filebeat `7.10.2-2`;
+  package/systemd deployment, Docker/Compose commands absent.
+- All four core services active, no failed units or recent service journal
+  warnings. Dashboard/API/indexer responses `302`/`401`/`401`, single-node
+  yellow with 397 active primary shards.
+- Root 63% used (45G used, 28G available), index volume 45% used
+  (33G used, 42G available). Memory available 3.2 GiB, swap used 1.2 GiB.
+- Alert tree 4.5G, queue 17G; historical 9.6G archive and October 10
+  configuration recovery archive present. No current full index backup verified.
+
+Security finding and containment:
+
+- Found disconnected agent `045 poc-f9b33373`; Peter did not recognize the
+  test. Preserved logs show enrollment from `46.55.225.40` on October 27
+  at 01:01:45 UTC and last keepalive nine seconds later.
+- Preserved configuration/client keys, online SQLite registration snapshot,
+  agent metadata and manager logs in
+  `/root/wazuh-maintenance-20261031-8Iy6j8/` before key invalidation/upgrade.
+- Added a first-priority UFW deny for that source and removed the public
+  TCP 1515 allow rules on IPv4 and IPv6. Existing event ingestion on 1514
+  remains allowed; remote probes confirm 1514 reachable and 1515 blocked.
+- Stopped manager and invalidated only agent 045 using a documented void
+  client-key entry (`!` prefix on the name), retaining the key record and
+  protected original evidence. It is absent from the valid post-restart roster.
+- This is an unrecognized remote enrollment; broader host compromise has
+  neither been established nor ruled out. See the dedicated
+  [security review](security-review-2026-10-31.md) for evidence and follow-up.
+
+Maintenance performed:
+
+- Refreshed apt metadata; upgrade and full-upgrade simulations both showed
+  17 upgrades, zero additions/removals/held packages. Dpkg audit clean.
+- Applied apt upgrade with removals prohibited and modified package
+  configuration preserved. Wazuh manager/indexer/dashboard advanced to
+  `4.14.9-1`; Filebeat stayed `7.10.2-2`.
+- Other upgrades covered AppArmor, cloud-init, GLib, open-iscsi, open-vm-tools,
+  Snap, tmux and Ubuntu Pro. Previously phased iSCSI updates were now eligible.
+- Flushed indexer before stopping ingestion. Filebeat module and alerts
+  template already matched official 0.5/v4.14.9 files, so no refresh was needed.
+- Rebooted once into `6.8.0-147-generic`.
+
+Verified result:
+
+- All core services active, dashboard/API/indexer `302`/`401`/`401` after
+  normal cold-start recovery. Filebeat TLS/output test passed; a fresh indexed
+  alert was timestamped 13:48:00 UTC at the 13:48:06 UTC verification.
+- All 397 primary shards active, 31 expected single-node replicas unassigned,
+  no initializing shards or pending tasks.
+- All 90 alert indices, 2026-08-03 through 2026-10-31, managed by
+  `wazuh-alert-retention-90d` with no reported action/retry failures.
+- Local cleanup succeeded at 03:40:33 UTC; timer active after reboot, and
+  deployed script/service/timer hashes match the repository.
+- Root 58% used (42G used, 31G available), index volume 43% used
+  (32G used, 43G available). Memory available 2.9 GiB; swap used 768 KiB.
+- UFW, fail2ban and AppArmor active. SSH remains key-only, MaxAuthTries 3;
+  API/indexer listeners remain loopback. AppArmor's installer again printed
+  `Illegal number: yes`, but the service was active before/after reboot.
+- No failed units, boot error entries, pending apt upgrades or reboot marker.
+- Final valid roster: 16 active remote agents, 19 disconnected, none never
+  connected, plus local manager. All nine server agents are active, and
+  `021 NUC-MTX3` has returned since the previous recorded check.
+- Mac 043's five local 4.14.8 processes were stopped. Started them and verified
+  the manager reports it Active after reboot. Its launchd wrapper remains alive
+  after a failed start without retrying; the original startup failure cause
+  remains unverified. Route uses en0 via 10.10.10.1.
+- No manual index, alert-log, queue-data or historical-backup deletion.
+
+PHP follow-up (read-only, separate cloud host):
+
+- TIM still runs PHP 8.4.27; NoLimits and phpMyAdmin still run PHP 8.3.36.
+  All 18 `format-cloud-1` services were 1/1. The protected patched-image archive
+  remains present. Local-only images still require registry-publication follow-up.
+- No cloud-host package maintenance or application image replacements were
+  performed in this Wazuh round.
+
+Follow-up:
+
+- October 27 review and authenticated, restricted enrollment were completed
+  in the later October 31 follow-up above. Keep public 1515 closed.
+- Review the Mac agent startup failure and consider its 4.14.9 update separately.
+- Commit the Wazuh runbook, maintenance log and security review after review.
+
 ## 2026-10-10 - Wazuh 4.14.8 Upgrade And Kernel Reboot
 
 Date: 2026-10-10 06:32-06:41 CEST
