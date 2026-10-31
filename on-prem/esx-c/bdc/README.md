@@ -2,21 +2,22 @@
 
 Starter runbook for the `BDC` VM on ESX-C.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-31
 
 ## Known State
 
 - VM name in vCenter: `BDC`
 - Expected Windows hostname: `BDC`
 - Expected IP from local SSH config: `192.168.1.4`
-- Existing alternate SSH alias: `win-bdc`; October 10 session identity is `FORMAT\Administrateur`, not a separately verified local break-glass account.
+- Existing alternate SSH alias: `win-bdc`; October 31 session identity is `FORMAT\Administrateur`, not a separately verified local break-glass account.
 - Expected domain-admin SSH alias: `winad-bdc`
 - Expected SSH identity: `~/.ssh/windows-admin_ed25519`
 - Role: confirmed backup domain controller and DNS server for `format.lu`; domain-critical.
 - Verified live state: confirmed backup domain controller for `format.lu` on 2026-04-18.
-- Current maintenance: see [maintenance log](maintenance-log.md), October 10 entry.
-- October 10 post-start status: boot 07:17:55 after operator shutdown; fresh scan succeeded with zero offered updates. CBS/WU flags and pending rename queue are clear. Focused DC checks and all five inbound replication contexts pass; both SSH aliases work, time sync uses PDC, and C: has 67.14 GiB free.
-- No checked cleanup/installer processes or FormatOps tasks remained at recovery inspection. WinRM is Stopped/Disabled; broad SSH Allow-Any remains enabled alongside a scoped rule. Recovery verification made no policy or power changes. Startup event warnings remain documented in the log.
+- Current maintenance: see [maintenance log](maintenance-log.md), October 31 entry.
+- Window closure: operator reports BDC shut down on October 31 for HPE host firmware work, now in progress. Power state and firmware outcome were not independently verified; the following health results precede shutdown. Post-start DC/access/time/replication checks remain pending.
+- October 31 status: boot October 26 11:14:06, build 20348.5761. Fresh scan succeeded with zero offered updates; CBS/WU flags clear. Two non-empty Edge rename strings remain. Focused DC tests, SYSVOL/NETLOGON and all five inbound replication contexts pass; both SSH aliases work, time sync uses PDC, and C: has 63.35 GiB free.
+- No checked cleanup/installer processes or FormatOps tasks were present. WinRM remains Stopped/Disabled; broad SSH Allow-Any remains enabled alongside the trusted-source rule. Historical Netlogon errors, an SSH termination before the October 26 boot, and printer-policy warnings are documented in the log. No patch or Windows servicing restart was required. No cleanup or policy change was performed.
 - September 5 cleanup ended with a terminated task result; reclaimed space is unverified. The stopped task and profile were removed on September 13.
 
 ## Safety Rules

@@ -1217,3 +1217,84 @@ Outcome:
 - Guest recovery is verified. ESX-C host SSH still returns connection refused;
   VMware inventory/jobs and the iLO firmware version/update result were not
   verified. No application/restore transaction was tested and no raw logs saved.
+
+## 2026-10-31 - End-Of-Month Maintenance Inspection
+
+Scope and access:
+
+- Started with git status; ESX-C files were clean and unrelated cloud-host
+  changes were preserved. Read-only discovery used VPN utun6 via 192.168.113.1
+  around 14:36-14:41 CET. No patch installation, reboot, cleanup, snapshot,
+  migration, AD/GPO, firewall, SSH, WinRM or security-agent change was performed.
+- BDC remains the format.lu backup domain controller/DNS server at 192.168.1.4.
+  Both expected SSH aliases work as FORMAT\Administrateur, not independently
+  verified local break-glass accounts. Last boot is October 26 11:14:06;
+  Windows build is 20348.5761. Intervening operator maintenance was not observed.
+
+Updates, storage and role checks:
+
+- Windows Update scan completed 14:37:05, ResultCode 2, zero applicable
+  non-hidden software updates. KB5126654, KB5126655 and KB5127687 report October
+  17 installation. CBS/WU restart flags are false. Two non-empty Edge updater
+  rename strings remain; these are strings, not a count of operation pairs.
+  No checked servicing/cleanup workers or FormatOps tasks were present.
+- C: is Healthy, 63.35 GiB free of 89.40 GiB. Eleven VSS writers are
+  Stable/No error. DNS, NTDS, DFSR, Netlogon, SSH, Windows Time, ESET and its
+  management agent are Running/Automatic. SYSVOL and NETLOGON are present.
+- dcdiag Connectivity, Advertising, SysVolCheck, NetLogons and Services pass.
+  All five inbound PDC replication contexts show zero failures, with latest
+  successes between 13:59:38 and 14:37:19. Time uses PDC, leap indicator 0,
+  stratum 5, last sync 14:24:52.
+- Sixteen SMB files were open at discovery, with zero type-10 logon records.
+  No users, client details, shared-file paths or customer contents were recorded.
+
+Events and access policy:
+
+- Bounded seven-day queries (up to 200 warning/error/critical records per log)
+  returned DCOM 10016 x5, Time-Service 1/4 x5 each, Netlogon 5719 x1 and 5722
+  x2, Schannel 36928 x1, SCM 7031 x1; Application Perflib 1023 x1 and Group
+  Policy Printers 4098 x6. These are sampled groups, not a full log certification.
+- The SCM record identifies OpenSSH termination at October 26 11:13:51,
+  before the current boot. Netlogon access-denied records occurred October 24
+  21:15:49 and October 26 08:59:16; 5719 occurred October 26 11:32:02. Current
+  SSH, domain role and replication pass. Affected identities were not retained
+  or remediated; do not reset computer passwords from these historical events.
+- WinRM stays Stopped/Disabled. RPC endpoint authentication is 1 and incoming
+  NTLM restriction 2. Scoped SSH/WinRM rules retain 192.168.1.73 and
+  192.168.113.2, but enabled sshd-In-TCP still allows Any. No policy correction
+  was made. The earlier ADMIN exception removal was not re-audited this round.
+
+Backup evidence and outcome:
+
+- Supporting read-only Veeam logs show BDC primary task Success on October 30
+  23:02:26, NAS4 copy task Success October 30 23:55:42, and replication task
+  Success October 30 16:38:18. Overall primary/copy/replication payloads each
+  completed 10 successful tasks, zero failed, followed by SMTP relay rejection
+  5.7.54. Primary already reported Warning before email; email is not proven
+  the only source of that warning. Existing service logs show stopped jobs;
+  only the infrastructure-rescan manager was observed in the process sample.
+- Veeam E: has 2323.87 GiB free (8.11%); address repository capacity separately
+  in the Veeam thread. No backup contents, retention or job settings were changed.
+  Native session/restore-point enumeration was unavailable: Windows PowerShell
+  was too old for the installed module, and the retry with installed PowerShell
+  7 failed the SSL connection. No certificate trust setting was changed.
+- Routine update/DC checks pass; no install or servicing reboot is required.
+  Historical events, broad SSH scope and disabled WinRM remain follow-ups.
+  ESX-C host SSH refused connection, so host inventory/jobs and iLO firmware
+  remain unverified. No restore test was performed. Only sanitized findings saved.
+
+## 2026-10-31 - Operator Shutdown And Maintenance Window Closure
+
+- Operator closed today's maintenance window and reports all servers shut down
+  while performing an HPE firmware update on the host. Record BDC as
+  operator-reported shut down; exact shutdown time, sequence, graceful completion
+  and VMware power state were not independently checked. No additional shutdown
+  command, power-on action or host firmware operation was sent from this thread.
+- HPE firmware update is operator work in progress. Model/component/version,
+  successful completion and post-update host health are not yet verified.
+- Today's last online DC/update findings remain historical. After the operator
+  confirms startup, verify boot/shutdown events, both expected access paths,
+  DNS/NTDS/DFSR/Netlogon, SYSVOL/NETLOGON, time, inbound replication, disks and
+  restart/rename markers. No further guest work is underway during host servicing.
+- Commit/push scope is the seven ESX-C README/log files only; unrelated
+  cloud/ESX-D/ESX-E changes belong to their own maintenance threads.

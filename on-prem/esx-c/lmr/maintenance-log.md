@@ -1158,3 +1158,282 @@ Outcome:
 - Guest recovery checks pass with known certificate/startup warnings still
   open. ESX-C host SSH was refused; hypervisor jobs/inventory, restore tests,
   and the iLO firmware version/update outcome remain unverified.
+
+## 2026-10-31 - End-Of-Month Maintenance Inspection
+
+Scope, updates and servicing:
+
+- Read-only inspection around 14:36-14:41 CET preserved unrelated repo work.
+  No patch installation, reboot, cleanup, service restart, certificate, database,
+  policy, firewall or SSH/WinRM change was made.
+- LMR remains the production format.lu member at 192.168.1.8. Last boot
+  October 17 02:23:52, Windows build 20348.5761. Both SSH aliases work with
+  their expected local/domain identities; secure-channel and domain SID lookup pass.
+- Fresh Windows Update scan completed 14:37:05, ResultCode 2, zero applicable
+  non-hidden software updates. KB5126654, KB5126655 and KB5127687 report
+  October 17 installation. CBS/WU reboot flags are false.
+- TiWorker/TrustedInstaller were already present before the scan, started at
+  14:35:14. A five-second sample showed zero CPU increase for both and no CBS
+  log growth. Both were absent by 14:41:07; no competing installer or cleanup
+  was launched. No FormatOps tasks were present. Eight non-empty rename strings
+  remain (five Edge, three Windows temporary files), not eight operation pairs.
+  No registry queue entries were removed and no servicing restart is required.
+
+Workload, disks and certificates:
+
+- IMOS SQL, MySQL_CSF2_Master, SSH, Netlogon, Windows Time, ESET and its
+  management agent are Running/Automatic. Eleven VSS writers are Stable/No error.
+  Both mounted volumes are Healthy. D: has 894.38/1023.99 GiB free/total.
+- C: has 13.32/119.40 GiB free (11.16%), down about 6.70 GiB from October
+  10. A shallow root-file check found pagefile.sys at 1.25 GiB; this is not a
+  full disk-usage audit or proof of the growth source. Review folder usage and
+  a scoped cleanup plan before space becomes critical. No files were deleted
+  and no component-store cleanup was run while servicing processes were present.
+- Time uses PDC, leap indicator 0, stratum 5, last sync 14:36:42. Fourteen SMB
+  files were open at discovery, with no type-10 logon records. Client/user/file
+  details were not retained and application transactions were not tested.
+- Three expired LocalMachine personal-store certificates remain. The active
+  RDP-bound certificate was matched in memory and remains valid to February 3,
+  2027 at 19:44:01. No certificate hash, subject, key or certificate was saved
+  in the repo; no certificate was removed or renewed.
+
+Events and policy:
+
+- Bounded seven-day warning/error groups: certificate auto-enrollment 64 x63
+  (latest October 31 09:24:16), TPM-WMI 1803 x14, DCOM 10016 x5, SQL 17806 x2.
+  The two SQL records at October 26 10:07:29/31 report SSPI handshake error
+  0x80090302. Client identity, impact and authentication cause were not established;
+  healthy current services/domain access do not erase those historical errors.
+- RPC endpoint authentication remains 1, incoming NTLM restriction 2; custom
+  SSH/WinRM scopes retain 192.168.1.73 and 192.168.113.2. Broad sshd rule stays
+  disabled. WinRM remains Stopped/Disabled. No new GPO audit or policy change.
+
+Backup evidence and outcome:
+
+- Supporting Veeam logs show LMR primary Success October 30 23:02:30, NAS4
+  copy Success October 31 00:03:07, replication Success October 30 16:06:24.
+  Overall primary/copy/replication payloads each completed 10 successful tasks,
+  zero failed; mail relay rejection 5.7.54 persists. Primary already had a
+  Warning before email, so mail is not proven the only warning source.
+- Veeam repository E: has 2323.87 GiB free (8.11%); capacity follow-up belongs
+  to its separate thread. No backup files, jobs or retention settings changed.
+  Native session/restore-point enumeration was unavailable due to an SSL
+  connection failure under installed PowerShell 7; Windows PowerShell did not
+  meet the module's version requirement. No trust setting was changed. Log-based
+  success is not a restore test or native validation of restore-point usability.
+- Routine update/access/service checks pass with no patch or servicing reboot
+  required. Prioritize C: usage/cleanup review, then certificate ownership/renewal
+  and historical SQL authentication errors. ESX-C host SSH was refused; VMware
+  jobs/inventory and iLO firmware outcome remain unverified. Only sanitized
+  findings were written to working-tree documentation; no git commit was made.
+
+## 2026-10-31 - Read-Only C-Drive Usage Investigation
+
+Scope and method:
+
+- User requested identifying what consumes LMR disk space. Checked metadata
+  around 14:48-14:54 CET over the existing local SSH path. No order documents,
+  backup contents or database tables were read. Only selected storage-path
+  settings were read from MySQL configuration and SQL registry values;
+  credentials and unrelated configuration were excluded.
+- Enumerated accessible C: file metadata at below-normal process priority,
+  skipping reparse points. Scan completed without reaching its 180-second cap:
+  683,879 files, 100 skipped reparse entries and 453 access/metadata failures.
+  Permissions were not changed. A focused IMOS scan completed with 200,538
+  files, no access errors and no reparse points.
+- Sizes below are logical file lengths, not unique allocated clusters.
+  Hard links/shared Windows files, compression and inaccessible entries mean
+  folder sums need not match volume-used space. No historical per-folder
+  baseline exists to prove the source of the 6.70 GiB decline since October 10.
+
+Accessible C: usage:
+
+| Area | Logical GiB | Notes |
+| --- | ---: | --- |
+| ProgramData | 68.002 | IMOS alone accounts for 65.097 GiB. |
+| ProgramData\imos AG\Factory\Imorder | 37.202 | 1,273 order folders; business data, no retention/status inference made. |
+| ProgramData\imos AG\Library\DB | 14.384 | Six .bak files 11.339 GiB; two .mdf files 3.042 GiB; two .ldf files about 0.004 GiB. |
+| ProgramData\imos AG\Library\ImportExport | 4.465 | Application import/export tree; contents and continued dependencies not reviewed. |
+| ProgramData\imos AG\Factory\DELETED | 2.338 | Folder name alone does not establish that contents are disposable. |
+| Windows | 24.445 | Includes shared/hard-linked files; component-store analysis below is authoritative for its own area. |
+| Program Files | 11.614 | Microsoft SQL Server tree 9.034 GiB, including 5.640 GiB of backup files. |
+| Program Files (x86) | 3.487 | Microsoft subtree 3.324 GiB. |
+| Users, all profiles | 2.923 | Includes one observed 2.398 GiB .bak; personal/profile names excluded. |
+| mysql | 0.238 | Configured datadir C:\mysql\data measures 0.207 GiB. |
+| pagefile.sys | 1.250 | Not a cleanup target in this investigation. |
+
+- Table rows mix parent areas and selected children and must not be added
+  together. Other IMOS library assets account for the remainder of its 65.097
+  GiB; no customer-specific directory names or filenames are recorded.
+- Six IMOS backup files were last modified September 23, 2024; January 21,
+  May 29 (two), September 21 and October 21, 2026. Sizes range from 0.213
+  to 2.639 GiB. Three SQL Server backup-directory files total 5.640 GiB,
+  last modified January 22, 2024; March 19 and May 29, 2026. Including the
+  observed profile backup gives at least ten .bak files, about 19.377 GiB
+  logical. Backup set ownership, contents, recoverability and retention were
+  not established; no duplicate-content hashes were calculated and matching
+  sizes do not prove duplicate files or equivalent recovery coverage.
+- SQL startup settings locate master data/log and ERRORLOG on C:. Its default
+  backup directory is also on C:. The DATA directory measures only 0.198 GiB
+  .mdf plus 0.044 GiB .ldf; larger database files are in the IMOS library.
+  No database was queried, detached, shrunk, stopped or reconfigured.
+
+Windows storage analysis:
+
+- DISM /Online /Cleanup-Image /AnalyzeComponentStore completed successfully;
+  no cleanup operation was requested. DISM reports actual component store
+  10.01 GB, of which 5.48 GB is shared with Windows and 4.53 GB is backups/
+  disabled features; cache/temporary data zero. These are DISM's displayed GB,
+  distinct from the GiB logical folder measurements above.
+- Last component cleanup October 17 01:25:17; one reclaimable package;
+  Cleanup Recommended: Yes. The 4.53 GB category is not a promised reclaim
+  amount. No package removal, ResetBase, update-cache purge or Installer-cache
+  deletion was performed. Other accessible Windows sizes: Installer 3.118 GiB,
+  SoftwareDistribution 0.624 GiB and Logs 0.060 GiB.
+- Recycle Bin accessible contents total only 516 bytes across four files.
+  Returned shadow-storage record has zero used/allocated bytes. Neither
+  explains the large measured usage. No shadow copies were removed.
+
+Outcome and next scope:
+
+- Main consumer is IMOS order/library storage. Best candidates to review for
+  archiving are historical SQL .bak files, with a documented retention decision
+  and verified recovery coverage before removal from C:. D: has about 894.38
+  GiB free in today's earlier inspection, but moving live IMOS folders or
+  databases requires an application/dependency plan; no move is authorized
+  or performed by this read-only investigation.
+- A separate supported Windows component cleanup can be considered after
+  servicing is idle; actual savings remain unknown. Never manually delete
+  WinSxS/Installer contents or treat active database files as temporary data.
+- Final check at 14:54 shows C: still 13.32 GiB free, both SQL and MySQL
+  services Running. No reboot, service restart, data deletion, move, backup
+  retention change or security/access change occurred. Only aggregate findings
+  were written to the repo; no customer identifiers, profile paths or raw logs.
+
+## 2026-10-31 - Approved Historical SQL Backup Archive And Component Cleanup
+
+Approved scope and pre-change state:
+
+- User authorized moving old SQL backups to D: and running Windows component
+  cleanup on LMR. Interpret old as last modified before October 1, 2026;
+  retain the October 21 IMOS backup on C:. Exact selected source/destination
+  paths and verification details will remain in a protected guest-local manifest.
+- Preflight at 15:01:40 CET confirms local LMR identity, both volumes Healthy,
+  C: 14,304,763,904 bytes free and D: 960,333,205,504 bytes free. SQL/MySQL
+  services are Running; no checked servicing/installer/cleanup workers are
+  present, CBS/WU restart flags are false, and no .bak files are SMB-open.
+- Nine selected .bak files total 17,972,049,408 bytes (16.7378 GiB): five
+  historical IMOS backups, three SQL backup-directory files, and one profile
+  copy matching a known IMOS backup's name/length. The newer October 21
+  2,833,868,288-byte IMOS backup is explicitly excluded.
+- Archive to D:\FormatOps\Archives\SQLBackups\2026-10-31 with original
+  C: directory structure preserved. Protect the new archive for Administrators
+  and SYSTEM; do not change permissions on existing application/profile files.
+  Copy with a source read lock, verify source/destination SHA-256 and stable
+  metadata, then remove only that exact approved C: source. Keep manifest and
+  hashes on the guest, not in git. On verification/lock failure, keep the source.
+- Rollback is copying each archived file to its manifest-recorded original
+  location with verification, without overwriting any newly created source.
+  No live .mdf/.ldf, IMOS order/library assets, MySQL data, SQL backup schedule,
+  default backup path or Veeam repository/retention changes are in this scope.
+- After archive verification, run supported DISM StartComponentCleanup with
+  NoRestart and without ResetBase. This removes eligible superseded components;
+  it is not a broad temporary-file or Installer-cache purge. Verify exit result,
+  post-analysis, free space, restart markers and database/service health before
+  declaring completion. No reboot is included in this step.
+
+Archive result:
+
+- Archive ran 15:04:06-15:10:08 CET. All nine selected files, totalling
+  17,972,049,408 bytes (16.7378 GiB logical), were copied with read-sharing
+  source handles blocking writers, flushed, and source/destination SHA-256
+  compared before the exact original was removed. File dates were preserved.
+- Final independent manifest/metadata check at 15:10:37 passed for all nine:
+  status MovedVerified, source absent, destination present, lengths correct,
+  and recorded hashes matching. The protected archive permits only SYSTEM
+  and local Administrators, with inheritance protection enabled. Exact paths
+  and hashes remain solely in its guest-local manifest.json.
+- The October 21 IMOS .bak remains on C: at 2,833,868,288 bytes. SQL and MySQL
+  services are Running. No active database, order data, backup schedule/default
+  path, or Veeam content was moved or changed.
+- C: free space rose from 14,304,755,712 to 31,514,116,096 bytes (13.32 to
+  29.35 GiB), an observed 16.03 GiB increase. D: has 942,361,133,056 bytes
+  free (877.64 GiB). Logical file bytes and measured free-space changes are
+  distinct; do not promise a byte-for-byte physical gain from logical sizes.
+- The helper returned a final-summary Measure-Object error after all moves
+  and its completed manifest were saved. Fixed that reporting expression;
+  did not repeat the move. Independent validation above establishes the
+  archive result despite that reporting-only nonzero exit.
+- Component cleanup then started at 15:10:54 using StartComponentCleanup
+  with NoRestart and without ResetBase. Its outcome remains pending until
+  the process and post-analysis complete.
+
+Component cleanup and final verification:
+
+- DISM StartComponentCleanup completed at 15:18:04, exit 0, with NoRestart
+  and without ResetBase. Saved its aggregate result inside the protected
+  archive as component-cleanup-result.json. C: free changed from
+  31,496,769,536 bytes immediately before cleanup to 35,120,222,208 bytes
+  immediately afterward, an observed 3.37 GiB increase during that window.
+- Post-cleanup AnalyzeComponentStore succeeded: actual store 7.73 GB,
+  shared with Windows 5.45 GB, backups/disabled features 2.28 GB, temporary
+  cache zero; last cleanup 15:18:04, zero reclaimable packages, Cleanup
+  Recommended No. These are DISM's native displayed GB. No repeat cleanup,
+  ResetBase or direct WinSxS/Installer deletion was performed.
+- At 15:18:20, C: is Healthy with 35,127,435,264 bytes free (32.715 GiB,
+  27.40%); D: Healthy with 942,361,133,056 bytes free (877.64 GiB). Total
+  observed C: free-space increase from the archive baseline is about 19.39
+  GiB. Small differences between samples reflect ongoing system activity;
+  logical archived bytes are not a physical-free-space guarantee.
+- All nine manifest entries still pass status/source-absence/destination-size
+  and recorded-hash checks. The October 21 IMOS backup remains on C: and
+  Library\DB now measures 5.685 GiB. SQL/MySQL, SSH, Netlogon, Windows Time
+  and ESET services are Running. All 11 VSS writers are Stable/No error.
+  Boot remains October 17 02:23:52; no reboot occurred.
+- CBS and WU restart markers remain false. Eight non-empty application rename
+  strings remain, unchanged from the initial inspection. No queue was cleared
+  manually. Only the two uploaded helper scripts were removed from Windows
+  Temp after completion; no scheduled task/service was created. Private
+  archive/manifest/result records remain on D:, with no hashes copied to git.
+
+Separate final domain-authentication finding:
+
+- At 15:18:20 secure-channel test returned False, whereas it passed before
+  this work. Recheck at 15:18:59 returned False and nltest /sc_query reported
+  1311 ERROR_NO_LOGON_SERVERS. At 15:19:16 generic and PDC/BDC-targeted tests
+  returned False from both local and domain SSH contexts.
+- Domain SID lookup and a fresh winad-lmr login as FORMAT\Administrateur
+  still pass. Both controller names resolve to expected addresses. At 15:20:15,
+  TCP 88, 135, 389 and 445 to both PDC and BDC are reachable. No new Netlogon
+  event was returned in the bounded query since 15:01. This is partial domain
+  authentication failure, not evidence of a dead controller or conclusive
+  machine-password mismatch. Actual application/domain transactions were not tested.
+- No repair, rejoin, machine-password reset, AD/GPO edit, policy refresh,
+  service restart or reboot was attempted. The existing RPC/NTLM policy context
+  remains relevant, but cause and any relationship to component servicing have
+  not been isolated. Keep this as the next separate investigation rather than
+  declaring all health checks clear after the successful storage work.
+- Archive and component cleanup are complete; no Windows servicing reboot is
+  requested. Final 15:20:15 C: reading is 32.72 GiB free. Documentation checks
+  passed; unrelated repo changes were preserved and no commit/push was made.
+
+## 2026-10-31 - Operator Shutdown And Maintenance Window Closure
+
+- Operator closed today's maintenance window and reports all servers shut down
+  while performing an HPE firmware update on the host. LMR shutdown is
+  operator-reported; exact time, graceful completion and VMware power state
+  were not independently checked. No further guest shutdown/power-on or host
+  firmware action was sent from this thread. Firmware version, completion and
+  post-update host health remain unverified.
+- Authorized backup archive and component cleanup completed before shutdown.
+  Last online C: reading was 32.72 GiB free; nine historical backups and their
+  protected manifest remain on D:, with the October 21 backup retained on C:.
+  No automatic post-start action or additional cleanup is pending execution.
+- First recovery follow-up is the unresolved secure-channel False/1311 result,
+  which coexisted with working domain SSH/lookup before shutdown. Verify it
+  afresh after startup before proposing any repair. Also check SQL/MySQL,
+  local/domain access, boot events, VSS/disks/free space, archive availability,
+  CBS/WU and rename markers. Existing certificate warnings remain open.
+- User requested commit/push of today's work. Include only the seven ESX-C
+  README/log files; keep the private archive manifest, exact backup/profile
+  paths and hashes on LMR, and preserve unrelated worktree changes.

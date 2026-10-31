@@ -1536,3 +1536,95 @@ Official references checked October 10:
   disabled and WinRM remains Stopped/Disabled. ESX-C host SSH was refused;
   hypervisor jobs/inventory and iLO firmware outcome were not verified.
   Only sanitized status findings were recorded. Domain access remains unresolved.
+
+## 2026-10-31 - End-Of-Month Maintenance Inspection
+
+Scope, updates and workload:
+
+- Read-only checks around 14:36-14:41 CET preserved unrelated git changes and
+  working local access. No patch installation, reboot, cleanup, profile deletion,
+  service restart, policy, firewall, SSH/WinRM or security-agent change was made.
+- KUHNLE remains the production format.lu member at 192.168.1.14. Last boot
+  October 19 17:36:57; build 20348.5761. Fresh Windows Update scan at 14:37:07
+  succeeded, ResultCode 2, zero applicable non-hidden software updates.
+  KB5126654, KB5126655 and KB5127687 report October 17 installation.
+- CBS/WU restart flags are false. No checked cleanup/installer processes or
+  FormatOps tasks were present. Nineteen non-empty rename strings remain:
+  12 Windows temporary/installer, four Edge, one TeamViewer and two other
+  updater entries. Categories reflect path matching, not verified ownership of
+  every temporary file. No queue entry was removed; strings are not operation pairs.
+- SQLBase_SERVER1, SSH, Netlogon, Windows Time, ESET/management agent and all
+  four sampled Panda services are Running/Automatic. C: is Healthy with
+  20.23/49.37 GiB free/total; D: 33.07/49.98 GiB. Ten sampled VSS writers are
+  Stable/No error. Time uses PDC, leap indicator 0, stratum 5, last sync 14:23:38.
+  No SMB files or remote-interactive type-10 logon records returned at discovery.
+
+Domain access and events:
+
+- win-kuhnle authenticates as KUHNLE\Administrateur; winad-kuhnle now works
+  as FORMAT\Administrateur. Secure-channel validation and domain SID lookup
+  both pass. This supersedes October 10's failed-access status; the intervening
+  recovery/boot sequence and its cause were not observed by this task.
+- EnableAuthEpResolution remains 1 and incoming NTLM restriction 0. No fresh
+  RSoP/GPO audit or controlled policy test was performed. Current access does
+  not prove the earlier RPC/NTLM conflict durably fixed across another reboot.
+- Seven-day warning/error groups: TPM-WMI 1803 x14, DCOM 10016 x4, Perflib
+  1008 x4, User Profiles Service 1500 x1, 1533 x2, 1511 x1, and User Profiles
+  General 1509 x4. Profile records cluster at October 30 15:40:03 and include
+  access-denied/file-in-use and temporary-profile fallback. Identity/profile paths
+  were not retained; ownership, current profile impact and cause remain unverified.
+  Review the affected interactive profile separately before any profile repair.
+- SSH/WinRM custom source scopes still contain only the two trusted admin IPs;
+  broad sshd rule is disabled. WinRM remains Stopped/Disabled. No access setting
+  was changed and end-to-end SQLBase transactions were not exercised.
+
+WatchGuard follow-up:
+
+- Bounded query of the latest 100 Application Error event 1000 records since
+  October 10 startup returned 12 PluginLauncher crashes, daily October 10-21,
+  latest October 21 20:30:48. All returned faults identify launcher 1.19.0.1,
+  HealthCheck.dll and c0000005. The October 10 protection upgrade alone did
+  not immediately stop the fault; no later matching crash was returned.
+- Agent registration is now 1.25.14.0000, MSI package 2.31.00 installed
+  October 22. EDR Core remains 8.00.26.0012 / package 13.01.15; ESET Server
+  Security remains 13.0.12007.0. These product/package representations are not
+  evidence of duplicate active installations or a version mismatch.
+- HealthCheck.dll and PluginLauncher.exe now report 1.25.15.0, modified
+  October 23 03:51:32, both Valid signatures. These changes follow the latest
+  returned crash, but the exact updater sequence was not observed. The sampled
+  October 30/31 agent-log tails did not contain HealthCheck completion evidence
+  (October 31 log was empty at inspection). Do not declare a verified fix from
+  absence of crashes; scheduled execution and cloud protection receipt remain
+  unverified. No plugin was manually run or diagnostic bundle collected.
+
+Backup evidence and outcome:
+
+- Supporting Veeam logs show Kuhnle primary Success October 30 22:37:22,
+  NAS4 copy Success October 30 23:58:07, and replication Success October 30
+  16:07:20. Overall primary/copy/replication payloads each completed 10 tasks
+  successfully, zero failed; SMTP 5.7.54 persists. Primary's Warning status
+  predates email delivery, so do not assume SMTP explains every warning.
+- Repository E: on Veeam has 8.11% free. Keep capacity work in the Veeam
+  thread; no repository data/job/retention changes were made. Native Veeam
+  enumeration failed its SSL connection under installed PowerShell 7 after
+  Windows PowerShell failed the module-version prerequisite. Evidence is from
+  existing logs, not a restore test or native restore-point verification.
+- Routine update/access/service checks pass; no install or servicing restart
+  is required. Profile errors and rename queues remain recorded follow-ups.
+  ESX-C host SSH was refused; inventory/host jobs/iLO state remain unverified.
+  No customer details, credentials, raw logs or private material entered the repo.
+
+## 2026-10-31 - Operator Shutdown And Maintenance Window Closure
+
+- Operator closed today's maintenance window and reports all servers shut down
+  while performing an HPE firmware update on the host. Kuhnle shutdown is
+  operator-reported; exact time, graceful completion and VMware power state
+  were not independently checked. No new shutdown, power-on or firmware action
+  was sent from this thread, and update completion/version remain unverified.
+- Last online checks showed working local/domain SSH, lookup, trust and SQLBase;
+  they are not post-firmware recovery evidence. After confirmed startup, check
+  boot/shutdown events, SQLBase, both aliases, domain lookup/trust, time, disks,
+  servicing/rename flags and security-agent events. Profile-error review and
+  successful scheduled HealthCheck execution remain open items.
+- No further guest work is underway during host servicing. Only the scoped
+  ESX-C documentation is included in this thread's requested commit/push.
