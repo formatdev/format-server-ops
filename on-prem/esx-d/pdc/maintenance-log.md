@@ -413,6 +413,16 @@ Notes:
 
 - No update, reboot, service restart, AD object, DNS, SYSVOL, GPO, FSMO, firewall, or replication configuration change was made.
 
+## 2026-10-31 - End-of-Month Maintenance
+
+Maintainer: Codex with Peter
+
+- Local and domain SSH work. PDC runs Windows Server 2022 build 20348.5761, last boot October 26 at 11:31:38. AD DS, DNS, DFSR, KDC, Netlogon, time and SSH services are Running/Automatic; WinRM remains intentionally Stopped/Disabled. SYSVOL and NETLOGON shares are present. No interactive user session was found. C: free space is approximately 61.6 GiB.
+- Windows Update search succeeded with zero applicable updates; CBS/WU reboot flags are clear. No update installation or reboot was necessary.
+- PDC and the read-only BDC dependency check each report 0/5 replication failures; local detailed views show successful inbound attempts for all five naming contexts. The known reciprocal summary-query error 1326 remains in the SSH authentication context, distinct from successful actual partition replication. Focused PDC Advertising/SysVolCheck/NetLogons dcdiag completed without reported failure.
+- PDC is synchronized to 192.168.1.253 at stratum 4 with no leap warning; BDC is synchronized to PDC at stratum 5. BDC core AD/DNS services are running. BDC was queried only to validate the domain dependency, not maintained or patched as part of ESX-D.
+- Backups were operator-confirmed. No reboot, forced replication, AD/DNS/SYSVOL/FSMO change, GPO/firewall change, trust reset or service restart was performed.
+
 ## Maintenance Template
 
 Date:

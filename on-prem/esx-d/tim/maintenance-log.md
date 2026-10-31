@@ -423,6 +423,15 @@ Notes:
 - Tim's credentialed machine-password repair and domain SSH recovery are complete. No reboot, GPO, firewall, role, or data change was performed.
 - `net group "SSH Admins" /domain` from Tim still returns RPC error `1722`, but the authoritative AD query on PDC confirms the expected group and membership; no group change was made.
 
+## 2026-10-31 - End-of-Month Maintenance
+
+Maintainer: Codex with Peter
+
+- Local and domain SSH succeed; PDC secure-channel test returns True and Netlogon query returns BDC status 0. Windows 11 Pro for Workstations build 26300.9711, last boot October 25 at 14:39:10. SSH, Netlogon, spooler and all three enumerated Veeam guest services are Running/Automatic. WinRM remains intentionally Stopped/Disabled.
+- Windows Update search succeeded with zero applicable updates; CBS/WU reboot flags are clear. C: has approximately 13.7 GiB free. A disconnected administrator session remains present and was not logged off.
+- Recent Netlogon 5719 errors recur approximately every four hours (sampled October 31 at 03:29, 07:31 and 11:33), while the current trust/SSH checks pass. A bounded Application sample also contains legacy Perflib errors. The recurrence is a follow-up, not proof of a currently broken channel or justification for another password reset.
+- Backups were operator-confirmed. No update, reboot, session termination, service restart, trust reset, policy/firewall or data change was performed.
+
 ## Maintenance Template
 
 Date:

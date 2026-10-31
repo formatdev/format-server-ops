@@ -2,7 +2,7 @@
 
 Starter runbook for the `Exchange3` VM on ESX-D.
 
-Last updated: 2026-10-18
+Last updated: 2026-10-31
 
 ## Known State
 
@@ -17,6 +17,14 @@ Last updated: 2026-10-18
 - Treat as production mail infrastructure.
 - Do not reboot, patch, change certificates, or restart Exchange services without explicit confirmation.
 - Check transport queues and Exchange service health before and after maintenance.
+
+## 2026-10-31 Maintenance Check
+
+- Both SSH paths and PDC trust pass. Windows Server 2022 build 20348.5761, last boot October 20 at 07:52:53; Exchange executable 15.02.2562.056. All automatic Exchange services are running. Windows Update offers zero applicable updates and CBS/WU reboot flags are clear. No patch or reboot was performed.
+- All 19 sampled total queue-length counters are zero; mailbox-delivery logs contain fresh successful deliveries. HTTPS responds with a verified certificate, expiring January 14, 2027. C: has approximately 59.2 GiB free and E: 77.2 GiB. Recurring DKIM async-resume and transport Watson events remain follow-ups, not a currently observed mail blockage.
+- Both diagnostic-cleanup and win-acme scheduled tasks returned 0. All 13 retained scheduled cleanup reports from October 19-31 show zero errors and 15-day retention. The October 31 cleanup deleted 1,248 old diagnostic files, 586,254,714 logical bytes. Installed cleanup source matches the repository. No manual cleanup was triggered in this round.
+- The task retains its existing fixed-offset timing: 04:30 UTC, currently 05:30 Luxembourg time after the clock change, versus 06:30 in summer. Peter explicitly chose to leave the current schedule unchanged on October 31. The 15-day cutoff, protected roots, task action and principal are unchanged.
+- October 30 Veeam guest logs show VSS full-backup processing and successful Exchange Writer completion notification at 22:39; the writer is currently Stable/No error. Current numbered transaction logs date back to October 30 and their generation ranges have advanced since October 18, consistent with ongoing log management. This is not a new restore test or exact before/after proof of the latest backup's deletions.
 
 ## 2026-10-18 Mailbox Access Recovery
 
@@ -35,13 +43,13 @@ Last updated: 2026-10-18
 
 ## Automated Diagnostic Log Cleanup
 
-- Scheduled task: `\Codex\Exchange diagnostic log cleanup`, daily at 06:30 in the server's W. Europe time zone (Luxembourg), as SYSTEM. It runs locally without the maintainer Mac. Missed runs start when available; overlapping task instances are ignored, an additional named mutex prevents concurrent manual runs, and runtime is capped at one hour.
+- Scheduled task: `\Codex\Exchange diagnostic log cleanup`, as SYSTEM, retaining its current 04:30 UTC/fixed-offset schedule at Peter's explicit October 31 request. This was 06:30 Luxembourg summer time at installation and is now 05:30 winter time. It runs locally without the maintainer Mac. Missed runs start when available; overlapping task instances are ignored, an additional named mutex prevents concurrent manual runs, and runtime is capped at one hour. No schedule correction was applied.
 - Installed script: `C:\script\ExchangeDiagnosticCleanup\Clear-ExchangeDiagnosticLogs.ps1`. Source: [Clear-ExchangeDiagnosticLogs.ps1](scripts/Clear-ExchangeDiagnosticLogs.ps1). Administrator/SYSTEM-only permissions apply to the new subfolder and reports; existing `C:\script` files and their ACLs were not changed. The older manual `C:\script\DeleteExchangeLogs.ps1` remains present but should not be run alongside the scheduled cleanup.
 - Only `.log`, `.blg` and `.etl` files with LastWriteTimeUtc strictly older than 15 days are eligible, under these four fixed roots: `C:\inetpub\logs\LogFiles`, `C:\Program Files\Microsoft\Exchange Server\V15\Logging`, and the two `V15\Bin\Search\Ceres\Diagnostics\ETLTraces` / `Logs` folders. No directories are deleted. Newer files, other extensions, linked/reparse paths and in-use files are retained.
 - Hard exclusions protect all of `C:\ExchangeLogs` and `E:\ExchangeDatabases`, plus standard Exchange numbered/current/temporary transaction-log names regardless of their age or location. Each candidate's path, ancestors and current metadata are rechecked before deletion. Checkpoint, reserved and database extensions are never eligible. This does not change Veeam truncation or circular logging.
 - Without `-Apply`, the script only previews. Each run writes per-file JSONL audit records and a JSON summary under `C:\script\ExchangeDiagnosticCleanup\Reports`; unexpected errors produce a nonzero task result instead of being hidden. Audit reports are retained separately and are not deleted by the 15-day diagnostic rule. Task XML is saved beside the script. Execution policy remains RemoteSigned; no policy/GPO/service changes are needed.
 - [Safety tests](scripts/Test-ExchangeDiagnosticCleanup.ps1) passed 22 checks on Exchange3. The first SYSTEM preview found 10,302 eligible files, 8.13 GiB logical size, with zero errors and no deletions. First applied-run and protected-file verification results are recorded in the maintenance log.
-- First applied run completed successfully on October 18 at 22:51:50: 10,302 old diagnostic files deleted, zero errors, task result 0. C: free space increased by approximately 7.46 GiB to 61.66 GiB during verification (distinct from logical file size). All 1,298 baseline numbered transaction logs, all 22 checkpoint/reserved files, both database files and the unchanged legacy script were verified present. All 19 sampled queue-length counters were zero and core mail services remained running. Next scheduled run: October 19 at 06:30 local.
+- First applied run completed successfully on October 18 at 22:51:50: 10,302 old diagnostic files deleted, zero errors, task result 0. C: free space increased by approximately 7.46 GiB to 61.66 GiB during verification (distinct from logical file size). All 1,298 baseline numbered transaction logs, all 22 checkpoint/reserved files, both database files and the unchanged legacy script were verified present at that checkpoint. All 19 sampled queue-length counters were zero and core mail services remained running. The next scheduled run at that checkpoint was October 19 at 06:30 summer time; subsequent scheduled-run verification is recorded above.
 
 Preview manually from elevated PowerShell:
 

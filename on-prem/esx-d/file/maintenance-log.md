@@ -524,6 +524,18 @@ Notes:
 
 - No update, reboot, cleanup, redirected-folder data, legacy data, share, permission, firewall, GPO, or document content was changed.
 
+## 2026-10-31 - End-of-Month Maintenance
+
+Maintainer: Codex with Peter
+
+- Local and domain SSH both succeed. PDC secure-channel test returns True and Netlogon reports PDC status 0. FILE runs Windows Server 2022 build 20348.5761, last boot 2026-10-17 02:28:55. SSH, Netlogon, SMB server, spooler and time services are Running/Automatic; WinRM remains intentionally Stopped/Disabled.
+- Windows Update search succeeded with zero applicable updates. CBS and Windows Update reboot markers are clear. TiWorker/TrustedInstaller were initially present with low CPU and had exited by the final check; no competing installer was launched. Pending-file-rename registry data contains 390 entries / 195 nonempty paths, including Panda security configuration, Edge updater and MSI paths; this is separate from clear Windows servicing reboot markers.
+- Applied GPOs include NTLM Allow, Allow remote Admin and Windows Update, refreshed from PDC. The Exchange-only RPC compatibility GPO is correctly security-filtered out. SSH is key-only with empty passwords disabled; AllowGroups remains administrators plus format\sshadmins. SSH/WinRM firewall rules remain enabled for Domain and limited to 192.168.1.73 and 192.168.113.2. WinRM policy retains AllowAutoConfig=1, but live listener enumeration was not attempted while the service is intentionally disabled.
+- Expected data, archive, redirected-folder, print and administrative shares are present. Sampled SMB state has 12 open handles, including nine under D:\RedirectedFolders and zero under D:\Users. Current administrator Documents resolves to the expected redirected share. Legacy Documents for Administrateur and harry.haag remain newer than corresponding redirected targets; no legacy/current-folder cleanup is appropriate from this comparison.
+- C: free approximately 46.7 GiB, D: 316.2 GiB, F: 1951.1 GiB and G: 4330.7 GiB. All three desktop Markdown files remain present but are stale April 6 copies: they incorrectly describe domain SSH as broken and WinRM as running. Their contents were inspected, not rewritten; current maintenance findings in this repository take precedence.
+- Recent bounded event samples include Aether Agent, WatchGuard EDR Core installer test-execution, and legacy Perflib warnings. All four enumerated Panda endpoint/agent services are Running/Automatic. The exact Aether-only provider query was rejected by Event Log; a broader query returned Aether 201/202 records without rendered messages. No claim of a confirmed endpoint upgrade failure or full protection validation is made; review the vendor console and pending rename state separately.
+- Backups were operator-confirmed for this round. No applicable Windows update was found, and no install, reboot, trust reset, firewall/GPO change, desktop-document write, redirected-folder change or legacy/user-data deletion was performed.
+
 ## Maintenance Template
 
 Date:

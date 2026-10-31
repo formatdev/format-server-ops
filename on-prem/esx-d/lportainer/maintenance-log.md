@@ -379,6 +379,13 @@ Notes:
 - No VM power, Linux package, Docker, Portainer, stack, image, volume, prune, update, or reboot action was performed.
 - Lportainer maintenance remains deferred until the VM is intentionally powered on.
 
+## 2026-10-31 - End-of-Month Reachability Check
+
+Maintainer: Codex with Peter
+
+- SSH to the documented Lportainer alias at 192.168.1.9 timed out while the maintenance VPN route and the Windows guests were reachable. This is consistent with the operator's previously intentional shutdown, not authenticated proof of its current VM power state.
+- Preserved the existing leave-powered-off instruction. No VM power operation, package/container update, Docker prune, stack change or reboot was attempted. Linux and container maintenance remain deferred until the VM is intentionally made available.
+
 ## Maintenance Template
 
 Date:

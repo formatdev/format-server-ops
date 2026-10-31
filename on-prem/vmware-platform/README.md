@@ -3,7 +3,7 @@
 Runbook for ESXi 8.x host and vCenter maintenance that sits above the
 per-VM maintenance threads.
 
-Last updated: 2026-05-03
+Last updated: 2026-10-31
 
 ## Scope
 
@@ -375,6 +375,14 @@ $esxcli.system.ssh.key.list.Help()
 
 ## Patch And Entitlement Notes
 
+- October 31 authenticated vCenter licence check: hosts `192.168.5.201`,
+  `192.168.5.203` and `192.168.5.205` are assigned **vSphere 8 Essentials Plus**,
+  each with licence expiration **Never**. Inventory shows 3 CPUs used of 6 CPU
+  capacity (up to 32 cores per CPU). `vcenter8.format.lu` is assigned
+  **vCenter Server 8 Essentials**, 1 of 1 instance, expiration **Never**.
+  These are non-expiring installed licence assignments, not confirmation of
+  purchase ownership, active support, support end date or patch entitlement.
+  No key, assignment or synchronization was changed; no licence key is recorded.
 - vSphere 8.x is the supported line to monitor for current vSphere security
   advisories.
 - With expired Support and Subscription, normal Broadcom Support Portal access
@@ -382,6 +390,14 @@ $esxcli.system.ssh.key.list.Help()
 - Broadcom documents a critical security patch exception for supported vSphere
   8.x perpetual-license customers with expired support contracts. Treat that as
   emergency security patch access only, not as a general upgrade path.
+- October 31 authenticated Broadcom portal check: this account's VMware Cloud
+  Foundation dashboard shows 0 active contracts. Free Downloads lists VMware
+  vSphere and VMware vCenter Server, but their product pages return no files.
+  The vendor-linked vSphere Solutions critical-patch page displays the patch
+  terms and **No data found**, with no package/download controls. No exact
+  package access is confirmed; this is not proof of ineligibility or a verified
+  entitlement-denial response. Resolve the empty catalogue with Broadcom before
+  planning downloads. Nothing downloaded, no terms accepted, no account changed.
 
 ## Files
 

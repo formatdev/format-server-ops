@@ -401,3 +401,71 @@ system and application maintenance in the matching VM folder.
     before acting on `PDC.scoreboard`;
   - revisit ESX-C direct SSH only when on-site/in office; use vCenter/PowerCLI
     for ESX-C meanwhile.
+
+## 2026-10-31 - Read-Only Licence Edition and Expiry Verification
+
+- Peter reported having no current VMware licence/subscription and explicitly
+  requested checking the edition and expiry in vCenter. Inspected the existing
+  authenticated Chrome vSphere Client, Administration > Licensing > Licenses,
+  followed by Assets > vCenter Server Systems and Hosts. No portal login,
+  licence synchronization, key replacement or assignment change was made.
+- Licence inventory has two Assigned entries: vSphere 8 Essentials Plus,
+  expiration Never, usage 3 CPUs of 6 CPUs (up to 32 cores per CPU); and
+  vCenter Server 8 Essentials, expiration Never, usage 1 of 1 instance.
+- Asset assignment verification: hosts 192.168.5.201, 192.168.5.203 and
+  192.168.5.205 each use vSphere 8 Essentials Plus, 1 CPU, expiration Never.
+  vcenter8.format.lu uses vCenter Server 8 Essentials, expiration Never.
+  This confirms ESX-D's assignment rather than only the presence of a spare
+  licence in inventory. Keys were redacted from inspection output and were
+  not saved, exported, included in screenshots or written to this repository.
+- The installed keys are non-expiring and consistent with perpetual-style
+  licensing; this is not independent proof of ownership, the purchase contract,
+  support coverage/end date or rights to later patches. Customer Connect
+  metadata was blank. The user's reported lack of current coverage must not
+  be relabelled as a verified expiry of these installed licences.
+- Broadcom KB 429208 distinguishes perpetual software rights from expired
+  Support and Subscription. KB 314603 documents limited critical-security
+  patch access for vSphere 8 perpetual customers with expired support. Next
+  step is checking the customer's purchase/support records and legitimate
+  Broadcom account access for the exact required patch; no U3j/U3k entitlement
+  is assumed from the local Never field alone.
+- References: https://knowledge.broadcom.com/external/article/429208 and
+  https://knowledge.broadcom.com/external/article/314603/zero-day-ie-critical-security-patches-fo.html
+- No host/VM power, migration, update, security, licence or application setting
+  changed. Only sanitized operational records updated; no commit/push requested.
+
+## 2026-10-31 - Signed-In Broadcom Critical-Patch Access Check
+
+- Peter signed in to Broadcom himself, including any authentication, and
+  authorized inspection of available critical patches. The VMware Cloud
+  Foundation dashboard reports 0 active contracts for this signed-in account;
+  this does not establish all company entitlements or a support expiry date.
+- My Downloads offered the Free Software Downloads route. That catalogue lists
+  VMware vSphere and VMware vCenter Server, but both product detail pages expose
+  no release rows and have a disabled Solutions tab. The vSphere page visibly
+  reports No data found.
+- Followed the direct critical-patch link published in VMware's VMSA-2026-0006
+  FAQ: https://support.broadcom.com/group/ecx/productdownloads?subfamily=VMware+vSphere&tab=Solutions
+  This correctly selects Solutions and displays the critical-patch licence
+  terms, including no additional cost, but visibly reports No data found.
+  No package, filename, build-specific download control or explicit entitlement
+  denial is shown. Therefore no ESXi/vCenter patch is confirmed downloadable
+  with this account; an empty catalogue is not evidence of ineligibility.
+- Vendor advisory VMSA-2026-0006.2 identifies ESXi 8.0 U3k build 25595708 and
+  vCenter 8.0 U3k as fixed U3 branch versions for its critical vulnerabilities.
+  These are vendor targets, not account download availability. ESX-D's verified
+  8.0 U3e build 24674464 is older. No new current vCenter build check was made
+  during this portal lookup. U2-only security patches are not proposed for the
+  installed U3 branch.
+- Follow-up: ask Broadcom portal/customer-care staff why the documented critical
+  patch catalogue is empty for this account, referencing KB 314603 and the
+  Solutions URL. Confirm actual package access, HPE image/driver and vCenter
+  interoperability, backups/recovery and maintenance authorization before any
+  deployment. Do not assume normal support entitlement or access to U3j/U3k.
+- No download, terms acceptance, compliance/profile submission, token creation,
+  account/licence change or installation occurred. No credentials, licence keys,
+  site IDs or signed download URLs were saved. Existing unrelated changes kept.
+- References:
+  https://knowledge.broadcom.com/external/article/314603/zero-day-ie-critical-security-patches-fo.html
+  https://github.com/vmware/vcf-security-and-compliance-guidelines/blob/main/security-advisories/vmsa-2026-0006/README.md
+  https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/38017

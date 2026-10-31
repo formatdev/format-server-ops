@@ -25,7 +25,7 @@ Treat the vCLS VM shown in vCenter as a VMware system VM, not a normal maintenan
 
 Use discovery-first operations. Do not reboot, snapshot, migrate, delete data, change GPOs, prune Docker, run Windows Update installs, or change file-server redirected-folder data until the current state and blast radius are documented.
 
-For Windows VMs, verify both local break-glass SSH aliases (`win-*`) and domain-admin aliases (`winad-*`) where configured. Preserve local `Administrateur` SSH. The target remote-admin baseline is key-only OpenSSH, domain-admin access through the `SSH Admins` AD group, scoped firewall for SSH/WinRM from 192.168.1.73 and 192.168.113.2, `sshd` and `WinRM` automatic/running, and `sshd.exe` WER dumps in `C:\ProgramData\ssh\dumps`.
+For Windows VMs, verify both local break-glass SSH aliases (`win-*`) and domain-admin aliases (`winad-*`) where configured. Preserve local `Administrateur` SSH. The target remote-admin baseline is key-only OpenSSH, domain-admin access through the `SSH Admins` AD group, scoped firewall for SSH/WinRM from 192.168.1.73 and 192.168.113.2, `sshd` automatic/running, and `sshd.exe` WER dumps in `C:\ProgramData\ssh\dumps`. WinRM is intentionally disabled/stopped by the current domain GPO; do not re-enable it per host or infer a missing listener from the disabled service.
 
 Start with the FILE VM only unless asked otherwise. Verify:
 - `ssh win-file hostname`

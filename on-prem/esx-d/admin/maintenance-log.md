@@ -510,6 +510,17 @@ Maintainer: Codex with Peter
 - SMB server, SSH, and SQL `NET2` services remain running. Windows reported `RestartNeeded=False`; CBS and Windows Update reboot markers remain clear.
 - Copier-to-SMB acceptance testing has not been performed by Codex. The prior FTP restoration follow-up is superseded by this retirement.
 
+## 2026-10-31 - End-of-Month Maintenance
+
+Maintainer: Codex with Peter
+
+- Local and domain SSH both work; PDC secure-channel test passes and Netlogon returns BDC status 0. Windows 11 Pro build 26300.9711, last boot October 25 at 14:41:42. SSH, Netlogon, spooler and Veeam guest services are running; WinRM remains intentionally Stopped/Disabled.
+- Windows Update search succeeded with zero applicable updates, and CBS/WU reboot markers are clear. No install or reboot was performed. A disconnected user session remains present and was left untouched.
+- SQL Server 2022 Express NET2 is running at registry patch level 16.0.1210.3. Its observed service start mode is Manual; no startup policy was changed. C: has about 34.0 GiB free and D: 32.0 GiB.
+- Copier SMB shares Formascan_input and OUTPUT_BO remain present. FTP service is absent and no TCP 21 listener exists; retired FTP was not restored. Real copier acceptance remains an operator-side check.
+- Recent Netlogon 5719 errors recur approximately every four hours (sampled October 31 at 03:45, 07:45 and 11:45), despite healthy live trust and domain SSH. Bounded Application/System samples also include Perflib, folder-redirection and TPM warnings. Do not label these historical errors fixed or reset trust blindly; investigate recurrence if it affects logon/SMB use.
+- Backups were operator-confirmed. No update, reboot, user sign-out, FTP/SMB change, trust reset, SQL/data change, firewall or GPO change was made.
+
 ## Maintenance Template
 
 Date:

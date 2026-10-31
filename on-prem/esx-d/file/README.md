@@ -2,11 +2,13 @@
 
 Runbook for the Windows file server VM `File` on ESX-D.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-31
 
 ## Current Verified State
 
-Last verified from this maintenance thread: 2026-10-10.
+Last verified from this maintenance thread: 2026-10-31.
+
+- Latest round: both SSH paths and PDC trust pass; SMB/print services and expected shares are online. Windows Server 2022 build 20348.5761; no applicable Windows updates and clear CBS/WU reboot flags. Nine active redirected-folder handles were sampled; legacy Documents still contain mixed/newer data and were not cleaned. WinRM remains disabled by policy. The three desktop Markdown documents exist but are stale April 6 copies; their broken-trust/running-WinRM claims are not the current baseline. Pending application rename entries and endpoint-agent/installer warnings remain follow-ups; see the maintenance log.
 
 - VM name in vCenter: `File`
 - Windows hostname: `FILE`
