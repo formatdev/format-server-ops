@@ -1,5 +1,16 @@
 # format-timesheet-2026 Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- Existing image retained; service recovered after host restart and is `1/1`.
+  Origin `200`, public access-control redirect `302`.
+- Local source npm audit: 31 vulnerable packages, including 1 critical and
+  16 high; production-only 1 critical / 10 high. Deployment applicability
+  requires review: the inspected Dockerfile serves static files through Apache,
+  while some Quasar findings concern SSR. Local branch is ahead two commits.
+- No source changes or application deployment performed.
+- [Full dependency counts and round record](../_host/maintenance-2026-10-31.md).
+
 Use this log for `format-timesheet-2026` checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.
 
 Do not record credentials, tokens, customer data, or other secrets here.

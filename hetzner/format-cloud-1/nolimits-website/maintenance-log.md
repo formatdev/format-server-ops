@@ -1,8 +1,36 @@
 # NoLimits Website Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- Local-only patched Apache image retained; PHP `8.3.36`, service `1/1`.
+- Persistent WordPress core reports `7.1.4` (observed, not upgraded here);
+  public/origin homepage `200`, XML-RPC `403`, REST user listing `401`.
+- Emergency image recovery archive passed gzip integrity; registry publication
+  remains outstanding. No WordPress code/plugin update was performed.
+- [Full round record](../_host/maintenance-2026-10-31.md).
+
 Use this log for NoLimits WordPress checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.
 
 Do not record database passwords, SMTP passwords, WordPress admin credentials, SQL dumps, or other secrets here.
+
+## 2026-10-21 - PHP Critical Security Fix
+
+- Replaced PHP 8.3.30 with fixed 8.3.36 for CVE-2026-109618/109619.
+- Image: `format-security/wordpress:6.9.4-php8.3.36-apache`, retaining the
+  original WordPress image's application and persistent content/configuration.
+- Persistent WordPress core reports `7.1.3`; the older image ancestry tag does
+  not represent the current core version in the volume.
+- Candidate Apache HTTP reported 8.3.36 via apache2handler; all CLI extensions
+  matched the baseline. Live container image ID matched the tested candidate.
+- Service converged to 1/1; origin apex/www returned 301/200. WordPress database
+  SELECT 1 passed. XML-RPC remained 403 and REST user listing 401 on both hosts.
+- Public automated requests received Cloudflare 403 before the update; normal
+  browser/Cloudflare Access workflows were not independently verified here.
+- Fresh database dump and live WordPress file copy passed gzip checks; no
+  restore test performed. No fatal PHP/linker errors in inspected startup logs.
+- Portainer Compose file 4 reconciled and validated. Image is local-only pending
+  write-capable registry credentials; patched-image recovery archive retained.
+- See [emergency build and recovery record](../_host/php-security-20261021/README.md).
 
 ## 2026-04-18 - Admin Surface And XML-RPC Hardening
 

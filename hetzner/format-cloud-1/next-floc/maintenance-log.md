@@ -1,5 +1,17 @@
 # next-floc Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- App remains `v3.0.11`, PHP `8.5.12`, unchanged security-release digest;
+  source/release CI matches revision `3144f7cef1c751ce0ab01a767bf813b1b632929d`.
+  No app deployment here; Peter retains deployment ownership.
+- App/database recovered after host restart, both `1/1`; FPM config test
+  passed. Homepage and origin login `200`; fresh MySQL dump gzip verified.
+- Local workspace Composer/npm audits are clean but include pre-existing
+  uncommitted dependency changes. Deployed `symfony/mime v8.1.7` is affected
+  by CVE-2026-45070; rebuild with `8.1.10` or newer and redeploy separately.
+- [Full round record](../_host/maintenance-2026-10-31.md).
+
 Use this log for `next-floc` checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.
 
 Do not record database passwords, API keys, tokens, SQL dumps, or other secrets here.
@@ -83,6 +95,25 @@ Checks:
 - Follow-up: Review why `Next App CI` is failing for the current production SHA
   before the next deploy, then decide whether the available dependency updates
   should trigger a rebuild.
+
+## 2026-10-21 - PHP Security Redeployment Verification
+
+Peter reported redeploying the stack. Read-only live checks at 16:32 UTC
+confirmed the security release is running; this task did not deploy FLOC.
+
+- Before: `v3.0.10`, PHP `8.5.2`, digest
+  `sha256:1d3ad435d7de9d34fcf8a8dfb95338690e334639a8d8e0424432e1901542bc13`.
+- After: `esst/floc:latest`, release `v3.0.11`, digest
+  `sha256:0414d60d3f0829b73b2e84ccc99e183817ea90f89c32adf4ad0f7d6e49ae6b84`,
+  source revision `3144f7cef1c751ce0ab01a767bf813b1b632929d`.
+- Running container started at `2026-10-21T16:31:47Z`. PHP CLI and FPM report
+  `8.5.12`; the FPM configuration test passed.
+- App and database services are `1/1`; all 18 host services are `1/1`.
+- Public and origin homepage checks returned `200`; origin `/login` is `200`.
+  No matching fatal, extension-load, segmentation-fault, or SQLSTATE errors
+  appeared in the sampled current-container logs from the preceding ten minutes.
+- No authenticated user workflow or restore test was performed.
+- [Cross-service PHP verification](../_host/php-security-verification-2026-10-21.md).
 
 ## Maintenance Template
 

@@ -10,7 +10,10 @@ phpMyAdmin is a sensitive administrative interface for database access. Treat ex
 - server: `hetzner-cloud-1`
 - Docker service: `phpmyadmin_phpmyadmin`
 - public hostname in labels: `pma.format.lu`
-- current live image: `phpmyadmin/phpmyadmin:5.2.3`
+- current live image: `format-security/phpmyadmin:5.2.3-php8.3.36-apache`
+- PHP: `8.3.36`, verified 2026-10-21
+- image availability: local to `format-cloud-1`; registry publication pending
+  write-capable credentials. See [emergency runtime build and recovery](../_host/php-security-20261021/README.md).
 - live replica state during documentation: `1/1`
 - reverse proxy: Traefik on external Docker network `proxy`
 - backend container port: `80`

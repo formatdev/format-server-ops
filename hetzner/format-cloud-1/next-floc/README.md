@@ -9,7 +9,8 @@ This runbook documents the `next-floc` custom app stack hosted through Portainer
 - database service: `next-floc_db`
 - public hostname: `floc.lu`
 - live app image: `esst/floc:latest`
-- observed app digest (2026-09-13): `sha256:8a25198cf10b6e39b869704ab4c8347cc06ef9b41704a78a13a15f733289799c`
+- observed app digest (2026-10-31): `sha256:0414d60d3f0829b73b2e84ccc99e183817ea90f89c32adf4ad0f7d6e49ae6b84`
+- observed app release: `v3.0.11`, PHP `8.5.12`
 - database image: `mysql:8-oracle`
 - app backend port: `8080`
 - reverse proxy: Traefik on external Docker network `proxy`

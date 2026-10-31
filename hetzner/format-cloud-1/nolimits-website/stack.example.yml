@@ -4,7 +4,8 @@ networks:
 
 services:
   wordpress:
-    image: wordpress:6.9.4-php8.3-apache
+    # Local emergency image; see ../_host/php-security-20261021/README.md.
+    image: format-security/wordpress:6.9.4-php8.3.36-apache
     networks:
       - proxy
     environment:

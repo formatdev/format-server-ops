@@ -1,5 +1,14 @@
 # Traefik Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- Upgraded `3.7.14` -> `3.7.17`; runtime and published digest verified.
+- Reviewed migration notes; retained Swarm arguments, HTTPS/HTTP3 ports,
+  networks, persistent ACME state, and disabled dashboard policy.
+- Origin/public routes respond as expected; fresh error sample quiet.
+  Stored certificates expire December 17 through January 7.
+- [Full round record and sources](../_host/maintenance-2026-10-31.md).
+
 Use this log for Traefik checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.
 
 Do not record Cloudflare tokens, dashboard credentials, ACME account private keys, or other secrets here.

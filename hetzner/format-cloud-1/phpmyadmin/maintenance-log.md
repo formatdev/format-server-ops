@@ -1,8 +1,32 @@
 # phpMyAdmin Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- App remains `5.2.3`, PHP `8.3.36`, patched local-only image. Service `1/1`;
+  `pma.format.lu` origin `200` and public Access redirect `302`.
+- Emergency image recovery archive passed gzip integrity; registry publication
+  remains outstanding. No application image update was performed.
+- [Full round record](../_host/maintenance-2026-10-31.md).
+
 Use this log for phpMyAdmin checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.
 
 Do not record database credentials, session tokens, SQL dumps, or other secrets here.
+
+## 2026-10-21 - PHP Critical Security Fix
+
+- Replaced PHP 8.3.26 with fixed 8.3.36 for CVE-2026-109618/109619.
+- Image: `format-security/phpmyadmin:5.2.3-php8.3.36-apache`, retaining the
+  existing phpMyAdmin 5.2.3 application and connection settings.
+- Candidate Apache HTTP reported 8.3.36 via apache2handler; all CLI extensions
+  matched the original, including mysqli and uploadprogress. Live image ID
+  matched the tested candidate; service converged to 1/1.
+- Origin login page returned HTTP 200 and no fatal PHP/linker errors appeared
+  in inspected startup logs. Authenticated login/database visibility was not
+  tested; the shared MariaDB service remained 1/1.
+- Portainer Compose file 2 reconciled and validated. Fresh shared database dump
+  and cold Portainer backup passed gzip checks; no restore test performed.
+- Image is local-only pending write-capable registry credentials; patched-image
+  archive retained. See [emergency build and recovery record](../_host/php-security-20261021/README.md).
 
 ## 2026-04-18 - Initial Documentation
 

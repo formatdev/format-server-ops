@@ -1,6 +1,25 @@
 # Custom App Version Matrix
 
-Observed on `2026-09-13` from `hetzner-cloud-1`.
+## October 31 Observation
+
+- FLOC: `v3.0.11`, PHP `8.5.12`, digest
+  `sha256:0414d60d3f0829b73b2e84ccc99e183817ea90f89c32adf4ad0f7d6e49ae6b84`.
+- Both Chargy: `2.3.1`, PHP `8.3.36`, digest
+  `sha256:75ce52b8889a6470acf0f057081e0da6e2eb29c8a43170d657c3e19e0ad56741`.
+- Both Redis: `7.4.12-alpine3.21`, version/PONG verified after snapshots/update.
+- TIM: local-only `format-security/format-dsk-tim:1.0.0-php8.4.27`,
+  PHP `8.4.27`; registry publication remains pending.
+- FLOC MySQL remains `8.4.11` on its existing pinned `mysql:8-oracle` digest.
+- Deployed FLOC/Chargy Symfony Mime versions are affected by CVE-2026-45070.
+  Timesheet/report/TIM source audits also need follow-up. No custom app release
+  was deployed during this infrastructure round; Peter retains FLOC/Chargy
+  deployment ownership.
+- [Full audit counts, deployment evidence, and follow-ups](../_host/maintenance-2026-10-31.md).
+
+## September 13 Baseline
+
+The following historical matrix was observed on `2026-09-13` from
+`hetzner-cloud-1`; use the newer observation above for current values.
 
 Do not treat mutable tags such as `latest` or channel tags as proof that an app
 is up to date. For those, compare the live image digest with the image Peter

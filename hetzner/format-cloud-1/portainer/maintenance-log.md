@@ -1,5 +1,16 @@
 # Portainer Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- Server and agent upgraded `2.45.2` -> `2.45.3 LTS`; both converged at `1/1`.
+- Fresh pre-upgrade cold archive passed gzip verification; origin status API
+  reports `2.45.3`. Transient startup `502` resolved. Fresh error sample quiet.
+- Saved Compose IDs 9, 15, 25, 26 reconciled after a second cold archive;
+  image-only semantic validation and Compose checks passed. No Bolt DB edit.
+- Public route retains Access redirect. Authenticated login/stack visibility
+  still needs Peter's browser smoke test.
+- [Full round record](../_host/maintenance-2026-10-31.md).
+
 Use this log for Portainer checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.
 
 Do not record Portainer passwords, API tokens, backup passwords, registry credentials, or other secrets here.

@@ -1,10 +1,88 @@
 # format-cloud-1 Host Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+Applied 20 standard host package upgrades and rebooted into kernel
+`6.8.0-147-generic`; Docker is `29.9.2`. No pending upgrades, reboot marker,
+dpkg audit findings, or failed units remain. All 18 services are `1/1`.
+
+Updated Portainer server/agent to `2.45.3 LTS`, Traefik to `3.7.17`,
+Cloudflared to `2026.10.7`, both Redis instances to `7.4.12`, and Duplicati
+to `2.4.1.0 stable`. MariaDB's refreshed `11.8.9` image was picked up during
+task recreation; credentialed full table checks passed. Fresh database/cold
+backups and saved Portainer image-reference validation passed.
+
+PHP runtimes remain patched. Application dependency follow-ups remain, including
+deployed Symfony Mime versions in FLOC/both Chargy, and source audit findings in
+timesheets/reports/TIM. FLOC/Chargy app deployment ownership remains Peter's.
+No app release, host tuning, destructive cleanup, commit, or push was performed.
+
+Follow-up: Peter confirmed the Vaultwarden smoke test passed and authorized
+the scoped maintenance-record commit/push. Server `1.37.4` / Web Vault
+`2026.7.0` and the current published image digest were reconfirmed live;
+Cloudflared `2026.10.7` was also reconfirmed in its running and saved definitions.
+
+[Detailed verification, rollback records, and remaining actions](maintenance-2026-10-31.md).
+
 Use this log for host-level checks, package maintenance, firewall/SSH posture,
 Docker Engine maintenance, and reboot decisions for `format-cloud-1`.
 
 Do not record passwords, API tokens, backup passwords, registry credentials, or
 other secrets here.
+
+## 2026-10-21 - Cross-Service PHP Verification And Chargy Follow-Up
+
+- Independently inventoried six affected PHP containers. Subsequent checks
+  confirmed PHP `8.3.36` for NoLimits, phpMyAdmin, and both Chargy services,
+  plus `8.4.27` for TIM. All 18 services were `1/1`; sampled origin routes
+  returned their expected `200`/`302` responses.
+- Both Chargy services were updated here to security release `2.2.8`, then
+  observed on `latest` at the same fixed digest. Direct pulls were denied,
+  but retained Swarm registry authentication successfully pulled the release.
+  Temporary start-first/rollback settings were restored to the original
+  stop-first/pause update configuration. Startup upgrade processes exited 0.
+- These Chargy updates occurred before discovering Peter's newer instruction
+  in another task to redeploy Chargy and FLOC manually. No further production
+  deployment followed that discovery. Saved Chargy Compose files remain on
+  `latest`; no Portainer stored-file edits were performed by this task.
+- FLOC's shared PHP `8.5.12` base was published and checked independently.
+  Its `v3.0.11` application image passed publication/runtime checks in
+  workflow `39633745002`. After Peter reported redeploying FLOC and both
+  Chargy stacks, live verification at 16:32 UTC confirmed FLOC `v3.0.11` /
+  PHP `8.5.12` and both Chargy `2.2.8` / PHP `8.3.36`, with exact published
+  image digests and successful FPM configuration checks. All six affected PHP
+  containers now run fixed versions; all 18 services remain `1/1`. Public and
+  origin roots respond as expected, and all three origin login pages are `200`.
+  Authenticated workflows were not tested.
+- Additional MariaDB and FLOC MySQL dumps passed gzip verification. No host
+  package maintenance or reboot was performed. An unrelated failed
+  `fwupd-refresh.service` was observed before deployment and left unchanged.
+- [Full cross-service verification and remaining actions](php-security-verification-2026-10-21.md).
+
+## 2026-10-21 - Emergency PHP Security Runtime Updates
+
+Peter requested patching TIM, NoLimits and phpMyAdmin for CVE-2026-109618
+and CVE-2026-109619. Chargy and Floc were explicitly left for Peter.
+
+- Confirmed PHP.net fixes: 8.2.35, 8.3.36, 8.4.27 and 8.5.12. The patched
+  official PHP Docker tags lacked usable amd64 manifests during this run.
+- Built checksum-verified PHP releases against the existing Debian variants,
+  retained application code/configuration and additional extensions, and tested
+  each candidate through isolated Apache HTTP plus CLI extension comparison.
+- Deployed local images: TIM PHP 8.4.20 -> 8.4.27; NoLimits 8.3.30 -> 8.3.36;
+  phpMyAdmin 8.3.26 -> 8.3.36. All three updates completed and all 18 services
+  were 1/1 afterward. No host upgrade, reboot or database migration was run.
+- NoLimits origin homepage and database read passed; XML-RPC remained 403,
+  REST user listing 401. TIM and phpMyAdmin origin pages returned 200.
+  No fatal PHP, segmentation fault or symbol lookup errors appeared in the
+  inspected startup logs. Authenticated browser workflows were not tested.
+- Fresh MariaDB dump and NoLimits file copy passed gzip checks. A cold
+  Portainer backup preceded saved-definition updates. Compose files 2, 4 and 8
+  now match the running image tags; YAML semantic and Compose validation passed.
+- Docker Hub rejected push with insufficient token scopes. These images are
+  local-only under `format-security/*`; a verified patched-image archive and
+  rebuild inputs are retained. Registry publication remains outstanding.
+- [Full image, build, verification and recovery record](php-security-20261021/README.md).
 
 ## 2026-10-10 - October Maintenance Round
 

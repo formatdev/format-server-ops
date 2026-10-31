@@ -1,0 +1,32 @@
+[
+  {
+    "service": "nolimits-website_wordpress",
+    "image": "format-security/wordpress:6.9.4-php8.3.36-apache",
+    "build_base": "wordpress@sha256:1a758de2f424f735a9f8ad181783a9ed29e028594869a3323903d92532b35102",
+    "app_base": "wordpress@sha256:1a758de2f424f735a9f8ad181783a9ed29e028594869a3323903d92532b35102",
+    "php_version": "8.3.36",
+    "php_sha256": "dd54693aa334c5c4d72e9aee96b082c2473750a18a6c1d105789c93a3b1692fd",
+    "compose_path": "/data/portainer/data/compose/4/docker-compose.yml",
+    "compose_service": "wordpress"
+  },
+  {
+    "service": "phpmyadmin_phpmyadmin",
+    "image": "format-security/phpmyadmin:5.2.3-php8.3.36-apache",
+    "build_base": "wordpress@sha256:1a758de2f424f735a9f8ad181783a9ed29e028594869a3323903d92532b35102",
+    "app_base": "phpmyadmin/phpmyadmin@sha256:42a200db07b4e70fbf32c594ad4521cf16399b8e54bbb5adceae98e7566dfbeb",
+    "php_version": "8.3.36",
+    "php_sha256": "dd54693aa334c5c4d72e9aee96b082c2473750a18a6c1d105789c93a3b1692fd",
+    "compose_path": "/data/portainer/data/compose/2/docker-compose.yml",
+    "compose_service": "phpmyadmin"
+  },
+  {
+    "service": "format-dsk_tim",
+    "image": "format-security/format-dsk-tim:1.0.0-php8.4.27",
+    "build_base": "esst/format-dsk-tim@sha256:6def5a48e543832b29a357e199e3a9a3fad4a8bdb05f0c4a7381f2eadf2615bc",
+    "app_base": "esst/format-dsk-tim@sha256:6def5a48e543832b29a357e199e3a9a3fad4a8bdb05f0c4a7381f2eadf2615bc",
+    "php_version": "8.4.27",
+    "php_sha256": "dcf93923b0e38e0d5252b25b796520b5a47761a08b3488b6d0b5d1115764d3f0",
+    "compose_path": "/data/portainer/data/compose/8/docker-compose.yml",
+    "compose_service": "tim"
+  }
+]

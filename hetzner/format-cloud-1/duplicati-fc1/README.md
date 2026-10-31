@@ -3,7 +3,7 @@
 This folder documents the `duplicati-fc1` backup service hosted through
 Portainer on the Hetzner host `format-cloud-1`.
 
-Last verified: 2026-10-10.
+Last verified: 2026-10-31.
 
 Duplicati is part of the backup layer. Treat updates and configuration changes
 carefully, because backup metadata, destination credentials, and restore ability
@@ -26,13 +26,19 @@ off-server backups with a daily MariaDB dump included in the backup set.
 - Backup destination: Synology SFTP, user `FormatBU`
 - Synology destination path: `/FORMATBF/duplicati/format-cloud-1`
 - WatchGuard SFTP forwarding: [watchguard-sftp.md](./watchguard-sftp.md)
-- Current live image: `duplicati/duplicati@sha256:e32e280cc30e98ac5cea8d2b339cd19810b1b39e638fb9d39253786630104de0`
-- Current observed digest: `sha256:e32e280cc30e98ac5cea8d2b339cd19810b1b39e638fb9d39253786630104de0`
-- Latest stable release checked: `2.4.0.1_stable_2026-10-07`
+- Current live image: `duplicati/duplicati@sha256:5df64d95abd79ddaa41897a6c234c956d6de03df767a1b8eb8c5baecf3162bbf`
+- Current observed digest: `sha256:5df64d95abd79ddaa41897a6c234c956d6de03df767a1b8eb8c5baecf3162bbf`
+- Latest stable release checked: `2.4.1.0_stable_2026-10-29`
 - Backend container port: `8200`
 
 Sensitive values are intentionally not stored in this repository. Keep them in
 Bitwarden.
+
+The October 31 upgrade has a verified stopped-state rollback archive. The job
+database was still schema 19 after startup; verify its deferred migration and
+the next completed backup before considering the upgrade functionally proven.
+An image-only downgrade after migration is not sufficient. See the
+[round record](../_host/maintenance-2026-10-31.md).
 
 ## Access Protection
 

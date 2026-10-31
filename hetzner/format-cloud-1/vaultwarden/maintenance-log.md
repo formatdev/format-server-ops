@@ -1,5 +1,16 @@
 # Vaultwarden Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- `1.37.4` remains latest upstream; no image bump. Service recovered after
+  reboot and is healthy `1/1`; public and origin roots returned `200`.
+- Pre-maintenance SQLite `quick_check` returned `ok`; fresh error sample quiet.
+- Live follow-up confirmed server `1.37.4` and bundled Web Vault `2026.7.0`,
+  matching current upstream releases and the published image digest.
+- Peter confirmed the smoke test passed after this follow-up. This is
+  user-reported functional verification; no automated authenticated test ran.
+- [Full round record](../_host/maintenance-2026-10-31.md).
+
 Use this log for the combined Vaultwarden maintenance run on the 15th and the last day of each month.
 
 Do not record real admin passwords, invite links, backup credentials, or unredacted hashes here.

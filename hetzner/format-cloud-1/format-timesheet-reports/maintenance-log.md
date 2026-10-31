@@ -1,5 +1,15 @@
 # format-timesheet-reports Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- Existing `1.0.0-beta.1` image retained; service recovered and is `1/1`.
+  Origin `200`, public access-control redirect `302`.
+- Local source npm audit: 20 vulnerable packages, including 4 critical and
+  13 high; production-only 2 critical / 9 high. Review actual deployed
+  dependency contents and affected code paths before assessing exploitability.
+- No source changes or application deployment performed.
+- [Full dependency counts and round record](../_host/maintenance-2026-10-31.md).
+
 Use this log for `format-timesheet-reports` checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.
 
 Do not record credentials, tokens, report payloads, customer data, or other secrets here.

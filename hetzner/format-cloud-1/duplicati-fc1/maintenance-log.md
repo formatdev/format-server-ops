@@ -1,5 +1,18 @@
 # Duplicati FC1 Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- Upgraded `2.4.0.1` -> `2.4.1.0 stable`; pinned published digest and running
+  changelog verified. Full stopped-state archive passed gzip before update.
+- Server and job SQLite `quick_check` results are `ok`. Job schema remains 19;
+  the new job-format migration is deferred until a backup uses it.
+- October 30 remote backup: Success, zero warnings/errors. No post-update
+  backup or restore test was run; check next job and then schedule a restore test.
+- Saved Compose ID 25 matches the new pin. Origin `200`, public Access `302`;
+  live MariaDB/Portainer exclusions remain. Fresh error sample quiet.
+- Backup cron/remote schedule alignment merits review; no schedule changed.
+- [Full round record, archive, and downgrade caveat](../_host/maintenance-2026-10-31.md).
+
 Use this log for Duplicati checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.
 
 Do not record encryption keys, backup destination credentials, SSH private keys, Duplicati UI credentials, exported job definitions containing secrets, SQL dumps, or other secrets here.

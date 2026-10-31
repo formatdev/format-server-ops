@@ -4,7 +4,8 @@ networks:
 
 services:
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin:5.2.3
+    # Local emergency image; see ../_host/php-security-20261021/README.md.
+    image: format-security/phpmyadmin:5.2.3-php8.3.36-apache
     networks:
       - proxy
     environment:

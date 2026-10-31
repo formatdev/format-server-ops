@@ -1,5 +1,15 @@
 # Database 1 Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- MariaDB remains `11.8.9`; refreshed image digest is
+  `sha256:c4124d1afa875e47f2892edf26b482fa54f796e2f342d3717a04ca091a22a9bd`.
+  Task recreation during Docker restart/reboot picked up the refreshed tag.
+- Fresh all-database dump passed gzip verification. After recovery,
+  credentialed full table checks returned only `OK`; service is healthy `1/1`.
+- No branch-major upgrade or repair was performed. Fresh error sample quiet.
+- [Full round record](../_host/maintenance-2026-10-31.md).
+
 Use this log for shared MariaDB checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.
 
 Do not record root passwords, application database passwords, SQL dumps, personal data, customer data, or other secrets here.

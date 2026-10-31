@@ -1,8 +1,35 @@
 # format-dsk Maintenance Log
 
+## 2026-10-31 - End-Of-Month Maintenance
+
+- Local-only patched TIM image retained; live PHP `8.4.27`, service `1/1`,
+  public and origin `200`. Verified recovery image archive gzip integrity.
+- Active build source `tim-v3/API` Composer audit has Slim/Twig advisories,
+  including critical Twig CVE-2026-46633. Review deployed package versions and
+  template trust boundaries; no production exploitability claim is made.
+  The initial medium FPDI result was from legacy `tim/`, not the active path.
+  Dependency rebuild/deployment and registry publication remain follow-ups.
+- No app release or data cleanup performed.
+- [Full round record](../_host/maintenance-2026-10-31.md).
+
 Use this log for `format-dsk` checks during the combined Hetzner platform maintenance run on the 15th and the last day of each month.
 
 Do not record credentials, tokens, customer data, or other secrets here.
+
+## 2026-10-21 - PHP Critical Security Fix
+
+- Replaced PHP 8.4.20 with fixed 8.4.27 for CVE-2026-109618/109619.
+- Image: `format-security/format-dsk-tim:1.0.0-php8.4.27`, retaining application
+  code from the pinned `esst/format-dsk-tim:1.0.0` image.
+- Candidate Apache HTTP reported 8.4.27 via apache2handler. CLI extension list
+  matched the original, including `interbase` and `PDO_Firebird`.
+- Live image ID matched the candidate; service converged to 1/1 and TIM origin
+  returned HTTP 200. No fatal PHP/linker errors in inspected startup logs.
+- Portainer Compose file 8 reconciled to the patched image and validated.
+- Image is local-only pending write-capable registry credentials; archive and
+  rebuild inputs retained. Authenticated TIM/Firebird business workflows were
+  not tested. PM remained disabled.
+- See [emergency build and recovery record](../_host/php-security-20261021/README.md).
 
 ## 2026-05-03 - Twice-Monthly Check
 

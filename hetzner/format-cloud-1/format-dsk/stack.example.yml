@@ -22,7 +22,8 @@ services:
         - traefik.http.services.format-dsk-pm.loadbalancer.server.port=80
 
   tim:
-    image: esst/format-dsk:tim
+    # Local emergency image; see ../_host/php-security-20261021/README.md.
+    image: format-security/format-dsk-tim:1.0.0-php8.4.27
     networks:
       - proxy
     deploy:

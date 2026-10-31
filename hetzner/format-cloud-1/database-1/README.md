@@ -10,7 +10,7 @@ This database backs multiple applications. Treat updates, repairs, and restarts 
 - server: `hetzner-cloud-1`
 - Docker service: `database-1_db`
 - current live image: `mariadb:11.8.9`
-- current observed digest: `sha256:2439dcd7d14010ecd1ff7a4e1c5abe8e208c34fe35290744deeeaac3569043c3`
+- current observed digest (2026-10-31): `sha256:c4124d1afa875e47f2892edf26b482fa54f796e2f342d3717a04ca091a22a9bd`
 - observed MariaDB version: `11.8.9-MariaDB`
 - upgrade environment: `MARIADB_AUTO_UPGRADE=1`
 - data bind mount: `/data/databases/db_1:/var/lib/mysql`

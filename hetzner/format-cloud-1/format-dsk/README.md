@@ -7,7 +7,10 @@ This runbook documents the `format-dsk` custom app stack hosted through Portaine
 - stack: `format-dsk`
 - TIM service: `format-dsk_tim`
 - TIM hostname: `dsk-tim.format.lu`
-- TIM image: `esst/format-dsk:tim`
+- TIM image: `format-security/format-dsk-tim:1.0.0-php8.4.27`
+- PHP: `8.4.27`, verified 2026-10-21
+- image availability: local to `format-cloud-1`; registry publication pending
+  write-capable credentials. See [emergency runtime build and recovery](../_host/php-security-20261021/README.md).
 - backend port: `80`
 - reverse proxy: Traefik on external Docker network `proxy`
 
@@ -21,7 +24,9 @@ This runbook documents the `format-dsk` custom app stack hosted through Portaine
 
 ## Version Check
 
-This stack uses named channel tags (`dsk-pm`, `tim`). During maintenance, compare each live image digest with the image Peter built from the intended `dsk` repo commit.
+TIM currently uses the emergency runtime image documented above, retaining the
+application from `esst/format-dsk-tim:1.0.0`. Its PHP branch is 8.4. Keep the
+patched local image available until a verified registry replacement is deployed.
 
 Source repo:
 
@@ -30,19 +35,30 @@ Source repo:
 
 ## Dependency Freshness Check
 
-This repo is currently Dockerfile/base-image driven rather than Composer/npm driven. Check whether newer base images exist before Peter rebuilds the channel tags:
+The live TIM application is built from `tim-v3/Dockerfile`, whose base is PHP
+8.4 Apache on Debian Bookworm. Check patched upstream availability before the
+next regular build:
 
 ```bash
 cd /Users/czibulapeter/Documents/GitHub/dsk
-docker pull php:8.1-apache-bullseye
-docker pull php:8.2-apache-bullseye
-docker pull esst/php:7.4-apache-buster
-docker image inspect php:8.1-apache-bullseye --format '{{index .RepoDigests 0}}'
-docker image inspect php:8.2-apache-bullseye --format '{{index .RepoDigests 0}}'
-docker image inspect esst/php:7.4-apache-buster --format '{{index .RepoDigests 0}}'
+docker pull php:8.4.27-apache-bookworm
+docker run --rm --entrypoint php php:8.4.27-apache-bookworm -v
 ```
 
-Also review the Dockerfiles for EOL runtimes. `tim/docker/Dockerfile` currently uses PHP 7.4, so moving TIM to the `tim-v3` PHP 8.x path should stay on the follow-up list if not already completed.
+The older `tim/docker/Dockerfile` is a legacy PHP 7.4 path and is not the live
+TIM build. PM remains disabled.
+
+Audit application dependencies from the active API path rather than the legacy
+`tim/` directory:
+
+```bash
+cd /Users/czibulapeter/Documents/GitHub/dsk/tim-v3/API
+composer audit --locked
+```
+
+The October 31 source audit found Slim/Twig advisories, including a critical
+Twig finding; deployed dependency contents and template trust boundaries still
+need review. See the [round record](../_host/maintenance-2026-10-31.md).
 
 ## Maintenance Checklist
 

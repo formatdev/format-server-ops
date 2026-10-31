@@ -10,7 +10,12 @@ WordPress is a high-volume attack target. Keep this runbook focused on updates, 
 - server: `hetzner-cloud-1`
 - Docker service: `nolimits-website_wordpress`
 - public hostnames: `nolimits.lu`, `www.nolimits.lu`
-- current live image: `wordpress:6.9.4-php8.3-apache`
+- current live image: `format-security/wordpress:6.9.4-php8.3.36-apache`
+- PHP: `8.3.36`, verified 2026-10-21
+- persistent WordPress core: `7.1.4`, verified 2026-10-31; the image retains
+  the historical `6.9.4` ancestry tag, while core files live in the persistent volume
+- image availability: local to `format-cloud-1`; registry publication pending
+  write-capable credentials. See [emergency runtime build and recovery](../_host/php-security-20261021/README.md).
 - reverse proxy: Traefik on external Docker network `proxy`
 - backend container port: `80`
 - WordPress database host: `database-1_db`
