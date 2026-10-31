@@ -96,6 +96,28 @@ Checks:
   before the next deploy, then decide whether the available dependency updates
   should trigger a rebuild.
 
+## 2026-10-19: Event Furniture Sort Order Migration
+
+Peter approved applying the single pending migration after an event save failed
+with `Unknown column 'sort_order'` while inserting into `event_item`.
+
+- Target: `next-floc_app`, production database `floc_next` on `format-cloud-1`.
+- Refreshed a single-transaction `event_item` dump before applying the migration.
+  Local backup: `floc/tmp/floc-event-item-20261019-before-apply.sql.gz`.
+  Verified gzip integrity and the dump completion marker; restore was not tested.
+- Applied only `2026_03_26_120000_add_sort_order_to_event_item_table.php`
+  using `artisan migrate --path=database/migrations/2026_03_26_120000_add_sort_order_to_event_item_table.php --force --no-interaction`.
+- Migration completed in 64 ms and is recorded as batch 2. The column now exists,
+  all 615 rows have `sort_order = id`, and the row count and SHA-256 fingerprint
+  of all pre-existing columns match the pre-migration snapshot.
+- A read-only `EXPLAIN INSERT` using the reported event 22/item 87/price 32
+  statement passed. No business row was inserted during verification.
+- App and database services remained `1/1`. Homepage and login returned HTTP 200.
+- App remains v3.0.10 with digest
+  `sha256:1d3ad435d7de9d34fcf8a8dfb95338690e334639a8d8e0424432e1901542bc13`.
+- Follow-up: Peter or the coworker to retry saving the event in the browser.
+  Earlier local furniture/UI fixes remain separate from this database repair.
+
 ## 2026-10-21 - PHP Security Redeployment Verification
 
 Peter reported redeploying the stack. Read-only live checks at 16:32 UTC
