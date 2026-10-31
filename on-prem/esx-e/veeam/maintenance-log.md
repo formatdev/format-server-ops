@@ -1652,3 +1652,13 @@ After the operator signed into Windows and opened Veeam Backup & Replication, co
 - Verification at `15:09:55`: E: remained Healthy with `2495240798208` bytes free, and the primary chain remained one VBK, 149 VRB, and one VBM. Saving the policy did not immediately reclaim space; do not report the projected 2.50 TB gain as completed.
 - The next primary run remains Monday, November 2 at `22:00` Europe/Luxembourg. Follow up after normal retention processing to verify the retained chain, actual free space, and backup/copy results. The October 16 large VRB remains part of the retained recent history under the new policy.
 - The approved settings change is complete. Reclamation and post-change job verification remain pending; no further reboot or guest maintenance was performed.
+
+## 2026-10-31 - Operator Host Boot and Maintenance Handoff
+
+The operator rebooted the physical host and had difficulty sending F11 through the Mac/iLO console and a remote Windows session to select the mounted ISO.
+
+- Provided HPE-documented guidance for iLO's one-time boot selection: Administration > Boot Order > One-Time Boot Status > CD/DVD Drive > Apply, with the ISO connected as virtual CD/DVD. This guidance avoids relying on a transmitted F11 key and does not require a permanent boot-order change.
+- The operator subsequently reported that the machine was booting and requested closure of the round and a scoped documentation commit/push.
+- No host power, boot-order, firmware, installer, or virtual-media action was performed by Codex. The exact ISO identity, final boot source, and outcome of any work performed from the ISO were not independently verified.
+- Host/ESXi recovery and the Veeam guest's return after this latest host reboot remain unverified. The last verified Veeam health and 120-point retention setting are the observations recorded above, before this reboot.
+- Close this maintenance interaction at the operator's request. Follow up once the normal host/guest boot is complete to verify Veeam services and gateway time, and after the November 2 primary backup to verify retention processing, actual free space, and NAS4 copy results.
