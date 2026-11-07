@@ -1011,6 +1011,49 @@ Follow-up:
   dump and original key. Do not reopen an old copy without reconciling later
   hosted writes and retention erasures.
 
+## 2026-11-07 — PePs sign-in navigation update
+
+- User-reported issue: after initial authenticator setup, the account-security
+  settings appeared to be another required step. Subsequent sign-in could also
+  return to a remembered security URL. Optional expansion panels were missing
+  their Vue registrations, leaving all forms visible.
+- Released and deployed `formatdev/PePs` v0.1.1, commit
+  `8fc62b1454a456dfa76effd2f3615a40dac98710`, image digest
+  `sha256:8191f92d284fa398a50c31da8e036b3b67153cef31c2f911e2feeafa8d15c9b6`.
+  Sign-in and initial MFA confirmation now land on the dashboard. Recovery
+  codes remain one-time-only, with browser-history clearing. The security
+  page has green dashboard/red sign-out buttons and collapsed optional forms.
+- Validation: 22 focused account tests passed locally. Release workflow
+  42410318922 passed 323 tests on each of SQLite/MySQL (2/1 expected skips),
+  dependency audits, formatting, type checking, build and isolated image smoke
+  test. No dependency, schema, password or authenticator changes.
+- Production gate: fresh consistent dump
+  `/data/backups/peps/peps-20261107T201840Z.sql.gz`; zero queued/failed jobs and
+  zero active employee messages. Original deployment files saved with suffix
+  `.before-v0.1.1` under `/data/peps`.
+- Deployment: updated only `PEPS_IMAGE` in Portainer's managed stack 27;
+  forced image re-pull/redeployment was disabled to preserve the unchanged
+  database. The five app services converged to the new digest; all six services
+  healthy, web update completed at 20:24:22 UTC. MySQL container unchanged.
+  Host `deploy.env` was reconciled to the new image. No migrations required.
+- Hosted read-only verification passed: 19,394 encrypted fields, 1,604
+  employees/assignments/codes, 22 maisons, three imports and 1,604 messages.
+  HTTPS `/login` and `/up` returned 200; mail test lock remains enabled.
+- Authenticated verification: the user signed in and reported the dashboard
+  opened; the browser independently confirmed `/dashboard`. The security page
+  showed its optional-settings explanation, green dashboard/red sign-out
+  buttons and three collapsed sections. Password settings expanded/collapsed
+  correctly without entering credentials; the green button returned to the
+  dashboard. No account settings were submitted. Screenshot retained locally.
+- Earlier same-day delivery test: user authorised exactly one Servior sample
+  to `peter.czibula@format.lu`. Message 5 in lot 3 was reissued with its previous
+  delivery record preserved in revision history. The other 1,603 message rows
+  were unchanged. Microsoft reported delivered at the 09:57:30 UTC check and
+  the hosted UI displayed the result. The user subsequently confirmed receipt
+  and appearance. No additional mail was sent for this navigation update.
+- Rollback: restore the v0.1.0 image digest in Portainer; schema is unchanged.
+  Current hosted data and original encryption key must be retained.
+
 ## Maintenance Template
 
 Date:

@@ -3,11 +3,13 @@
 ## November 7 PePs deployment
 
 - Managed Portainer stack `peps` (ID 27), hostname `peps.petillances.com`.
-- Private release `esst/peps:0.1.0`, pinned at
-  `sha256:76afad83e1dc17468445d70b8fcdf58b95465429f637b439f7c23269725b2b18`.
-- Source `formatdev/PePs`, commit `787c77329207d3df8abca496125bce49660fd82a`,
-  [release](https://github.com/formatdev/PePs/releases/tag/v0.1.0),
-  [passing release workflow](https://github.com/formatdev/PePs/actions/runs/42356876178).
+- Private release `esst/peps:0.1.1`, pinned at
+  `sha256:8191f92d284fa398a50c31da8e036b3b67153cef31c2f911e2feeafa8d15c9b6`.
+- Source `formatdev/PePs`, commit `8fc62b1454a456dfa76effd2f3615a40dac98710`,
+  [release](https://github.com/formatdev/PePs/releases/tag/v0.1.1),
+  [passing release workflow](https://github.com/formatdev/PePs/actions/runs/42410318922).
+- November 7 follow-up fixes the sign-in destination and optional account
+  security screen. No migration; v0.1.0 remains available for rollback.
 - PHP 8.5.12, dedicated MySQL 8.4 image pinned at
   `sha256:a81d043930e51745522bd5c430961cf8286f0a23f0a9a2a6e0108f7ea71b0902`.
 - Five application roles: web, default queue, reports queue, accounts queue,
