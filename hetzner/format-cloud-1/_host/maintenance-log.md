@@ -1054,6 +1054,76 @@ Follow-up:
 - Rollback: restore the v0.1.0 image digest in Portainer; schema is unchanged.
   Current hosted data and original encryption key must be retained.
 
+## November 7, 2026 — PePs production data reset
+
+- User authorised removing Servior's employees, codes, imports and employee
+  mailing history while retaining Servior and its maisons/settings, accounts,
+  authentication, call reasons, M365 connection and mail test mode. The user
+  explicitly requested **no new backup**. Existing backups and the scheduled
+  backup configuration were left untouched.
+- Gate: one customer (Servior, ID 3), no clinical calls or statistical reports,
+  zero queued/failed jobs and no pending account messages. Employee mail was
+  already terminal: 10 test-sent and 1,594 test-skipped. Reports disabled.
+- Brief maintenance mode and background-service pause prevented writes.
+  A single transaction with foreign-key enforcement deleted 1,604 employees,
+  employment episodes, assignments and codes; three imports with 5,680 rows
+  and 1,604 proposed changes; one email batch with 1,604 messages.
+- In-memory before/after fingerprints confirmed customers, locations, aliases,
+  users, call reasons, mail settings, account messages, password reset tokens
+  and migration records were unchanged. Location code counters and table ID
+  sequences were retained to prevent reuse of previously issued identifiers.
+  Existing audit events were retained and a production reset event recorded.
+- Verification at 20:53 UTC: zero employees, assignments, codes, imports,
+  email batches/messages, calls and reports; one customer and 22 maisons.
+  Remaining encrypted fields decrypted successfully. M365 test lock remains
+  enabled for peter.czibula@format.lu with a ten-message limit. No mail sent.
+- Maintenance mode ended and all six services returned to 1/1; web and MySQL
+  healthy, public /login and /up returned 200. Web/database containers and
+  deployed v0.1.1 digest unchanged. No new release or local app/data changes.
+- A fresh import can now populate Servior using its preserved column and
+  maison mappings. Restoring an older data backup would undo this clean state.
+
+## November 7, 2026 — PePs v0.2.0 release
+
+- User authorised committing, pushing and publishing the accumulated PePs
+  work. Source `b99e939468e258f58d4e8f76417c84687cf3d55e` was pushed to
+  `codex/peps-foundation` and tagged `v0.2.0` in `formatdev/PePs`.
+- The release adds the shared psychologist/superadmin call workspace,
+  sorting, automatic filters, unlimited call reasons, expanded aggregate
+  statistics access and compact layouts/navigation. The optional MFA
+  shortcut is restricted to the local environment.
+- [Release workflow](https://github.com/formatdev/PePs/actions/runs/42421654170)
+  passed: SQLite 355 passed / 6,128 assertions, MySQL 356 passed / 6,139
+  assertions, dependency audits, formatting, Vue type check/build and the
+  isolated packaged-runtime smoke test. The private reference-workbook test
+  is optional; the locking test is MySQL-only. A test-isolation fix restores
+  trusted-host state after simulated production-login tests.
+- Published private image `esst/peps:0.2.0`, immutable digest
+  `sha256:1d61d1c9a7974894ca582ee6ab0eea18e811127789211ee2d3c6a6d5d6989c76`.
+  Image labels confirm version 0.2.0 and the source commit above.
+- Gate: zero queued/failed jobs and no employee/report messages pending.
+  Fresh post-reset backup `/data/backups/peps/peps-20261107T224002Z.sql.gz`
+  completed with gzip integrity verification (98 KiB). Original deployment
+  files preserved as `.before-v0.2.0`; this backup has not been independently
+  restored or confirmed off-site.
+- Updated only `PEPS_IMAGE` in managed Portainer stack 27. Forced image
+  re-pull/redeployment was disabled; all five application services converged
+  and all six services are 1/1. The existing healthy MySQL container is
+  unchanged. Portainer's saved image and host `deploy.env` agree. No migration.
+- Read-only post-deployment verification passed: two encrypted fields,
+  one customer, 22 maisons, zero employees/assignments/codes/calls/imports,
+  employee mail and statistical reports. HTTPS health and login return 200.
+  MFA remains required, the local shortcut is disabled, and mail is locked
+  to peter.czibula@format.lu with the ten-message limit and three-second pacing.
+- Authenticated hosted checks confirmed the new navigation, Appels filters,
+  statistics auto-filter/reset, blank date bounds, four cards on one desktop
+  row and account-security navigation below the collapsed sections. The
+  dashboard remains at one client, 22 maisons and zero employees. Screenshot
+  retained locally. No clinical data was added and no email was sent.
+- Rollback: restore the v0.1.1 image digest in Portainer, retaining the current
+  database and original encryption key. The PePs integration PR remains draft;
+  this is a versioned hosted pilot.
+
 ## Maintenance Template
 
 Date:

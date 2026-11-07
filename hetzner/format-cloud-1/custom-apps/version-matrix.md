@@ -3,13 +3,15 @@
 ## November 7 PePs deployment
 
 - Managed Portainer stack `peps` (ID 27), hostname `peps.petillances.com`.
-- Private release `esst/peps:0.1.1`, pinned at
-  `sha256:8191f92d284fa398a50c31da8e036b3b67153cef31c2f911e2feeafa8d15c9b6`.
-- Source `formatdev/PePs`, commit `8fc62b1454a456dfa76effd2f3615a40dac98710`,
-  [release](https://github.com/formatdev/PePs/releases/tag/v0.1.1),
-  [passing release workflow](https://github.com/formatdev/PePs/actions/runs/42410318922).
-- November 7 follow-up fixes the sign-in destination and optional account
-  security screen. No migration; v0.1.0 remains available for rollback.
+- Private release `esst/peps:0.2.0`, pinned at
+  `sha256:1d61d1c9a7974894ca582ee6ab0eea18e811127789211ee2d3c6a6d5d6989c76`.
+- Source `formatdev/PePs`, commit `b99e939468e258f58d4e8f76417c84687cf3d55e`,
+  [release](https://github.com/formatdev/PePs/releases/tag/v0.2.0),
+  [passing release workflow](https://github.com/formatdev/PePs/actions/runs/42421654170).
+- November 7 follow-up adds the sortable call workspace, multiple reasons,
+  automatic filters, aggregate statistics for all roles and compact navigation.
+  Production MFA remains required; the bypass is local-only. No migration;
+  v0.1.1 remains available for rollback. All six services verified at 1/1.
 - PHP 8.5.12, dedicated MySQL 8.4 image pinned at
   `sha256:a81d043930e51745522bd5c430961cf8286f0a23f0a9a2a6e0108f7ea71b0902`.
 - Five application roles: web, default queue, reports queue, accounts queue,
@@ -18,11 +20,19 @@
 - Mail is forcibly locked to test mode: `peter.czibula@format.lu`, first ten
   employee/report messages per batch; remaining messages are test-skipped.
   Existing processed batches are never requeued by deployment.
-- Servior-only migration: 1,604 employees, 22 maisons and 1,604 existing codes.
-  Demo customers and calls excluded; demo login accounts disabled.
+- Initial Servior-only migration included 1,604 employees and codes. On
+  November 7 at 20:53 UTC, the user-authorised production reset removed all
+  employees, codes, imports and employee mailing history for a fresh import.
+  Servior, its 22 maisons and aliases, client settings, accounts, call reasons
+  and code counters remain unchanged. No calls or reports existed.
+  No backup was taken during that reset, at the user's explicit request; existing backups
+  remain. Demo customers were never migrated; demo login accounts stay disabled.
 - Daily consistent SQL dump at 18:05 UTC to `/data/backups/peps`, before
   Duplicati at 18:30. Original encryption key and M365 secret use Swarm secrets,
   with restricted escrow under `/data/peps/secrets`. No secrets are in Git.
+- Before the v0.2.0 update, a fresh post-reset backup was verified at
+  `/data/backups/peps/peps-20261107T224002Z.sql.gz`. Deployment preserved the
+  database container and zero-employee state; no mail was sent.
 
 ## October 31 Observation
 
