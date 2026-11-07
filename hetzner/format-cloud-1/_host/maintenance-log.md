@@ -984,8 +984,14 @@ Follow-up:
   periods. M365 mailbox and Exchange trace access passed; no email was sent.
 - HTTPS: existing proxied DNS record points to 188.245.43.92; Cloudflare Full
   (strict) verified. Public login works with secure, HttpOnly session cookie and
-  no-store response. Hosted interactive sign-in/MFA setup remains pending with
-  the user; no personal authenticator was enrolled by the agent.
+  no-store response. The user completed hosted sign-in/authenticator setup.
+  Authenticated browser checks then confirmed the superadmin dashboard,
+  Servior's 1,604 employees and 22 maisons, maison aliases/counts, saved Excel
+  mappings and all three imports (two drafts and completed mail lot 3).
+  Email showed an empty review/queue/error list and 1,604 history entries.
+  The test-lock banner, owner destination and ten-message limit were visible;
+  destination and limit inputs were verified read-only. No records were changed
+  and no mail was sent during these checks. Dashboard left open for the user.
 - All six PePs services converged to 1/1. The first scheduled M365 sync,
   report preparation (disabled for Servior) and token pruning completed at
   10:00 Luxembourg time. Queue and failed-job counts remained zero; existing
