@@ -984,7 +984,12 @@ Follow-up:
   periods. M365 mailbox and Exchange trace access passed; no email was sent.
 - HTTPS: existing proxied DNS record points to 188.245.43.92; Cloudflare Full
   (strict) verified. Public login works with secure, HttpOnly session cookie and
-  no-store response. Authorised browser sign-in is tracked separately below.
+  no-store response. Hosted interactive sign-in/MFA setup remains pending with
+  the user; no personal authenticator was enrolled by the agent.
+- All six PePs services converged to 1/1. The first scheduled M365 sync,
+  report preparation (disabled for Servior) and token pruning completed at
+  10:00 Luxembourg time. Queue and failed-job counts remained zero; existing
+  mail states remained ten test-sent and 1,594 test-skipped.
 - Mail safety: deployment locks test mode, test destination and ten-message
   limit even if database settings say live. Local services remain stopped to
   avoid duplicate scheduling. Reports remain disabled for Servior.
