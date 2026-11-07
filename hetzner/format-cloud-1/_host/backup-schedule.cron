@@ -1,5 +1,6 @@
 # Root crontab on format-cloud-1. Host timezone is Etc/UTC.
 # Duplicati runs daily at 18:30 UTC; finish local preparation first.
-# Retention remains 14 days for MariaDB and 7 days for Portainer.
+# Retention: 14 days for MariaDB and PePs, 7 days for Portainer.
 0 18 * * * /data/backups/mysql/backup-mariadb.sh >> /data/backups/mysql/backup-mariadb.log 2>&1
+5 18 * * * /usr/local/sbin/backup-peps.sh >> /data/backups/peps/backup.log 2>&1
 10 18 * * * /usr/local/sbin/backup-portainer.sh >> /data/backups/portainer/backup-portainer.log 2>&1

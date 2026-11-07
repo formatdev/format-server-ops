@@ -1,5 +1,27 @@
 # Custom App Version Matrix
 
+## November 7 PePs deployment
+
+- Managed Portainer stack `peps` (ID 27), hostname `peps.petillances.com`.
+- Private release `esst/peps:0.1.0`, pinned at
+  `sha256:76afad83e1dc17468445d70b8fcdf58b95465429f637b439f7c23269725b2b18`.
+- Source `formatdev/PePs`, commit `787c77329207d3df8abca496125bce49660fd82a`,
+  [release](https://github.com/formatdev/PePs/releases/tag/v0.1.0),
+  [passing release workflow](https://github.com/formatdev/PePs/actions/runs/42356876178).
+- PHP 8.5.12, dedicated MySQL 8.4 image pinned at
+  `sha256:a81d043930e51745522bd5c430961cf8286f0a23f0a9a2a6e0108f7ea71b0902`.
+- Five application roles: web, default queue, reports queue, accounts queue,
+  scheduler. Deployment source is `deploy/portainer-stack.yml` in PePs;
+  Portainer stores the image digest and replica parameters.
+- Mail is forcibly locked to test mode: `peter.czibula@format.lu`, first ten
+  employee/report messages per batch; remaining messages are test-skipped.
+  Existing processed batches are never requeued by deployment.
+- Servior-only migration: 1,604 employees, 22 maisons and 1,604 existing codes.
+  Demo customers and calls excluded; demo login accounts disabled.
+- Daily consistent SQL dump at 18:05 UTC to `/data/backups/peps`, before
+  Duplicati at 18:30. Original encryption key and M365 secret use Swarm secrets,
+  with restricted escrow under `/data/peps/secrets`. No secrets are in Git.
+
 ## October 31 Observation
 
 - FLOC: `v3.0.11`, PHP `8.5.12`, digest

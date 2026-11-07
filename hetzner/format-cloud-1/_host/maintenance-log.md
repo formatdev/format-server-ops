@@ -954,6 +954,52 @@ Follow-up:
 - Schedule a controlled reboot to boot into `6.8.0-110-generic`.
 - After reboot, rerun the host health check and verify all Swarm services are `1/1`.
 
+## 2026-11-07 — PePs hosted pilot
+
+- Scope: user-authorised production packaging, first release, managed Portainer
+  stack and migration of the current Servior setup. Existing applications and
+  shared MariaDB were left unchanged.
+- Release: `formatdev/PePs` v0.1.0, commit
+  `787c77329207d3df8abca496125bce49660fd82a`, private Docker Hub digest
+  `sha256:76afad83e1dc17468445d70b8fcdf58b95465429f637b439f7c23269725b2b18`.
+  CI passed SQLite/MySQL tests, Composer/npm audits, formatting, type checking,
+  frontend build and an isolated production-container smoke test.
+- Portainer: managed `peps`, ID 27. Web/nginx/FPM runs as UID 1000. Dedicated
+  MySQL and private encrypted overlay; no host ports published. Only web joins
+  the existing Traefik `proxy` network. Four external Swarm secrets preserve the
+  original APP_KEY and M365 registration and provide new database credentials.
+- Migration: local app/workers/scheduler stopped before the snapshot. Original
+  local database and a restricted full pre-migration dump retained. Filtered
+  export included Servior only, with existing primary keys, maison aliases,
+  column mappings, email templates and historical snapshots. Hosted counts:
+  one customer, 22 maisons, 1,604 employees/episodes/assignments/codes, three
+  imports, one mail batch with 1,604 messages, zero clinical calls/reports.
+- Verification: all selected source/destination row fingerprints matched;
+  account transformations separately checked, every foreign-key relationship
+  checked. Existing superadmin renamed to `peter.czibula@format.lu` with password
+  unchanged; the real administrator retained and `.test` accounts disabled.
+  Sessions, cached tokens, jobs and reset tokens were not copied. MFA required.
+- Read-only hosted verification decrypted all 19,391 encrypted fields. No
+  migrations pending, retention dry-run found zero eligible identities/clinical
+  periods. M365 mailbox and Exchange trace access passed; no email was sent.
+- HTTPS: existing proxied DNS record points to 188.245.43.92; Cloudflare Full
+  (strict) verified. Public login works with secure, HttpOnly session cookie and
+  no-store response. Authorised browser sign-in is tracked separately below.
+- Mail safety: deployment locks test mode, test destination and ten-message
+  limit even if database settings say live. Local services remain stopped to
+  avoid duplicate scheduling. Reports remain disabled for Servior.
+- Backup: installed `/usr/local/sbin/backup-peps.sh`, 18:05 UTC, 14 local days;
+  existing cron entries preserved. First consistent gzip dump succeeded and
+  restored into an isolated, network-disabled MySQL container. Restored row
+  fingerprints and all 19,391 encrypted fields passed with the published image.
+  Duplicati sources/filters include SQL dumps, storage and secret escrow; the
+  next 18:30 off-site upload and an off-site retrieval were not yet verified.
+  The raw `/data/peps/mysql` directory is also included by the existing broad
+  source: only the consistent SQL dump is validated for restoration.
+- Rollback: retained original local database, pre-migration dump, hosted initial
+  dump and original key. Do not reopen an old copy without reconciling later
+  hosted writes and retention erasures.
+
 ## Maintenance Template
 
 Date:
