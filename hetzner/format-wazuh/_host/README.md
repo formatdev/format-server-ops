@@ -3,11 +3,11 @@
 Runbook for maintaining the Hetzner VPS that hosts Wazuh for the Format
 environment.
 
-Last updated: 2026-10-31
+Last updated: 2026-11-15
 
 ## Current Verified State
 
-Last verified: 2026-10-31. See
+Last verified: 2026-11-15. See
 [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/maintenance-log.md)
 for the inspection details.
 
@@ -17,8 +17,8 @@ for the inspection details.
 - Public IPv4: `116.203.114.188`
 - Public IPv6: `2a01:4f8:1c1c:9a62::1/64`
 - OS: Ubuntu 24.04.5 LTS
-- Running kernel: `6.8.0-147-generic`
-- Primary workload: Wazuh 4.14.9, package/systemd deployment
+- Running kernel: `6.8.0-149-generic`
+- Primary workload: Wazuh 4.14.10, package/systemd deployment
 - Active services: `wazuh-manager`, `wazuh-indexer`, `wazuh-dashboard`,
   `filebeat`
 - Recommended agent endpoint: `wazuh-agent.format.lu`
@@ -26,8 +26,8 @@ for the inspection details.
 - Portainer: not present by current deployment evidence
 - Wazuh indexer data: `/var/lib/wazuh-indexer`, bind-mounted from
   `/mnt/HC_Volume_104575658/wazuh-indexer`
-- Reboot state: reboot completed on 2026-10-31; no reboot marker remains
-- Remaining apt upgrades as of 2026-10-31: none
+- Reboot state: reboot completed on 2026-11-15; no reboot marker remains
+- Remaining apt upgrades as of 2026-11-15: `snapd` deferred by Ubuntu phasing
 - Public ingress: dashboard 443/tcp, agent events 1514/tcp, rate-limited SSH
   22/tcp. Enrollment 1515/tcp is blocked by UFW on IPv4 and IPv6.
 - Enrollment defense in depth: password required, automatic duplicate-agent
@@ -42,17 +42,17 @@ for the inspection details.
   `wazuh-local-alert-retention.timer`
 - Internal Wazuh log retention: 31 days through the existing
   `monitord.keep_log_days` setting
-- Storage after 2026-10-31 maintenance: root 58% used and indexer data
-  volume 43% used
-- Full valid agent inventory: 16 remote agents active, 19 disconnected, none
-  never connected; local manager active. `021 NUC-MTX3` is active again.
-- Agent state: canonical Mac agent `043 MBP-PCZ` active after starting its
-  stopped local 4.14.8 processes on 2026-10-31. Server route uses en0.
-  The persistent VPN route exception is documented in the August 23 log;
-  VPN reconnect behavior was not retested this round.
+- Storage after 2026-11-15 maintenance: root 65% used and indexer data
+  volume 45% used
+- Full valid agent inventory: 13 remote agents active, 22 disconnected, none
+  never connected; local manager active. All nine server agents were active.
+- Agent state: canonical Mac agent `043 MBP-PCZ` is active and reports
+  Wazuh 4.14.9. No endpoint software or VPN settings were changed in this
+  round. The persistent VPN route exception is documented in the August 23 log.
 - Configuration recovery copy: root-only
-  `/root/wazuh-maintenance-20261031-8Iy6j8/config-before.tgz`; this is not an
-  index-data backup. The same directory holds registration/log evidence.
+  `/root/wazuh-maintenance-20261115-fc3hCe/config-before.tgz`; this is not an
+  index-data backup. Prior incident evidence remains in the October 31
+  maintenance directory.
   Historical archive remains at
   `/root/wazuh-backup-2025-08-03.tar.gz`.
 

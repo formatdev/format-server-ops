@@ -6,6 +6,59 @@ Wazuh health checks, and reboot decisions for `format-wazuh`.
 Do not record passwords, API tokens, backup passwords, registry credentials,
 certificate private keys, enrollment secrets, or other secrets here.
 
+## 2026-11-15 - Wazuh 4.14.10 And Kernel Reboot
+
+Window: 09:23-09:35 CET. The dedicated cloud-host maintenance was handled
+separately; no cloud services were changed by this Wazuh round.
+
+- Confirmed SSH alias and hostname, Ubuntu 24.04.5 LTS, package/systemd
+  deployment, no failed units, and all four Wazuh services active before the
+  upgrade. Running kernel was `6.8.0-147-generic`; kernel 149, linux-base
+  and libc already required a reboot. Boot image, initramfs and GRUB entry
+  for kernel 149 were present.
+- Created and verified a root-only, 425 KiB configuration archive at
+  `/root/wazuh-maintenance-20261115-fc3hCe/config-before.tgz`. It contains
+  Wazuh/Filebeat configuration, enrollment keys and certificates, the Filebeat
+  module, firewall configuration and GRUB defaults. No current full index
+  backup or restore was verified. All four preserved October incident
+  artifacts matched their saved checksums.
+- APT simulation showed six upgrades, no additions or removals, and one
+  phased deferral. Downloaded packages first, flushed the indexer with zero
+  failed shards, and stopped manager/Filebeat for the upgrade. Preserved
+  existing configuration and disallowed removals. Upgraded manager, indexer
+  and dashboard to `4.14.10-1` plus `distro-info`, `python3-distro-info`
+  and `libsqlite3-0`. Filebeat remains `7.10.2-2`; its deployed module
+  and template already matched the official 0.5 and 4.14.10 files.
+- Confirmed startup before one controlled reboot. Verified the new boot ID
+  and kernel `6.8.0-149-generic`. No pending reboot marker, dpkg audit
+  findings, or failed systemd units. Only `snapd` remains deferred by phasing.
+- Manager, dashboard, indexer and Filebeat active. Dashboard temporarily
+  returned 503 while shards recovered and then returned its normal 302
+  redirect; unauthenticated API/indexer requests returned 401. Filebeat
+  TLS/output check passed. Single-node indexer settled to yellow, with all
+  401 primaries active, 31 unassigned replicas, no initializing shards or
+  pending tasks. Latest alert at 08:33:59 UTC was eight seconds old at
+  verification; no search shard failures.
+- All 90 alert indices (August 18 through November 15) have the
+  `wazuh-alert-retention-90d` policy with no reported failures. Local
+  cleanup ran successfully at 03:44:32 UTC, the timer is active, and the
+  deployed script and units match the repository checksums.
+- UFW and Fail2ban active; key-only SSH and no SSH forwarding remain in
+  effect. External TCP 1514 succeeded; 1515 timed out. No IPv6 enrollment
+  allow rule, though the external probe used IPv4. Manager configuration,
+  password and client-key checksums unchanged; password permissions remain
+  `0640 root:wazuh`. A TLS-verified local test rejected passwordless
+  enrollment; no test registration was created. Agent 045 remains absent
+  and the existing source block remains in place.
+- Final roster: 13 active remote agents and 22 disconnected, plus the local
+  manager. All nine server agents and Mac `043 MBP-PCZ` (agent 4.14.9)
+  active. `024 NUC-HHA` was active before maintenance but had not
+  reconnected at final check; its last keepalive was 08:10:28 UTC.
+- Root 65% used (26 GiB available); index volume 45% used (42 GiB available).
+  No ad hoc deletion of logs, index data, backups or kernels was performed.
+
+[Wazuh 4.14.10 release notes](https://github.com/wazuh/wazuh/releases/tag/v4.14.10)
+
 ## 2026-10-31 - Security Case Closed
 
 - Peter requested closure after reviewing the investigation, containment and
