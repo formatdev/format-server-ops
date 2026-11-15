@@ -11,6 +11,9 @@ Last updated: 2026-04-18
 - Expected IP from local SSH config: `192.168.1.5`
 - Expected SSH aliases: `win-pdc`, `winad-pdc`
 - Role: primary domain controller for `format.lu`
+- BDC and PDC use a dedicated Domain Controllers OU GPO for security-group
+  change auditing. Verified group membership add/remove events in Wazuh;
+  see [policy, evidence and rollback](security-group-management-auditing.md).
 
 ## Safety Rules
 

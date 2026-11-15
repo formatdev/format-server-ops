@@ -61,6 +61,7 @@ for the inspection details.
 - [maintenance-log.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/maintenance-log.md): host-level maintenance history
 - [new-thread-prompt.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/new-thread-prompt.md): prompt for opening a dedicated maintenance thread
 - [retention/README.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/retention/README.md): tracked index and local alert retention configuration
+- [rules/README.md](rules/README.md): privileged AD group alerts, dashboard filters and rollback
 - [security-review-2026-10-31.md](/Users/czibulapeter/Documents/GitHub/format-server-ops/hetzner/format-wazuh/_host/security-review-2026-10-31.md): unrecognized enrollment, investigation, containment and verified hardening
 
 ## Safety Rules

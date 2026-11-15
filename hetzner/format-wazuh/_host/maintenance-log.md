@@ -6,6 +6,18 @@ Wazuh health checks, and reboot decisions for `format-wazuh`.
 Do not record passwords, API tokens, backup passwords, registry credentials,
 certificate private keys, enrollment secrets, or other secrets here.
 
+## 2026-11-15 - Privileged AD Group Alerting
+
+- Deployed level 12 rule `110310` for 18 verified privileged AD groups on
+  BDC and PDC. Routine group events continue to use their native rules and
+  existing 90-day search retention. No new email or chat routing.
+- Passed 43 isolated Windows EventChannel cases and validated production
+  configuration. Restarted only the manager. BDC, PDC and Exchange3 were
+  Active; a fresh non-privileged BDC add/remove indexed at level 5.
+- See the [rule runbook](rules/README.md) for the SID list, search filters,
+  test evidence and rollback. The existing manager configuration and
+  pre-existing custom rule matched their original checksums.
+
 ## 2026-11-15 - Wazuh 4.14.10 And Kernel Reboot
 
 Window: 09:23-09:35 CET. The dedicated cloud-host maintenance was handled

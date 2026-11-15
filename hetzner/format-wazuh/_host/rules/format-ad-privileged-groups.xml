@@ -1,0 +1,11 @@
+<group name="windows,windows_security,group_changed,win_group_changed,format_ad_privileged_group,">
+  <rule id="110310" level="12">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID" type="pcre2">^(?:472[789]|473[0-5]|4737|475[4-8]|4764)$</field>
+    <field name="win.system.computer" type="pcre2">(?i)^(?:BDC|PDC)(?:\.format\.lu)?$</field>
+    <!-- Match the group SID, not its localized or renamed display name. -->
+    <field name="win.eventdata.targetSid" type="pcre2">^(?:S-1-5-21-3572445798-2314295735-3149754986-(?:512|516|518|519|520|521|526|527|1101|1117|1128|1129|1130)|S-1-5-32-(?:544|548|549|550|551))$</field>
+    <description>Privileged AD group change: $(win.eventdata.targetUserName) (Windows event $(win.system.eventID)) on $(win.system.computer)</description>
+    <options>no_full_log</options>
+  </rule>
+</group>
