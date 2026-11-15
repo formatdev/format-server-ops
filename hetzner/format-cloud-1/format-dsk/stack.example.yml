@@ -23,7 +23,7 @@ services:
 
   tim:
     # Local emergency image; see ../_host/php-security-20261021/README.md.
-    image: format-security/format-dsk-tim:1.0.0-php8.4.27-twig3.30.0
+    image: format-security/format-dsk-tim:1.0.0-php8.4.27-twig3.30.0-slim4.15.3
     networks:
       - proxy
     deploy:

@@ -7,8 +7,8 @@ This runbook documents the `format-dsk` custom app stack hosted through Portaine
 - stack: `format-dsk`
 - TIM service: `format-dsk_tim`
 - TIM hostname: `dsk-tim.format.lu`
-- TIM image: `format-security/format-dsk-tim:1.0.0-php8.4.27-twig3.30.0`
-- PHP `8.4.27`, Twig `3.30.0`, verified 2026-11-15
+- TIM image: `format-security/format-dsk-tim:1.0.0-php8.4.27-twig3.30.0-slim4.15.3`
+- PHP `8.4.27`, Twig `3.30.0`, Slim `4.15.3`, verified 2026-11-15
 - image availability: local to `format-cloud-1`; registry publication pending
   write-capable credentials. See [emergency runtime build and recovery](../_host/php-security-20261021/README.md).
 - backend port: `80`
@@ -56,10 +56,10 @@ cd /Users/czibulapeter/Documents/GitHub/dsk/tim-v3/API
 composer audit --locked
 ```
 
-On November 15 Twig was updated to `3.30.0` in TIM source and in a
-[dependency-only image layer](tim-twig.Dockerfile) on the verified emergency
-PHP image. The Twig audit is clean; the separate Slim advisory remains.
-See the [verification and recovery record](../_host/maintenance-2026-11-15.md#tim-twig-patch-and-isolated-restore-follow-up).
+On November 15 Twig was updated to `3.30.0` and Slim to `4.15.3` in TIM
+source and in a [dependency-only image layer](tim-deps.Dockerfile) on the
+verified emergency PHP image. The locked Composer audit reported no advisories.
+See the [verification and recovery record](../_host/maintenance-2026-11-15.md#tim-slim-patch).
 
 ## Maintenance Checklist
 

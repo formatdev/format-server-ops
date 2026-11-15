@@ -1,5 +1,13 @@
 # format-dsk Maintenance Log
 
+## 2026-11-15 - Slim Security Patch
+
+- Updated Slim `4.15.1` to `4.15.3` in TIM source and the deployed image.
+  The locked Composer audit and HTML error escaping regression check passed.
+- Verified the live version, both TIM routes, and the saved Portainer stack.
+  PHP, Twig, Firebird modules and PM status are unchanged.
+- [Verification and rollback record](../_host/maintenance-2026-11-15.md#tim-slim-patch).
+
 ## 2026-11-15 - Twig Security Patch
 
 - Updated Twig `3.24.0` -> `3.30.0` in active TIM source and the deployed

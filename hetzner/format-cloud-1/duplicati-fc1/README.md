@@ -338,8 +338,11 @@ files were removed; no database import, overwrite, or change to the scheduled
 backup job was performed. See the
 [test record](../_host/maintenance-2026-11-15.md#tim-twig-patch-and-isolated-restore-follow-up).
 
-The test pinned a previously trusted Synology host key. The scheduled job
-still accepts any SFTP fingerprint; pin it in a separate configuration change.
+The test used the previously trusted Synology Ed25519 host key. The scheduled
+job now pins the same key and no longer accepts arbitrary SFTP fingerprints.
+The read-only destination test passed with the saved settings. See the
+[pin verification record](../_host/maintenance-2026-11-15.md#duplicati-synology-host-key-pin).
+If the NAS key changes, verify the new key out of band before updating the pin.
 
 A restore test was completed on 2026-04-18:
 

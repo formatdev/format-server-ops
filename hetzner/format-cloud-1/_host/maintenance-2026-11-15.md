@@ -147,7 +147,7 @@ were `1/1`. Authenticated workflows for these apps were not tested.
   only Twig; existing untracked files were not included. Audit reports no Twig
   advisory, including the fix for CVE-2026-46633. Slim remains a separate
   finding (CVE-2026-48157).
-- [TIM dependency layer](../format-dsk/tim-twig.Dockerfile) built offline from
+- The TIM dependency layer (originally `tim-twig.Dockerfile`) built offline from
   the verified running base image ID
   `sha256:1507dded1bdbcb962762b569efadf92e0c7be7c1e517e879ffe01a55e605a518`.
   No underlying application code, PHP runtime, or database changes. Build
@@ -179,9 +179,8 @@ were `1/1`. Authenticated workflows for these apps were not tested.
   SQLite catalog copy, and no original source/data mounts. Local-block reuse
   and overwrite were disabled. The dump blocks came from Synology SFTP.
 - For this restore only, pinned the SFTP host fingerprint to the pre-existing
-  trusted Ed25519 host key. The production job currently accepts any SFTP
-  fingerprint; it was not changed. Pinning that job to the trusted key is a
-  separate hardening follow-up.
+  trusted Ed25519 host key. The production job still accepted any SFTP
+  fingerprint at the time; see the later change below.
 - Final restore exited 0. One file, 7,317,710 bytes; gzip integrity, the
   SQL dump completion marker and byte-for-byte comparison to the local
   original passed. SHA-256
@@ -193,6 +192,52 @@ were `1/1`. Authenticated workflows for these apps were not tested.
   backup job setting or retention change. File-level recovery is verified
   for this sample, not a database import or complete disaster-recovery test.
 
+## TIM Slim Patch
+
+- Updated Slim `4.15.1` to `4.15.3` in the DSK `tim-v3/API` manifest,
+  lockfile and tracked vendor files. No other locked dependency changed.
+  `composer validate` and `composer audit --locked` passed. Slim
+  `4.15.2` fixes CVE-2026-48157; `4.15.3` also fixes a route constraint
+  bypass. Source patch: [DSK 9d7673d](https://github.com/formatdev/dsk/commit/9d7673df6293ba6bb3b805745d193b198d52d454).
+- Built the [TIM dependency layer](../format-dsk/tim-deps.Dockerfile) offline
+  from the same verified PHP base and a clean Composer build context.
+  HTML error escaping, Apache syntax, the unchanged PHP module list and
+  Firebird extensions passed. PHP stays at `8.4.27` and Twig at `3.30.0`.
+- Deployed only `format-dsk_tim`. Live Composer metadata confirmed Slim
+  `4.15.3`; the origin and public TIM route from the operator workstation
+  returned HTTP 200. A request to the public route from the host returned 403.
+  No authenticated workflow was exercised. All 24 Swarm services were 1/1.
+- The local image is `format-security/format-dsk-tim:1.0.0-php8.4.27-twig3.30.0-slim4.15.3`,
+  ID `sha256:1fc4eeb2828c40d938f42c1fa9c3626d018ec4de4f506c796374b1d4025bb632`.
+  Root-only recovery archive:
+  `/root/tim-slim-20261115/format-dsk-tim-slim4.15.3.tar.gz`, gzip verified,
+  SHA-256 `56d7ca14e13cd83f7bdd1fe393b21463275afcf9588caa8c7f1d2b50b76d2d2c`.
+  The previous Twig-only image remains available for rollback but contains
+  vulnerable Slim. Registry publication is still pending.
+- Saved Portainer Compose ID 8 now matches the deployed `tim.image`.
+  The Compose validation and Portainer 2.45.3 status check passed. PM remains
+  disabled. The cold pre-change archive is
+  `/root/tim-slim-20261115/portainer-before-tim-slim-20261115-091419.tar.gz`.
+
+## Duplicati Synology Host Key Pin
+
+- Pinned backup ID 1, `format-cloud-1 to Synology`, to the Ed25519 host key
+  already trusted in the host's OpenSSH known-hosts file and used for the
+  isolated restore. Saved `ssh-fingerprint` and removed
+  `ssh-accept-any-fingerprints=true`. No new key was learned from the network.
+- Duplicati's read-only SFTP connection test passed before and after saving.
+  Compared the saved job, effective backup arguments and server database:
+  destination path, credentials, sources, filters, retention and schedule
+  are unchanged. Next scheduled run: 2026-11-15 at 18:30 UTC (19:30 CET).
+  No manual backup, retention run or NAS write was initiated. Verify the
+  next scheduled backup result separately.
+- Pre-change server configuration snapshot (SQLite backup and integrity
+  check, root-only):
+  `/root/duplicati-sftp-pin-20261115/Duplicati-server-before-pin-20261115-091929.sqlite`.
+  SHA-256 `40bb54fa13fb858a330249001147e3c9747cd712c77ad64496166bb46bb13e3b`.
+  On a host key mismatch, verify the Synology key out of band before changing
+  the pin; do not re-enable unconditional acceptance.
+
 ## References
 
 - [Docker 29.9.3 notes](https://docs.docker.com/engine/release-notes/29/#2993)
@@ -203,3 +248,5 @@ were `1/1`. Authenticated workflows for these apps were not tested.
 - [FLOC release build](https://github.com/formatdev/floc/actions/runs/41206571242)
   and [Chargy 2.3.2 release](https://github.com/formatdev/Chargy/releases/tag/v2.3.2)
 - [Twig advisory](https://symfony.com/cve-2026-46633)
+- [Slim release 4.15.3](https://github.com/slimphp/Slim/releases/tag/4.15.3)
+  and [CVE-2026-48157 advisory](https://github.com/slimphp/Slim/security/advisories/GHSA-53h4-8rc4-f539)

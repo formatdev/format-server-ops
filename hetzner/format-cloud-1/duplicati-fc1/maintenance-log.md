@@ -1,5 +1,14 @@
 # Duplicati FC1 Maintenance Log
 
+## 2026-11-15 - Scheduled SFTP Host Key Pin
+
+- Pinned the scheduled Synology job to the already trusted Ed25519 host key
+  used in the isolated restore and removed unconditional key acceptance.
+- Read-only connection tests passed before and after saving. Schedule,
+  sources, filters, credentials and retention are unchanged. No backup was
+  started; the next scheduled result still needs verification.
+- [Change and recovery record](../_host/maintenance-2026-11-15.md#duplicati-synology-host-key-pin).
+
 ## 2026-11-15 - Isolated Synology Restore Test
 
 - Restored one 7,317,710-byte MariaDB dump from the November 14 scheduled
