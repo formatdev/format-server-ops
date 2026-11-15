@@ -1,5 +1,16 @@
 # format-dsk Maintenance Log
 
+## 2026-11-15 - Twig Security Patch
+
+- Updated Twig `3.24.0` -> `3.30.0` in active TIM source and the deployed
+  local image, addressing CVE-2026-46633. No remaining Twig audit finding;
+  Slim remains a separate follow-up.
+- Retained PHP `8.4.27` and Firebird extensions. Isolated rendering and
+  Apache tests passed. Live TIM `1/1`, public/origin `200`; PM unchanged.
+- Cold-archived Portainer, reconciled saved TIM reference and validated
+  Compose. Verified a recovery archive of the patched image.
+- [Build, verification, and recovery details](../_host/maintenance-2026-11-15.md#tim-twig-patch-and-isolated-restore-follow-up).
+
 ## 2026-10-31 - End-Of-Month Maintenance
 
 - Local-only patched TIM image retained; live PHP `8.4.27`, service `1/1`,

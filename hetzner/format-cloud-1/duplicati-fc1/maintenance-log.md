@@ -1,5 +1,16 @@
 # Duplicati FC1 Maintenance Log
 
+## 2026-11-15 - Isolated Synology Restore Test
+
+- Restored one 7,317,710-byte MariaDB dump from the November 14 scheduled
+  backup in a disposable container, with a copied catalog and local-block
+  reuse disabled. Exit 0, byte-for-byte match, gzip and SQL completion checks
+  passed.
+- Test output and credentials removed. No SQL import, original file overwrite,
+  scheduled job or retention change. The test pinned the SFTP key; harden the
+  scheduled job's fingerprint setting separately.
+- [Full restore record](../_host/maintenance-2026-11-15.md#tim-twig-patch-and-isolated-restore-follow-up).
+
 ## 2026-10-31 - Backup Schedule Alignment
 
 - Peter authorized fixing the schedule. Moved the root cron MariaDB dump from

@@ -134,8 +134,64 @@ FLOC `18f80f23c354072e5d028a266253e8c6613f701d` and Chargy
 no longer deployed in these apps. PHP remains `8.5.12` for FLOC and
 `8.3.36` for both Chargy instances. All three FPM configuration checks
 passed, all three origin login pages returned `200`, and all 24 services
-were `1/1`. Authenticated workflows for these apps were not tested. TIM's
-Twig dependency update and the Duplicati restore test remain open.
+were `1/1`. Authenticated workflows for these apps were not tested.
+
+## TIM Twig Patch And Isolated Restore Follow-Up
+
+### TIM
+
+- Confirmed TIM's live Composer lockfile matched active source at DSK
+  `2648029`. Updated only Twig from `3.24.0` to `3.30.0` in a clean checkout
+  using Composer, then applied the manifest, lockfile, tracked vendor and
+  Composer metadata changes to the local DSK repository. The lockfile changed
+  only Twig; existing untracked files were not included. Audit reports no Twig
+  advisory, including the fix for CVE-2026-46633. Slim remains a separate
+  finding (CVE-2026-48157).
+- [TIM dependency layer](../format-dsk/tim-twig.Dockerfile) built offline from
+  the verified running base image ID
+  `sha256:1507dded1bdbcb962762b569efadf92e0c7be7c1e517e879ffe01a55e605a518`.
+  No underlying application code, PHP runtime, or database changes. Build
+  context is the clean `tim-v3/API` Composer manifest, lockfile, and complete
+  generated `vendor/` tree, plus the Dockerfile. Do not use the dirty working
+  tree as a release build context.
+- Isolated tests without network or data mounts passed: Apache syntax and
+  loopback HTTP, Twig rendering/escaping, unchanged PHP module list, and
+  PHP `8.4.27` with `interbase` and PDO Firebird. Deployed TIM only with
+  `--no-resolve-image`; the public and origin routes returned `200` after
+  convergence and live Twig reports `3.30.0`. No authenticated workflow ran.
+- New local image `format-security/format-dsk-tim:1.0.0-php8.4.27-twig3.30.0`,
+  ID `sha256:62645cfefb89af4d02bede73808862b970d553f5bf59046f75fdc474be82d2c6`.
+  Root-only recovery archive:
+  `/root/tim-twig-20261115/tim-twig3.30.0.tar.gz`, gzip verified, SHA-256
+  `3c017de13b72ddeb9845cdadc2923ec3e5800a5f1f125ecb51fd9053fbd88e01`.
+  Old image retained for rollback only; it contains vulnerable Twig.
+- Saved Portainer Compose ID 8 changed only `tim.image` after a cold backup
+  to `/root/tim-twig-20261115/portainer-before-tim-20261115-084814.tar.gz`.
+  Semantic and Compose validation passed, Portainer status returned 2.45.3.
+  PM remains disabled. Registry publication is pending. Source patch:
+  [DSK 9ffebeb](https://github.com/formatdev/dsk/commit/9ffebeb44f98c8d6d6538ba64ff827840537e374).
+
+### Duplicati
+
+- Restored only `mariadb-all-databases-2026-11-14-180001.sql.gz` from the
+  November 14, 18:30 UTC fileset (operation 303). Duplicati CLI 2.4.1.0 ran
+  in a disposable read-only container, with a private scratch directory and
+  SQLite catalog copy, and no original source/data mounts. Local-block reuse
+  and overwrite were disabled. The dump blocks came from Synology SFTP.
+- For this restore only, pinned the SFTP host fingerprint to the pre-existing
+  trusted Ed25519 host key. The production job currently accepts any SFTP
+  fingerprint; it was not changed. Pinning that job to the trusted key is a
+  separate hardening follow-up.
+- Final restore exited 0. One file, 7,317,710 bytes; gzip integrity, the
+  SQL dump completion marker and byte-for-byte comparison to the local
+  original passed. SHA-256
+  `06fe144546c5c0e361a542e7f26dd44f56ac91f5f173bf31c4fabc081feb1690`.
+  A preliminary run warned about its small temporary filesystem; the verified
+  run used the isolated scratch directory for the restore cache.
+- Removed the disposable container, restored file, database copy and
+  temporary credential material. No SQL import, original file overwrite,
+  backup job setting or retention change. File-level recovery is verified
+  for this sample, not a database import or complete disaster-recovery test.
 
 ## References
 

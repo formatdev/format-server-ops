@@ -331,6 +331,16 @@ Important rollback note:
 
 ## Restore Test
 
+On 2026-11-15 a file-level restore retrieved the November 14 MariaDB dump
+from Synology into a disposable container. It matched the original
+byte-for-byte, and gzip and SQL completion-marker checks passed. Temporary
+files were removed; no database import, overwrite, or change to the scheduled
+backup job was performed. See the
+[test record](../_host/maintenance-2026-11-15.md#tim-twig-patch-and-isolated-restore-follow-up).
+
+The test pinned a previously trusted Synology host key. The scheduled job
+still accepts any SFTP fingerprint; pin it in a separate configuration change.
+
 A restore test was completed on 2026-04-18:
 
 - Restored file: `test-2026-04-18-062654-all-databases.sql.gz`
