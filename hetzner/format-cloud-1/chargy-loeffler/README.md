@@ -8,9 +8,9 @@ This runbook documents the `chargy-loeffler` custom app stack hosted through Por
 - app service: `chargy-loeffler_app`
 - Redis service: `chargy-loeffler_redis`
 - public hostname: `chargy.loeffler.lu`
-- live app image: `esst/chargy:latest` (verified release `2.3.1`)
-- observed app digest (2026-10-31): `sha256:75ce52b8889a6470acf0f057081e0da6e2eb29c8a43170d657c3e19e0ad56741`
-- observed PHP runtime: `8.3.36`
+- live app image: `esst/chargy:latest` (verified release `2.3.2`)
+- observed app digest (2026-11-15): `sha256:f1d889506f2fb3329765361ec4dddbf77b08d4c8457fdaf8e3779cb0a0ed2169`
+- observed PHP runtime: `8.3.36`; Symfony Mime `7.4.22`
 - Redis image: `redis:7.4.12-alpine3.21`
 - backend port: `80`
 - reverse proxy: Traefik on external Docker network `proxy`
@@ -18,7 +18,7 @@ This runbook documents the `chargy-loeffler` custom app stack hosted through Por
 
 ## Version Check
 
-The production app follows `latest`; its verified release is `2.3.1`, and the
+The production app follows `latest`; its verified release is `2.3.2`, and the
 same digest is used by the `chargy` stack. During maintenance, compare the
 live digest and actual PHP runtime with the intended reviewed build.
 

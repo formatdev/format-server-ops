@@ -3,7 +3,7 @@
 This folder documents the `duplicati-fc1` backup service hosted through
 Portainer on the Hetzner host `format-cloud-1`.
 
-Last verified: 2026-10-31.
+Last verified: 2026-11-15.
 
 Duplicati is part of the backup layer. Treat updates and configuration changes
 carefully, because backup metadata, destination credentials, and restore ability
@@ -34,11 +34,11 @@ off-server backups with a daily MariaDB dump included in the backup set.
 Sensitive values are intentionally not stored in this repository. Keep them in
 Bitwarden.
 
-The October 31 upgrade has a verified stopped-state rollback archive. The job
-database was still schema 19 after startup; verify its deferred migration and
-the next completed backup before considering the upgrade functionally proven.
-An image-only downgrade after migration is not sufficient. See the
-[round record](../_host/maintenance-2026-10-31.md).
+The October 31 upgrade has a verified stopped-state rollback archive. On
+November 15 the job database was at schema 22 and the November 14 successful
+backup catalog contained the same day's MariaDB and PePs dumps and Portainer
+archive. This is not a restore test. An image-only downgrade after migration is
+not sufficient. See the [verification record](../_host/maintenance-2026-11-15.md).
 
 ## Access Protection
 
@@ -137,11 +137,12 @@ moved host preparation jobs earlier without changing Duplicati's schedule:
 | Daily operation | UTC | Luxembourg winter (CET) | Luxembourg summer (CEST) |
 | --- | --- | --- | --- |
 | MariaDB all-database dump | 18:00 | 19:00 | 20:00 |
+| PePs database dump | 18:05 | 19:05 | 20:05 |
 | Portainer cold archive | 18:10 | 19:10 | 20:10 |
 | Duplicati off-host backup | 18:30 | 19:30 | 20:30 |
 
 The unchanged 24-hour Duplicati schedule is UTC-based, not a fixed Luxembourg
-wall-clock time. Keeping all three jobs in UTC preserves their order across
+wall-clock time. Keeping all four jobs in UTC preserves their order across
 daylight-saving changes. Recent dumps took seconds and Portainer archives about
 13 seconds; the archive has a 20-minute scheduled head start. The jobs remain
 independent: a local job failure or unusually long run still requires attention

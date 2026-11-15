@@ -13,7 +13,8 @@ Vaultwarden is security-sensitive because it stores password-manager data. Keep 
 - reverse proxy: Traefik on external Docker network `proxy`
 - Cloudflare: in front of the public hostname
 - data path: `/data/files/vaultwarden/data:/data`
-- current target image: `ghcr.io/dani-garcia/vaultwarden:1.37.4`
+- current target image: `ghcr.io/dani-garcia/vaultwarden:1.37.5`
+- bundled Web Vault: `2026.10.1`
 
 ## Current Decisions
 
@@ -45,7 +46,7 @@ Rotating `ADMIN_TOKEN` does not break existing user vault logins. It only change
 3. Generate the Argon2 hash:
 
 ```bash
-docker run --rm -it ghcr.io/dani-garcia/vaultwarden:1.37.4 /vaultwarden hash
+docker run --rm -it ghcr.io/dani-garcia/vaultwarden:1.37.5 /vaultwarden hash
 ```
 
 4. Paste the plain password when prompted.

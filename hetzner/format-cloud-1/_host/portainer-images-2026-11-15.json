@@ -1,0 +1,12 @@
+[
+  {
+    "path": "/data/portainer/data/compose/11/docker-compose.yml",
+    "service": "server",
+    "image": "ghcr.io/dani-garcia/vaultwarden:1.37.5"
+  },
+  {
+    "path": "/data/portainer/data/compose/26/docker-compose.yml",
+    "service": "cloudflared_fc1",
+    "image": "cloudflare/cloudflared:2026.11.0"
+  }
+]

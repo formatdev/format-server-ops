@@ -1,5 +1,21 @@
 # format-cloud-1 Host Maintenance Log
 
+## 2026-11-15 - Mid-Month Maintenance
+
+- Applied seven packages and rebooted into kernel `6.8.0-149-generic`;
+  Docker is `29.9.3`. Reboot cleared transient Docker overlay task rejections.
+- Updated Traefik `3.7.19`, Vaultwarden `1.37.5` (Web Vault `2026.10.1`),
+  and Cloudflared `2026.11.0`; saved Portainer images 11 and 26 match.
+- Both Chargy startup commands left maintenance mode enabled after boot.
+  Verified no pending migration and running workers before clearing maintenance
+  mode. Both sites recovered without app redeployment. All 24 services `1/1`.
+- November 14 Duplicati backup completed successfully and catalogs the same-day
+  MariaDB/PePs dumps and Portainer archive. Restore test still outstanding.
+- Peter confirmed the Vaultwarden smoke test and redeployed FLOC and both
+  Chargy instances. Running releases `v3.0.12` and `2.3.2` include the
+  verified Symfony Mime fixes; origin login and PHP-FPM checks passed.
+- [Full verification, application follow-ups, and rollback files](maintenance-2026-11-15.md).
+
 ## 2026-10-31 - Backup Schedule Alignment Follow-Up
 
 - With Peter's approval, moved only the two root cron preparation hours from
